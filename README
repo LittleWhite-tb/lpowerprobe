@@ -1,0 +1,23 @@
+lPowerProbe - A light benchmark tool oriented for energy probing heavely based on likwid
+
+Compilation :
+
+    make
+
+Usage :
+
+./lPowerProbe [OPTION] prog args
+  -h, --help				Display this help
+      --repetition=NUMBER		Number of repetition for the test
+      --duplicate=NUMBER		Number of process to start
+      --pinning="pin1;pin2;..."		Where to pin the processes
+
+
+The result is output in a file called 'output.csv'.
+
+
+Generate documentation :
+
+    make doc
+
+
