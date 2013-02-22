@@ -38,7 +38,6 @@ void Experimentation::startExperimentation(const std::string& test, const std::v
          {
             if ( m_pinning.size() != 0 )
             {
-               std::cout << "Does pin ?" << std::endl;
                // Pin it
                CPUUtils::pinCPU(m_pinning[process]);
             }

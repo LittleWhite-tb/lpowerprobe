@@ -269,9 +269,15 @@ void Runner::start(const std::string& test, const std::vector<std::string>& args
    
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
 	{
-      std::cout << "Repetition - " << metaRepet << std::endl;
+      if ( processNumber == 0 )
+      {
+         std::cout << "Repetition - " << metaRepet << std::endl;
+      }
       evaluation(m_runResults,test,args,metaRepet,processNumber);
    }
    
-   saveResults();
+   if ( processNumber == 0 )
+   {
+      saveResults();
+   }
 }
