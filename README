@@ -19,5 +19,10 @@ The result is output in a file called 'output.csv'.
 Generate documentation :
 
     make doc
+    
+Licence :
+
+   GPLv3
+   See COPYRIGHT file
 
 
