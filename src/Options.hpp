@@ -42,12 +42,15 @@ private:
    std::string m_execName;
    std::vector<std::string> m_args;
    
+   std::string m_outputFile;
+   
    /**
     * Default values
     */
    static const unsigned int DEFAULT_NUMBER_PROCESS = 1;
    static const unsigned int DEFAULT_NUMBER_REPET = 1;
    static const unsigned int DEFAULT_NUMBER_METAREPET = 5;
+   static const std::string DEFAULT_OUTPUT_FILE;
    
    
    /**
@@ -141,6 +144,18 @@ public:
     * \return true if there is a missing options
     */
    bool hasMissingOptions();
+   
+   /**
+    * Specify a result file
+    * \param pOutputFile
+    */
+   void setOutputFile(const char* pOutputFile);
+   
+   /**
+    * Get the outputFile 
+    */
+   const std::string& getOutputFile()const;
+   
 };
 
 #endif

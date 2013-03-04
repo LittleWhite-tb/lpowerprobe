@@ -23,6 +23,8 @@
 #include <sstream>
 #include <cassert>
 
+const std::string Options::DEFAULT_OUTPUT_FILE="output.csv";
+
 void Options::checkOverride(unsigned int oldValue, unsigned int newValue, const std::string& optionName)
 {
    if ( oldValue != 0 && oldValue != newValue )
@@ -153,6 +155,12 @@ void Options::setDefaultValues()
       std::cout << "Number of meta repetition set to default value -> " << DEFAULT_NUMBER_METAREPET << std::endl;
       m_nbMetaRepet = DEFAULT_NUMBER_METAREPET;
    }
+   
+   if ( m_outputFile.empty() )
+   {
+      std::cout << "Output file set to default value -> " << DEFAULT_OUTPUT_FILE << std::endl;
+      m_outputFile = DEFAULT_OUTPUT_FILE;
+   }
 }
 
 bool Options::hasMissingOptions()
@@ -172,4 +180,21 @@ bool Options::hasMissingOptions()
    }
    
    return false;
+}
+
+void Options::setOutputFile(const char* pOutputFile)
+{
+   assert(pOutputFile);
+   
+   if ( !m_outputFile.empty() )
+   {
+      std::cerr << "You are overriding exec name" << std::endl;
+   }
+   
+   m_outputFile = std::string(pOutputFile);
+}
+
+const std::string& Options::getOutputFile()const
+{
+   return m_outputFile;
 }

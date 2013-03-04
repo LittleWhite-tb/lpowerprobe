@@ -64,7 +64,7 @@ public:
     * \param test the program to bench
     * \param args the arguments to pass to the program
     */
-   void startExperimentation(const std::string& test, const std::vector<std::string>& args);
+   void startExperimentation(const std::string& test, const std::vector<std::string>& args, const std::string& outputFile);
 };
 
 #endif

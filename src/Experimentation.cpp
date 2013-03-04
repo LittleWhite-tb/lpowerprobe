@@ -43,10 +43,10 @@ Experimentation::~Experimentation()
 {
 }
 
-void Experimentation::startExperimentation(const std::string& test, const std::vector<std::string>& args)
+void Experimentation::startExperimentation(const std::string& test, const std::vector<std::string>& args, const std::string& outputFile)
 { 
    std::vector<pid_t> m_pids;
-   Runner run(m_probePaths,"./output.csv",m_nbProcess,m_nbMetaRepet);
+   Runner run(m_probePaths,outputFile,m_nbProcess,m_nbMetaRepet);
    
    for ( unsigned int repet = 0 ; repet < m_nbRepet ; repet++ )
    {

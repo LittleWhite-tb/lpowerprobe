@@ -30,6 +30,7 @@ const int ID_ARG_REPETITION = 1;
 const int ID_ARG_METAREPETITION = 2;
 const int ID_ARG_PROCESS = 3;
 const int ID_ARG_PINNING = 4;
+const int ID_ARG_OUTPUT = 5;
 
 static struct option long_options[] =
 {
@@ -38,6 +39,7 @@ static struct option long_options[] =
    // {"meta-repetition", required_argument,   0, ID_ARG_METAREPETITION},
    {"duplicate", required_argument,   0, ID_ARG_PROCESS},
    {"pinning", required_argument,   0, ID_ARG_PINNING},
+   {"output", required_argument,   0, ID_ARG_OUTPUT},
    {0,0,0,0}
 };
 
@@ -58,6 +60,7 @@ void usage()
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;
    std::cout << "  -p, --pinning=\"pin1;pin2;...\"\tWhere to pin the processes" << std::endl;
+   std::cout << "  -o, --output=\"resultFile\"\tWhere to write the results" << std::endl;
    exit(EXIT_SUCCESS);
 }
 
@@ -69,7 +72,7 @@ int main(int argc, char** argv)
    
    while(1)
    {
-      opt = getopt_long(argc, argv, "r:d:p:h", long_options, &option_index);
+      opt = getopt_long(argc, argv, "r:d:p:o:h", long_options, &option_index);
       if (opt == -1 )
          break;
       
@@ -137,6 +140,12 @@ int main(int argc, char** argv)
                }
             }
             break;
+         case ID_ARG_OUTPUT:
+         case 'o':
+            {
+               options.setOutputFile(optarg);
+            }
+            break;
          case 'h':
             usage();
             break;
@@ -172,7 +181,7 @@ int main(int argc, char** argv)
    }
    
    Experimentation e(options.getNbProcess(), options.getPinning(), options.getNbRepetition(), options.getNbMetaRepetition());
-   e.startExperimentation(options.getExecName(),options.getArgs());
+   e.startExperimentation(options.getExecName(),options.getArgs(),options.getOutputFile());
    
    return 0;
 }
