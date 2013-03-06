@@ -32,11 +32,11 @@
 #include "Runner.hpp"
 #include "CPUUtils.hpp"
 
-Experimentation::Experimentation(unsigned int nbProcess, const std::vector<unsigned int>& pinning, unsigned int nbRepet, unsigned int nbMetaRepet)
+Experimentation::Experimentation(const std::string& programPath, unsigned int nbProcess, const std::vector<unsigned int>& pinning, unsigned int nbRepet, unsigned int nbMetaRepet)
    :m_nbProcess(nbProcess),m_pinning(pinning),m_nbRepet(nbRepet),m_nbMetaRepet(nbMetaRepet)
 {
-   m_probePaths.push_back("probes/energy_snb_msr/energy_msr_snb.so");
-   m_probePaths.push_back("probes/wallclock/wallclock.so");
+   m_probePaths.push_back(programPath + "probes/energy_snb_msr/energy_msr_snb.so");
+   m_probePaths.push_back(programPath + "probes/wallclock/wallclock.so");
 }
 
 Experimentation::~Experimentation()

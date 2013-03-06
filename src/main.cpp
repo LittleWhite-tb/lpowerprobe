@@ -70,6 +70,8 @@ int main(int argc, char** argv)
    int option_index = 0;
    Options options;
    
+   options.setProgramPath(argv[0]);
+   
    while(1)
    {
       opt = getopt_long(argc, argv, "r:d:p:o:h", long_options, &option_index);
@@ -180,7 +182,7 @@ int main(int argc, char** argv)
       usage();
    }
    
-   Experimentation e(options.getNbProcess(), options.getPinning(), options.getNbRepetition(), options.getNbMetaRepetition());
+   Experimentation e(options.getProgramPath(), options.getNbProcess(), options.getPinning(), options.getNbRepetition(), options.getNbMetaRepetition());
    e.startExperimentation(options.getExecName(),options.getArgs(),options.getOutputFile());
    
    return 0;

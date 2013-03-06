@@ -48,12 +48,13 @@ private:
    
 public:
    /**
+    * \param programPath the program path used to run the program the number
     * \param nbProcess the number of process to start
     * \param pinning the process pinning
     * \param nbRepet the number of repetition
     * \param nbMetaRepet the number of meta repetition
     */
-   Experimentation(unsigned int nbProcess, const std::vector<unsigned int>& pinning, unsigned int nbRepet, unsigned int nbMetaRepet);
+   Experimentation(const std::string& programPath, unsigned int nbProcess, const std::vector<unsigned int>& pinning, unsigned int nbRepet, unsigned int nbMetaRepet);
    
    /**
     */
