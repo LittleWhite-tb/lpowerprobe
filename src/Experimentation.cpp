@@ -44,9 +44,9 @@ Experimentation::~Experimentation()
 }
 
 void Experimentation::startExperimentation(const std::string& test, const std::vector<std::string>& args, const std::string& outputFile)
-{ 
+{
+   Runner run(m_probePaths, outputFile, m_nbProcess, m_nbMetaRepet);
    std::vector<pid_t> m_pids;
-   Runner run(m_probePaths,outputFile,m_nbProcess,m_nbMetaRepet);
    
    for ( unsigned int repet = 0 ; repet < m_nbRepet ; repet++ )
    {
@@ -60,10 +60,10 @@ void Experimentation::startExperimentation(const std::string& test, const std::v
                // Pin it
                CPUUtils::pinCPU(m_pinning[process]);
             }
-            CPUUtils::setFifoMaxPriority(-2);
+            CPUUtils::setFifoMaxPriority(-1);
             
             run.start(test, args, process);
-            
+
             // Need to finish the son here
             _exit(EXIT_SUCCESS);
          }

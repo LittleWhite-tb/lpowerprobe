@@ -47,9 +47,9 @@ Runner::Runner(const std::vector<std::string>& probePaths, const std::string& re
    m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_probes.size(),std::pair<double, double>(0,0))));
    m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_probes.size(),std::pair<double, double>(0,0))));
    
-   
+   // open fatherLock
    int shareSeg;
-   if ((shareSeg = shm_open("shmFather", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open("/shmFather", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -66,14 +66,14 @@ Runner::Runner(const std::vector<std::string>& probePaths, const std::string& re
       exit(1);
    }
    
-   if ( sem_init(m_fatherLock,1,0) != 0 )
+   if ( sem_init(m_fatherLock, 1, 0) != 0 )
    {
       std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
       perror("sem_init");
    }
    
-   
-   if ((shareSeg = shm_open("shmProcess", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   // open processLock
+   if ((shareSeg = shm_open("/shmProcess", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -89,7 +89,30 @@ Runner::Runner(const std::vector<std::string>& probePaths, const std::string& re
     exit(1);
   }
    
-   if ( sem_init(m_processLock,2,0) != 0 )
+   if ( sem_init(m_processLock, 1, 0) != 0 )
+   {
+      std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
+      perror("sem_init");
+   }
+
+   // open processEndLock
+   if ((shareSeg = shm_open("/shmProcessEnd", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   {
+      perror("shm_open");
+      exit(1);
+   }
+
+  if ( ftruncate(shareSeg, sizeof(sem_t)) < 0 ) {
+    perror("ftruncate");
+    exit(1);
+  }
+
+  if ((m_processEndLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED, shareSeg, 0)) == MAP_FAILED) {
+    perror("mmap");
+    exit(1);
+  }
+   
+   if ( sem_init(m_processEndLock, 1, 0) != 0 )
    {
       std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
       perror("sem_init");
@@ -102,12 +125,15 @@ Runner::~Runner()
    {
       delete *itProbe;
    }
+      
+   sem_destroy(m_processEndLock);
+   shm_unlink("/shmProcessEnd");
    
    sem_destroy(m_processLock);
-   shm_unlink("shmProcess");
+   shm_unlink("/shmProcess");
    
    sem_destroy(m_fatherLock);
-   shm_unlink("shmFather");
+   shm_unlink("/shmFather");
 }
 
 void Runner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
@@ -165,8 +191,42 @@ void Runner::evaluation(GlobalResultsArray& resultArray, const std::string& test
          {
             broken = true;
          }
-      }   
-   }while(broken);
+      }
+
+      // ensure all the tasks finished before going to the next iteration
+      if (processNumber == 0)
+      {
+         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
+         {
+            if ( sem_wait(m_fatherLock) != 0 )
+            {
+               perror("sem_wait father");
+            }
+         }
+
+         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
+         {
+            if ( sem_post(m_processEndLock) != 0 )
+            {
+               perror("sem_post processEnd");
+            }
+         }
+      }
+      else
+      {
+         if ( sem_post(m_fatherLock) != 0 )
+         {
+            perror("sem_post");
+         }
+      
+         if ( sem_wait(m_processEndLock) != 0 )
+         {
+            perror("sem_wait");
+         }
+      }
+
+
+   } while(broken);
    
    for (unsigned int i = 0 ; i < nbArgs+1 ; i++ )
    {
@@ -186,7 +246,7 @@ void Runner::startTest(const std::string& programName, char** pArgv, unsigned in
 		}
 		case 0:
 		{
-         CPUUtils::setFifoMaxPriority(-1);
+         CPUUtils::setFifoMaxPriority(-2);
          if ( sem_post(m_fatherLock) != 0 )
          {
             perror("sem_post");
@@ -196,24 +256,28 @@ void Runner::startTest(const std::string& programName, char** pArgv, unsigned in
          {
             perror("sem_wait");
          }
-         
+
          execvp (programName.c_str(), pArgv);
-         exit(EXIT_SUCCESS);
+         exit(EXIT_FAILURE);
       }
       default:
 		{
 			// Father
 			int status;
          
+         // synchronized start
          if ( processNumber == 0 )
          {
-            for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
+            for ( unsigned int i = 0 ; i < m_nbProcess ; i++ )
             {
                if ( sem_wait(m_fatherLock) != 0 )
                {
                   perror("sem_wait father");
                }
-               
+            }
+
+            for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
+            {        
                if ( sem_post(m_processLock) != 0 )
                {
                   perror("sem_post process");

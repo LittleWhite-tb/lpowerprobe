@@ -50,9 +50,12 @@ void CPUUtils::setFifoMaxPriority(int offset)
    assert(offset < 0);
    
    sched_getparam(0, &sp);
-   sp.sched_priority = sched_get_priority_max(SCHED_FIFO) + offset;
-   if (sched_setscheduler(0, SCHED_FIFO, &sp))
+   //sp.sched_priority = sched_get_priority_max(SCHED_OTHER) + offset;
+   sp.sched_priority = sched_get_priority_max(SCHED_OTHER);
+   if (sched_setscheduler(0, SCHED_OTHER, &sp))
    {
       perror("setscheduler background");
    }
+
+   nice(-20 - offset);
 }

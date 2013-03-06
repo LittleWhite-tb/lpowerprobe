@@ -55,8 +55,9 @@ private:
    GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
    GlobalResultsArray m_runResults; /*!< Probe results for the run test */
    
-   sem_t* m_fatherLock;    /*!< Process test synchronisation */
-   sem_t* m_processLock;   /*!< Process test synchronisation */
+   sem_t* m_fatherLock;       /*!< Process test synchronisation */
+   sem_t* m_processLock;      /*!< Process test synchronisation */
+   sem_t* m_processEndLock;   /*!< Process end synchronisation */
    
    /**
     * Starter for the overhead benchmark
