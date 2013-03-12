@@ -32,7 +32,7 @@ EXEC=lPowerProbe
 all: $(EXEC) test libs
 
 $(EXEC): $(OBJ)
-	$(LD) $(LDFLAGS) $(OBJ) -o $@
+	$(LD) $(OBJ) -o $@ $(LDFLAGS) 
 
 %.o: %.cpp *.hpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -57,4 +57,4 @@ clean:
 	make -C ./empty/ clean
 	make -C probes/energy_snb_msr clean
 	make -C probes/wallclock clean
-	rm -rf $(EXEC)
+	rm -rf $(EXEC) $(OBJ)
