@@ -34,7 +34,7 @@ void Options::checkOverride(unsigned int oldValue, unsigned int newValue, const 
 }
 
 Options::Options()
-   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0)
+   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_memorySize(0)
 {
 }
 
@@ -107,6 +107,18 @@ void Options::setNbMetaRepetition(unsigned int numberMetaRepetition)
    m_nbMetaRepet = numberMetaRepetition;
 }
 
+size_t Options::getMemorySize()const
+{
+   return m_memorySize;
+}
+
+void Options::setMemorySize(size_t memsize)
+{
+   checkOverride(m_memorySize,memsize,"memory size");
+   
+   m_memorySize = memsize;
+}
+
 const std::string& Options::getExecName()const
 {
    return m_execName;
@@ -134,6 +146,18 @@ void Options::addArg(const char* pArgs)
    assert(pArgs);
    
    m_args.push_back(std::string(pArgs));
+}
+
+bool Options::isExecKernel()const
+{
+   // Actually the check is only based on having a .s extension
+   if ( m_execName[m_execName.length()-2] == '.' &&
+        m_execName[m_execName.length()-1] == 's' )
+   {
+      return true;
+   }
+         
+   return false;
 }
 
 void Options::setDefaultValues()
@@ -167,7 +191,20 @@ bool Options::hasMissingOptions()
 {
    if ( m_execName.empty() )
    {
+      std::cout << "You did not give an program to run" << std::endl;
       return true;
+   }
+   
+   if ( isExecKernel() && m_memorySize == 0 )
+   {
+      std::cout << "You did not specify the memory size for kernel execution" << std::endl;
+      return true;
+   }
+   // Additional check to tell that some options are ignored
+   // TO FIX/TODO : Maybe this test should not be here
+   if ( !isExecKernel() && m_memorySize )
+   {
+      std::cout << "The memory size that you have specified is ignored since we are running a kernel" << std::endl;
    }
    
    if ( m_nbProcess != 1 )

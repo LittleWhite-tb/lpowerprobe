@@ -31,6 +31,7 @@ const int ID_ARG_METAREPETITION = 2;
 const int ID_ARG_PROCESS = 3;
 const int ID_ARG_PINNING = 4;
 const int ID_ARG_OUTPUT = 5;
+const int ID_ARG_MEMSIZE = 6;
 
 static struct option long_options[] =
 {
@@ -40,6 +41,7 @@ static struct option long_options[] =
    {"duplicate", required_argument,   0, ID_ARG_PROCESS},
    {"pinning", required_argument,   0, ID_ARG_PINNING},
    {"output", required_argument,   0, ID_ARG_OUTPUT},
+   {"mem-size", required_argument,   0, ID_ARG_MEMSIZE},
    {0,0,0,0}
 };
 
@@ -61,6 +63,7 @@ void usage()
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;
    std::cout << "  -p, --pinning=\"pin1;pin2;...\"\tWhere to pin the processes" << std::endl;
    std::cout << "  -o, --output=\"resultFile\"\tWhere to write the results" << std::endl;
+   std::cout << "  -m, --mem-size=NUMBER\t\tThe memory size in bytes to use for kernel" << std::endl;
    exit(EXIT_SUCCESS);
 }
 
@@ -72,16 +75,10 @@ int main(int argc, char** argv)
    
    while(1)
    {
-      opt = getopt_long(argc, argv, "r:d:p:o:h", long_options, &option_index);
+      opt = getopt_long(argc, argv, "r:d:p:o:hm:", long_options, &option_index);
       if (opt == -1 )
          break;
       
-      
-      std::cout << "Opt : " << opt;
-      if ( optarg )
-      {
-         std::cout << " with '" << optarg << std::endl;
-      }
       
       switch (opt)
       {
@@ -146,6 +143,22 @@ int main(int argc, char** argv)
                options.setOutputFile(optarg);
             }
             break;
+            
+         case ID_ARG_MEMSIZE:
+         case 'm':
+            {
+               size_t memsize = 0;
+               if ( from_string<size_t>(optarg,memsize) )
+               {
+                  options.setMemorySize(memsize);
+               }
+               else
+               {
+                  std::cerr << "Invalid argument for --mem-size option" << std::endl;
+                  usage();
+               }
+            }
+            break;
          case 'h':
             usage();
             break;
@@ -180,8 +193,10 @@ int main(int argc, char** argv)
       usage();
    }
    
+
    Experimentation e(options.getNbProcess(), options.getPinning(), options.getNbRepetition(), options.getNbMetaRepetition());
    e.startExperimentation(options.getExecName(),options.getArgs(),options.getOutputFile());
-   
+
+
    return 0;
 }

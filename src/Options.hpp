@@ -28,6 +28,8 @@
  * The method \a setDefaultValues() sets the default values to unset options
  * then, you can check with \a hasMissingOptions() function if all the needed
  * options have been specified.
+ * 
+ * The me
  */
 class Options
 {
@@ -38,6 +40,8 @@ private:
    
    unsigned int m_nbRepet;
    unsigned int m_nbMetaRepet;
+   
+   size_t m_memorySize; /*!< memory size for kernel usage */
    
    std::string m_execName;
    std::vector<std::string> m_args;
@@ -113,6 +117,16 @@ public:
    void setNbMetaRepetition(unsigned int numberMetaRepetition);
    
    /**
+    * \return the memory size the user wants for his kernel
+    */
+   size_t getMemorySize()const;
+   
+   /**
+    * \param memsize the memory size the user wants for his kernel
+    */
+   void setMemorySize(size_t numberMetaRepetition);
+   
+   /**
     * \return the test name
     */
    const std::string& getExecName()const;
@@ -133,6 +147,11 @@ public:
     * \param pArg the new argument
     */
    void addArg(const char* pArg);
+   
+   /**
+    * \return true if the exec is a kernel
+    */
+   bool isExecKernel()const;
    
    /**
     * Set the default values to unset options
