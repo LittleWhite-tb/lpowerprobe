@@ -194,8 +194,8 @@ int main(int argc, char** argv)
    }
    
 
-   Experimentation e(options.getNbProcess(), options.getPinning(), options.getNbRepetition(), options.getNbMetaRepetition());
-   e.startExperimentation(options.getExecName(),options.getArgs(),options.getOutputFile());
+   Experimentation e(options);
+   e.startExperimentation();
 
 
    return 0;

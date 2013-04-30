@@ -29,11 +29,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "Options.hpp"
 #include "Runner.hpp"
 #include "CPUUtils.hpp"
 
-Experimentation::Experimentation(unsigned int nbProcess, const std::vector<unsigned int>& pinning, unsigned int nbRepet, unsigned int nbMetaRepet)
-   :m_nbProcess(nbProcess),m_pinning(pinning),m_nbRepet(nbRepet),m_nbMetaRepet(nbMetaRepet)
+Experimentation::Experimentation(const Options& options)
+   :m_options(options)
 {
    m_probePaths.push_back("probes/energy_snb_msr/energy_msr_snb.so");
    m_probePaths.push_back("probes/wallclock/wallclock.so");
@@ -43,22 +44,30 @@ Experimentation::~Experimentation()
 {
 }
 
-void Experimentation::startExperimentation(const std::string& test, const std::vector<std::string>& args, const std::string& outputFile)
+void Experimentation::startExperimentation()
 {
-   Runner run(m_probePaths, outputFile, m_nbProcess, m_nbMetaRepet);
+   // Gets the options to run the test
+   const std::string& test = m_options.getExecName();
+   const std::vector<std::string>& args = m_options.getArgs();
+   
+   unsigned int nbRepet(m_options.getNbRepetition());
+   unsigned int nbProcess(m_options.getNbProcess());
+   std::vector<unsigned int> pinning(m_options.getPinning());
+   
+   Runner run(m_probePaths, m_options.getOutputFile(), nbProcess, m_options.getNbMetaRepetition());
    std::vector<pid_t> m_pids;
    
-   for ( unsigned int repet = 0 ; repet < m_nbRepet ; repet++ )
+   for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
    {
-      for ( unsigned int process = 0 ; process < m_nbProcess ; process++ )
+      for ( unsigned int process = 0 ; process < nbProcess ; process++ )
       {
          pid_t pid = fork();
          if ( pid == 0 ) // Son
          {
-            if ( m_pinning.size() != 0 )
+            if ( pinning.size() != 0 )
             {
                // Pin it
-               CPUUtils::pinCPU(m_pinning[process]);
+               CPUUtils::pinCPU(pinning[process]);
             }
             CPUUtils::setFifoMaxPriority(-1);
             
@@ -80,7 +89,7 @@ void Experimentation::startExperimentation(const std::string& test, const std::v
       }
       
       // Wait for all the child to finish
-      for (unsigned int i = 0 ; i < m_nbProcess ; i++)
+      for (unsigned int i = 0 ; i < nbProcess ; i++)
       {
          int status=0;
 
