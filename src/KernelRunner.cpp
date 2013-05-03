@@ -36,8 +36,8 @@
 
 #include "CPUUtils.hpp" 
 
-KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std::string& resultFileName, void* pKernelFct, unsigned long int nbKernelIteration, size_t memorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_resultFile(resultFileName.c_str()),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_memorySize(memorySize),m_nbKernelIteration(nbKernelIteration)
+KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std::string& resultFileName, void* pKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
+   :m_resultFile(resultFileName.c_str()),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_iterationMemorySize(iterationMemorySize),m_nbKernelIteration(nbKernelIteration)
 {
    assert(m_pKernelFct);
    
@@ -51,8 +51,8 @@ KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std
    m_memory.resize(m_nbProcess,0);
    for ( std::vector<char*>::iterator itMem = m_memory.begin() ; itMem != m_memory.end() ; ++itMem )
    {
-      *itMem = new char[m_memorySize * m_nbKernelIteration];
-      memset(*itMem,0,m_memorySize * m_nbKernelIteration);
+      *itMem = new char[m_iterationMemorySize * m_nbKernelIteration];
+      memset(*itMem,0,m_iterationMemorySize * m_nbKernelIteration);
    }
    
    // open fatherLock
@@ -152,12 +152,12 @@ KernelRunner::~KernelRunner()
 void KernelRunner::flushCaches(unsigned int nbProcess)
 {
    char c = 0;
-   for (size_t i = 0 ; i < m_memorySize ; i++)
+   for (size_t i = 0 ; i < m_iterationMemorySize ; i++)
    {
       c += m_memory[nbProcess][i];
    }
    
-   m_memory[nbProcess][0] = c/m_memorySize;
+   m_memory[nbProcess][0] = c/m_iterationMemorySize;
 }
 
 void KernelRunner::evaluation(GlobalResultsArray& resultArray, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
@@ -324,7 +324,7 @@ void KernelRunner::start(unsigned int processNumber)
       }
       
       flushCaches(processNumber);
-      evaluation(m_runResults,m_memory,m_nbKernelIteration,m_memorySize,metaRepet,processNumber);
+      evaluation(m_runResults,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
    }
    
    if ( processNumber == 0 )

@@ -34,7 +34,7 @@ void Options::checkOverride(unsigned int oldValue, unsigned int newValue, const 
 }
 
 Options::Options()
-   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_memorySize(0),m_nbKernelIteration(0)
+   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_iterationMemorySize(0),m_nbKernelIteration(0)
 {
 }
 
@@ -107,16 +107,16 @@ void Options::setNbMetaRepetition(unsigned int numberMetaRepetition)
    m_nbMetaRepet = numberMetaRepetition;
 }
 
-size_t Options::getMemorySize()const
+size_t Options::getIterationMemorySize()const
 {
-   return m_memorySize;
+   return m_iterationMemorySize;
 }
 
-void Options::setMemorySize(size_t memsize)
+void Options::setIterationMemorySize(size_t iterationMemSize)
 {
-   checkOverride(m_memorySize,memsize,"memory size");
+   checkOverride(m_iterationMemorySize,iterationMemSize,"iteration memory size");
    
-   m_memorySize = memsize;
+   m_iterationMemorySize = iterationMemSize;
 }
 
 unsigned long int Options::getNbKernelIteration()const
@@ -213,16 +213,20 @@ bool Options::hasMissingOptions()
       return true;
    }
    
-   if ( isExecKernel() && m_memorySize == 0 )
+   if ( isExecKernel() && m_iterationMemorySize == 0 )
    {
-      std::cout << "You did not specify the memory size for kernel execution" << std::endl;
+      std::cout << "You did not specify the iteration memory size for kernel execution" << std::endl;
       return true;
    }
    // Additional check to tell that some options are ignored
    // TO FIX/TODO : Maybe this test should not be here
-   if ( !isExecKernel() && m_memorySize )
+   if ( !isExecKernel() && m_iterationMemorySize )
    {
-      std::cout << "The memory size that you have specified is ignored since we are running a kernel" << std::endl;
+      std::cout << "The iteration memory size that you have specified is ignored since we are running a program" << std::endl;
+   }
+   if ( !isExecKernel() && m_nbKernelIteration )
+   {
+      std::cout << "The number of kernel iteration that you have specified is ignored since we are running a program" << std::endl;
    }
    
    if ( m_nbProcess != 1 )

@@ -44,8 +44,8 @@ static struct option long_options[] =
    {"duplicate", required_argument,   0, ID_ARG_PROCESS},
    {"pinning", required_argument,   0, ID_ARG_PINNING},
    {"output", required_argument,   0, ID_ARG_OUTPUT},
-   {"mem-size", required_argument,   0, ID_ARG_MEMSIZE},
-   {"kernel-iteration", required_argument,   0, ID_ARG_KERNELITER},
+   {"iteration-mem-size", required_argument,   0, ID_ARG_MEMSIZE},
+   {"iteration", required_argument,   0, ID_ARG_KERNELITER},
    {0,0,0,0}
 };
 
@@ -74,8 +74,8 @@ void usage()
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;
    std::cout << "  -p, --pinning=\"pin1;pin2;...\"\tWhere to pin the processes" << std::endl;
    std::cout << "  -o, --output=\"resultFile\"\tWhere to write the results" << std::endl;
-   std::cout << "  -m, --mem-size=NUMBER\t\tThe memory size in bytes to use for kernel" << std::endl;
-   std::cout << "  -k, --kernel-iteration=NUMBER\t\tThe number of kernel iteration" << std::endl;
+   std::cout << "  -m, --iteration-mem-size=NUMBER\t\tThe memory size in bytes used in the kernel per iteration" << std::endl;
+   std::cout << "  -i, --iteration=NUMBER\t\tThe number of kernel iteration" << std::endl;
    exit(EXIT_SUCCESS);
 }
 
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
    
    while(1)
    {
-      opt = getopt_long(argc, argv, "r:d:p:o:m:k:h", long_options, &option_index);
+      opt = getopt_long(argc, argv, "r:d:p:o:m:i:h", long_options, &option_index);
       if (opt == -1 )
          break;
       
@@ -161,21 +161,21 @@ int main(int argc, char** argv)
          case ID_ARG_MEMSIZE:
          case 'm':
             {
-               size_t memsize = 0;
-               if ( from_string<size_t>(optarg,memsize) )
+               size_t iterationMemorySize = 0;
+               if ( from_string<size_t>(optarg,iterationMemorySize) )
                {
-                  options.setMemorySize(memsize);
+                  options.setIterationMemorySize(iterationMemorySize);
                }
                else
                {
-                  std::cerr << "Invalid argument for --mem-size option" << std::endl;
+                  std::cerr << "Invalid argument for --iteration-mem-size option" << std::endl;
                   usage();
                }
             }
             break;
          
          case ID_ARG_KERNELITER:
-         case 'k':
+         case 'i':
             {
                size_t nbKernelIteration = 0;
                if ( from_string<unsigned long int>(optarg,nbKernelIteration) )

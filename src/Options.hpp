@@ -41,7 +41,7 @@ private:
    unsigned int m_nbRepet;
    unsigned int m_nbMetaRepet;
    
-   size_t m_memorySize; /*!< memory size for kernel usage */
+   size_t m_iterationMemorySize; /*!< memory size for kernel usage */
    unsigned long int m_nbKernelIteration;
    
    std::string m_execName;
@@ -119,14 +119,14 @@ public:
    void setNbMetaRepetition(unsigned int numberMetaRepetition);
    
    /**
-    * \return the memory size the user wants for his kernel
+    * \return the memory size used by one kernel iteration that the user wants for his kernel
     */
-   size_t getMemorySize()const;
+   size_t getIterationMemorySize()const;
    
    /**
-    * \param memsize the memory size the user wants for his kernel
+    * \param iterationMemSize the memory size used by one kernel iteration the user wants for his kernel
     */
-   void setMemorySize(size_t memsize);
+   void setIterationMemorySize(size_t iterationMemSize);
    
    /**
     * \return the number of kernel iteration

@@ -139,7 +139,7 @@ void Experimentation::startKernelExperimentation()
    unsigned int nbProcess(m_options.getNbProcess());
    std::vector<unsigned int> pinning(m_options.getPinning());
    
-   KernelRunner run(m_probePaths, m_options.getOutputFile(), pKernelFct, m_options.getNbKernelIteration(), m_options.getMemorySize(), nbProcess, m_options.getNbMetaRepetition());
+   KernelRunner run(m_probePaths, m_options.getOutputFile(), pKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
    std::vector<pid_t> m_pids;
    
    for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )

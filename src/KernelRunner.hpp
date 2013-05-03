@@ -54,7 +54,7 @@ private:
    
    // Contain the memory segment for each process
    std::vector<char*> m_memory;
-   size_t m_memorySize;
+   size_t m_iterationMemorySize;
    
    size_t m_nbKernelIteration;
    
@@ -109,7 +109,7 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   KernelRunner(const std::vector<std::string>& probePaths, const std::string& resultFileName, void* pKernelFct, unsigned long int nbKernelIteration, size_t memorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
+   KernelRunner(const std::vector<std::string>& probePaths, const std::string& resultFileName, void* pKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
    
    /**
     */
