@@ -94,14 +94,6 @@ private:
    void evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber);
    
    /**
-    * Start the real test in a fork. Synchonises all active process starting the test
-    * 
-    * 
-    * \param processNumber the actual process number
-    */
-   void startTest(KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int processNumber);
-   
-   /**
     * Saves the result in a file after applying the overhead bias
     */
    void saveResults();

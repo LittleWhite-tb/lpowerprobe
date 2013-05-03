@@ -223,7 +223,6 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
          resultArray[processNumber][metaRepet][i].first = m_probes[i]->startMeasure();
       }
       
-      // startTest(pKernelFct, memory, nbKernelIteration, size, processNumber);
       pKernelFct(nbKernelIteration, memory[processNumber], size);
       
       for (i = m_probes.size()-1 ; i >= 0; i--) /* Eval Stop */
@@ -270,76 +269,6 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
 
 
    } while(broken);
-}
-
-void KernelRunner::startTest(KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int processNumber)
-{
-   pid_t pid = -1;
-   switch (pid = fork ())
-	{
-		case -1:
-		{
-			exit (EXIT_FAILURE);
-		}
-		case 0:
-		{
-         CPUUtils::setFifoMaxPriority(-2);
-         if ( sem_post(m_fatherLock) != 0 )
-         {
-            perror("sem_post");
-         }
-         
-         if ( sem_wait(m_processLock) != 0 )
-         {
-            perror("sem_wait");
-         }
-
-         pKernelFct(nbKernelIteration, memory[processNumber], size);
-         exit(EXIT_SUCCESS);
-      }
-      default:
-		{
-			// Father
-			int status;
-         
-         // synchronized start
-         if ( processNumber == 0 )
-         {
-            for ( unsigned int i = 0 ; i < m_nbProcess ; i++ )
-            {
-               if ( sem_wait(m_fatherLock) != 0 )
-               {
-                  perror("sem_wait father");
-               }
-            }
-
-            for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
-            {        
-               if ( sem_post(m_processLock) != 0 )
-               {
-                  perror("sem_post process");
-               }
-            }
-         }
-         
-			waitpid (pid, &status, 0);
-			
-			int res = WEXITSTATUS (status);
-			/* Child must end normally */
-			if (WIFEXITED (status) == 0)
-			{
-				if (WIFSIGNALED (status))
-				{
-					 psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
-					 exit (EXIT_FAILURE);
-				}
-				std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
-				exit (EXIT_FAILURE);
-			}
-         
-			break;
-		}
-   }
 }
 
 void KernelRunner::saveResults()
