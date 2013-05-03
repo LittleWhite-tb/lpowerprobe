@@ -26,12 +26,15 @@
 #include "Experimentation.hpp"
 #include "Options.hpp"
 
+#include "version.hpp"
+
 const int ID_ARG_REPETITION = 1;
 const int ID_ARG_METAREPETITION = 2;
 const int ID_ARG_PROCESS = 3;
 const int ID_ARG_PINNING = 4;
 const int ID_ARG_OUTPUT = 5;
 const int ID_ARG_MEMSIZE = 6;
+const int ID_ARG_KERNELITER = 7;
 
 static struct option long_options[] =
 {
@@ -42,6 +45,7 @@ static struct option long_options[] =
    {"pinning", required_argument,   0, ID_ARG_PINNING},
    {"output", required_argument,   0, ID_ARG_OUTPUT},
    {"mem-size", required_argument,   0, ID_ARG_MEMSIZE},
+   {"kernel-iteration", required_argument,   0, ID_ARG_KERNELITER},
    {0,0,0,0}
 };
 
@@ -54,6 +58,13 @@ bool from_string( const std::string & Str, T & Dest )
     return iss >> Dest != 0;
 }
 
+void version()
+{
+   std::cout << "./lProwerProbe © Universite de Versailles 2013" << std::endl;
+   std::cout << "\t\tversion : " + std::string(GIT_HASH) + " (" + std::string(GIT_COUNT) + ")" << std::endl;
+   std::cout << std::endl;
+}
+
 void usage()
 {
    std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
@@ -64,6 +75,7 @@ void usage()
    std::cout << "  -p, --pinning=\"pin1;pin2;...\"\tWhere to pin the processes" << std::endl;
    std::cout << "  -o, --output=\"resultFile\"\tWhere to write the results" << std::endl;
    std::cout << "  -m, --mem-size=NUMBER\t\tThe memory size in bytes to use for kernel" << std::endl;
+   std::cout << "  -k, --kernel-iteration=NUMBER\t\tThe number of kernel iteration" << std::endl;
    exit(EXIT_SUCCESS);
 }
 
@@ -73,9 +85,11 @@ int main(int argc, char** argv)
    int option_index = 0;
    Options options;
    
+   version();
+   
    while(1)
    {
-      opt = getopt_long(argc, argv, "r:d:p:o:hm:", long_options, &option_index);
+      opt = getopt_long(argc, argv, "r:d:p:o:m:k:h", long_options, &option_index);
       if (opt == -1 )
          break;
       
@@ -155,6 +169,22 @@ int main(int argc, char** argv)
                else
                {
                   std::cerr << "Invalid argument for --mem-size option" << std::endl;
+                  usage();
+               }
+            }
+            break;
+         
+         case ID_ARG_KERNELITER:
+         case 'k':
+            {
+               size_t nbKernelIteration = 0;
+               if ( from_string<unsigned long int>(optarg,nbKernelIteration) )
+               {
+                  options.setNbKernelIteration(nbKernelIteration);
+               }
+               else
+               {
+                  std::cerr << "Invalid argument for --kernel-iteration option" << std::endl;
                   usage();
                }
             }

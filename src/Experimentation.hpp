@@ -41,8 +41,12 @@ class Experimentation
 private:
 
    const Options& m_options;
+   std::string m_execFile;
 
    std::vector<std::string> m_probePaths; /*!< List of probes to load */
+   
+   void startProgramExperimentation();
+   void startKernelExperimentation();
    
 public:
    /**

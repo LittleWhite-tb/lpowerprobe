@@ -42,6 +42,7 @@ private:
    unsigned int m_nbMetaRepet;
    
    size_t m_memorySize; /*!< memory size for kernel usage */
+   unsigned long int m_nbKernelIteration;
    
    std::string m_execName;
    std::vector<std::string> m_args;
@@ -54,6 +55,7 @@ private:
    static const unsigned int DEFAULT_NUMBER_PROCESS = 1;
    static const unsigned int DEFAULT_NUMBER_REPET = 1;
    static const unsigned int DEFAULT_NUMBER_METAREPET = 5;
+   static const unsigned long int DEFAULT_NUMBER_KERNELITER = 1000;
    static const std::string DEFAULT_OUTPUT_FILE;
    
    
@@ -124,7 +126,17 @@ public:
    /**
     * \param memsize the memory size the user wants for his kernel
     */
-   void setMemorySize(size_t numberMetaRepetition);
+   void setMemorySize(size_t memsize);
+   
+   /**
+    * \return the number of kernel iteration
+    */
+   unsigned long int getNbKernelIteration()const;
+   
+   /**
+    * \param numberKernelIteration the number of kernel iteration
+    */
+   void setNbKernelIteration(unsigned long int numberKernelIteration);
    
    /**
     * \return the test name

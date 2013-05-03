@@ -34,7 +34,7 @@ void Options::checkOverride(unsigned int oldValue, unsigned int newValue, const 
 }
 
 Options::Options()
-   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_memorySize(0)
+   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_memorySize(0),m_nbKernelIteration(0)
 {
 }
 
@@ -119,6 +119,18 @@ void Options::setMemorySize(size_t memsize)
    m_memorySize = memsize;
 }
 
+unsigned long int Options::getNbKernelIteration()const
+{
+   return m_nbKernelIteration;
+}
+
+void Options::setNbKernelIteration(unsigned long int numberKernelIteration)
+{
+   checkOverride(m_nbKernelIteration,numberKernelIteration,"kernel iteration");
+   
+   m_nbKernelIteration = numberKernelIteration;
+}
+
 const std::string& Options::getExecName()const
 {
    return m_execName;
@@ -178,6 +190,12 @@ void Options::setDefaultValues()
    {
       std::cout << "Number of meta repetition set to default value -> " << DEFAULT_NUMBER_METAREPET << std::endl;
       m_nbMetaRepet = DEFAULT_NUMBER_METAREPET;
+   }
+   
+   if ( isExecKernel() && m_nbKernelIteration == 0 )
+   {
+      std::cout << "Number of kernel iteration set to default value -> " << DEFAULT_NUMBER_KERNELITER << std::endl;
+      m_nbKernelIteration = DEFAULT_NUMBER_KERNELITER;
    }
    
    if ( m_outputFile.empty() )
