@@ -39,9 +39,12 @@ class Options;
 class Experimentation
 {
 private:
+   static const std::string DUMMY_KERNEL_FILE;
 
    const Options& m_options;
    std::string m_execFile;
+   
+   std::string m_dummyKernelFile;
 
    std::vector<std::string> m_probePaths; /*!< List of probes to load */
    

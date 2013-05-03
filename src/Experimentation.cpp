@@ -37,11 +37,14 @@
 #include "Options.hpp"
 #include "CPUUtils.hpp"
 
+const std::string Experimentation::DUMMY_KERNEL_FILE = "./empty/empty.s";
+
 Experimentation::Experimentation(const Options& options)
    :m_options(options),m_execFile(options.getExecName())
 {
    m_probePaths.push_back("probes/energy_snb_msr/energy_msr_snb.so");
    m_probePaths.push_back("probes/wallclock/wallclock.so");
+   m_probePaths.push_back("probes/timer.so");
    
    if ( options.isExecKernel() )
    {
@@ -49,6 +52,11 @@ Experimentation::Experimentation(const Options& options)
       if ( !KernelCompiler::compile(options.getExecName(),kernelFile) )
       {
          throw KernelCompilationException("Kernel compilation failed : abort");
+      }
+      
+      if ( !KernelCompiler::compile(DUMMY_KERNEL_FILE,m_dummyKernelFile) )
+      {
+         throw KernelCompilationException("Dummy Kernel compilation failed : abort");
       }
       
       m_execFile = kernelFile;
@@ -134,12 +142,20 @@ void Experimentation::startKernelExperimentation()
       return;
    }
    
+   Kernel dummyKernel(m_dummyKernelFile);
+   void* pDummyKernelFct = kernel.loadFunction("entryPoint");
+   if ( pDummyKernelFct == NULL )
+   {
+      // I beleive that loadKernelFCT will print error message
+      return;
+   }
+   
    // Gets the options to run the test
    unsigned int nbRepet(m_options.getNbRepetition());
    unsigned int nbProcess(m_options.getNbProcess());
    std::vector<unsigned int> pinning(m_options.getPinning());
    
-   KernelRunner run(m_probePaths, m_options.getOutputFile(), pKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
+   KernelRunner run(m_probePaths, m_options.getOutputFile(), pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
    std::vector<pid_t> m_pids;
    
    for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
