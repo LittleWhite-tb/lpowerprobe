@@ -37,7 +37,7 @@
 #include "CPUUtils.hpp" 
 
 KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std::string& resultFileName, void* pKernelFct, unsigned long int nbKernelIteration, size_t memorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_resultFile(resultFileName.c_str()),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_memorySize(memorySize),m_overheadMemorySize(memorySize),m_nbKernelIteration(nbKernelIteration)
+   :m_resultFile(resultFileName.c_str()),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_memorySize(memorySize),m_nbKernelIteration(nbKernelIteration)
 {
    assert(m_pKernelFct);
    
@@ -46,7 +46,6 @@ KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std
       m_probes.push_back(new Probe(*itPath));
    }
    
-   m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_probes.size(),std::pair<double, double>(0,0))));
    m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_probes.size(),std::pair<double, double>(0,0))));
    
    m_memory.resize(m_nbProcess,0);
@@ -54,13 +53,6 @@ KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std
    {
       *itMem = new char[m_memorySize * m_nbKernelIteration];
       memset(*itMem,0,m_memorySize * m_nbKernelIteration);
-   }
-   
-   m_overheadMemory.resize(m_nbProcess,0);
-   for ( std::vector<char*>::iterator itMem = m_overheadMemory.begin() ; itMem != m_overheadMemory.end() ; ++itMem )
-   {
-      *itMem = new char[m_overheadMemorySize * OVERHEAD_KERNELITER];
-      memset(*itMem,0,m_overheadMemorySize * OVERHEAD_KERNELITER);
    }
    
    // open fatherLock
@@ -155,10 +147,6 @@ KernelRunner::~KernelRunner()
    {
       delete [] *itMem;
    }
-   for ( std::vector<char*>::iterator itMem = m_overheadMemory.begin() ; itMem != m_overheadMemory.end() ; ++itMem )
-   {
-      delete [] *itMem;
-   }
 }
 
 void KernelRunner::flushCaches(unsigned int nbProcess)
@@ -170,11 +158,6 @@ void KernelRunner::flushCaches(unsigned int nbProcess)
    }
    
    m_memory[nbProcess][0] = c/m_memorySize;
-}
-
-void KernelRunner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
-{
-   evaluation(m_overheadResults,m_overheadMemory,OVERHEAD_KERNELITER,m_overheadMemorySize,metaRepet,processNumber);
 }
 
 void KernelRunner::evaluation(GlobalResultsArray& resultArray, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
@@ -311,27 +294,12 @@ void KernelRunner::startTest(const std::vector<char*>& memory, unsigned long int
 void KernelRunner::saveResults()
 {
    // We save only the results for the first process
-   std::vector<double> libsOverheadAvg(m_probes.size());
-   for ( std::vector<std::vector<std::pair<double, double> > >::const_iterator itMRepet = m_overheadResults[0].begin() ;
-         itMRepet != m_overheadResults[0].end() ; ++itMRepet )
-   {
-      for ( unsigned int i = 0 ; i < itMRepet->size() ; i++ )
-      {
-         libsOverheadAvg[i] += (*itMRepet)[i].second - (*itMRepet)[i].first;
-      }
-   }
-   
-   for ( std::vector<double>::iterator itLib = libsOverheadAvg.begin() ; itLib != libsOverheadAvg.end() ; ++itLib )
-   {
-      *itLib /= m_overheadResults[0].size();
-   }
-   
    std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_probes.size(),0));
    for ( unsigned int mRepet = 0 ; mRepet < m_runResults[0].size() ; mRepet++ )
    {
       for ( unsigned int i = 0 ; i < m_runResults[0][mRepet].size() ; i++ )
       {
-         runResults[mRepet][i] += (m_runResults[0][mRepet][i].second - m_runResults[0][mRepet][i].first) - libsOverheadAvg[i];
+         runResults[mRepet][i] += (m_runResults[0][mRepet][i].second - m_runResults[0][mRepet][i].first);
          
          m_resultFile << runResults[mRepet][i];
          if ( i !=  m_runResults[0][mRepet].size()-1 )
@@ -348,12 +316,6 @@ void KernelRunner::saveResults()
 
 void KernelRunner::start(unsigned int processNumber)
 {
-   for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
-	{
-      flushCaches(processNumber);
-      calculateOverhead(metaRepet,processNumber);
-   }
-
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
 	{
       if ( processNumber == 0 )

@@ -34,15 +34,13 @@
  * 
  * Handler to run and benchmark a test
  * The class load all the probes passed to the constructor. Before starting
- * the real test with \a start(), a overhead benchmarking is done to estimate the libraries
- * costs. Finally, the real test is launch N metarepetition and the results
+ * the real test with \a start(). Finally, the real test is launch N metarepetition and the results
  * are outputted in a file. The results gets the overhead removed before getting
  * outputted.
  */
 class KernelRunner
 {
 private:
-   static const unsigned long int OVERHEAD_KERNELITER = 1;
 
    typedef unsigned long (*KernelFctPtr)(size_t, void*, unsigned);
    typedef std::vector<Probe*> ProbeList; 
@@ -55,10 +53,8 @@ private:
    unsigned int m_nbProcess;  /*!< Number of process started */
    
    // Contain the memory segment for each process
-   std::vector<char*> m_overheadMemory;
    std::vector<char*> m_memory;
    size_t m_memorySize;
-   size_t m_overheadMemorySize;
    
    size_t m_nbKernelIteration;
    
@@ -67,20 +63,11 @@ private:
    // - All meta repease
    // - All probes
    typedef std::vector < std::vector<std::vector<std::pair<double, double> > > > GlobalResultsArray;
-   GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
    GlobalResultsArray m_runResults; /*!< Probe results for the run test */
    
    sem_t* m_fatherLock;       /*!< Process test synchronisation */
    sem_t* m_processLock;      /*!< Process test synchronisation */
    sem_t* m_processEndLock;   /*!< Process end synchronisation */
-   
-   /**
-    * Starter for the overhead benchmark
-    * Calls evaluation with a specific test 'empty'
-    * \param metaRepet actual repetition number
-    * \param processNumber actual process id running this function
-    */
-   void calculateOverhead(unsigned int metaRepet, unsigned int processNumber);
    
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
