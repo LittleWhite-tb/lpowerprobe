@@ -59,7 +59,6 @@ class KernelCompiler
    public:
       // Note : could throw exception to handle errors
       static bool compile(const std::string& inputFile, std::string& outputFile);
-      static void* loadKernelFct(const std::string& kernelFile);
 };
 
 #endif

@@ -24,7 +24,6 @@
 #include <cstdlib>
 
 #include <unistd.h>
-#include <dlfcn.h>
 #include <errno.h>
 
 // TODO : At some point, we have to move this function in a specific file
@@ -77,27 +76,4 @@ bool KernelCompiler::compile(const std::string& inputFile, std::string& outputFi
    
    outputFile = outputName;
    return true;
-}
-
-void* KernelCompiler::loadKernelFct(const std::string& kernelFile)
-{
-   void* pKernelLib = dlopen (kernelFile.c_str(), RTLD_NOW);
-   
-   if (pKernelLib == NULL)
-   {
-      std::cerr << "Error: Library name " <<  dlerror () << std::endl;
-      return NULL;
-   }
-
-   //Clear any error
-   dlerror ();
-   
-   void* pKernelFct = dlsym (pKernelLib, "entryPoint");
-   if (pKernelFct == NULL)
-   {
-      std::cerr << "Fail to find the 'entryPoint' in the kernel" << std::endl;
-      return NULL;
-   }
-   
-   return pKernelFct;
 }

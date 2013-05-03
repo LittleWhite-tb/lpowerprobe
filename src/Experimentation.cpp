@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "Kernel.hpp"
 #include "KernelCompiler.hpp"
 #include "Runner.hpp"
 #include "KernelRunner.hpp"
@@ -125,7 +126,8 @@ void Experimentation::startProgramExperimentation()
 
 void Experimentation::startKernelExperimentation()
 {
-   void* pKernelFct = KernelCompiler::loadKernelFct(m_execFile);
+   Kernel kernel(m_execFile);
+   void* pKernelFct = kernel.loadFunction("entryPoint");
    if ( pKernelFct == NULL )
    {
       // I beleive that loadKernelFCT will print error message

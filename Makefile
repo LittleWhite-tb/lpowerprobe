@@ -25,12 +25,12 @@ CFLAGS=-Wextra -Wall -g -O3
 CXXFLAGS=-Wextra -Wall -g -O3
 LDFLAGS=-ldl -lpthread -lrt
 
-OBJ=src/main.o src/Runner.o src/Experimentation.o  src/Probe.o src/Options.o src/CPUUtils.o
+OBJ=src/main.o src/Runner.o src/Experimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o  src/Probe.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
 .PHONY: clean test libs doc
 
-all: $(EXEC) test libs
+all: export-globals $(EXEC) test libs
 
 $(EXEC): $(OBJ)
 	$(LD) $(OBJ) -o $@ $(LDFLAGS) 
@@ -59,3 +59,7 @@ clean:
 	make -C probes/energy_snb_msr clean
 	make -C probes/wallclock clean
 	rm -rf $(EXEC) $(OBJ)
+
+export-globals:
+	@echo "#define GIT_COUNT" \"`git rev-list HEAD --count`\" > src/version.hpp
+	@echo "#define GIT_HASH" \"`git rev-list HEAD | head -n 1`\" >> src/version.hpp
