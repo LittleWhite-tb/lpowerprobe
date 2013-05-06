@@ -168,10 +168,10 @@ void KernelRunner::flushCaches(unsigned int nbProcess)
    
    for (size_t i = 0 ; i < size ; i+=4096)
    {
-      m_memory[nbProcess][i] = 125;
+      c += m_memory[nbProcess][i];
    }
    
-   // memset(m_memory[nbProcess],c/m_iterationMemorySize,size);
+   m_memory[nbProcess][0] = c/size;
 }
 
 void KernelRunner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
@@ -188,80 +188,22 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
    {
       broken = false;
       
+      if ( sem_post(m_fatherLock) != 0 )
+      {
+         perror("sem_post");
+      }
+      
+      if ( sem_wait(m_processLock) != 0 )
+      {
+         perror("sem_wait");
+      }
+      
       for (i = 0; i < m_probes.size() ; i++) /* Eval Start */
       {
          resultArray[processNumber][metaRepet][i].first = m_probes[i]->startMeasure();
       }
-
-      pid_t pid = fork ();
-      switch (pid)
-      {
-         case -1:
-         {
-            std::cerr << "My fork is totally failing" <<std::endl;
-            exit (EXIT_FAILURE);
-            break;
-         }
-         case 0:
-               
-               flushCaches(processNumber);
-               CPUUtils::setFifoMaxPriority(-2);
-               if ( sem_post(m_fatherLock) != 0 )
-               {
-                  perror("sem_post");
-               }
-               
-               if ( sem_wait(m_processLock) != 0 )
-               {
-                  perror("sem_wait");
-               }
-               
-               pKernelFct(nbKernelIteration, memory[processNumber], size);
-               
-               exit(EXIT_SUCCESS);
-               
-               break;
-            
-            
-         default:
-         {
-            // Father
-            int status;
-            
-            if ( processNumber == 0 )
-            {
-               for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
-               {
-                  if ( sem_wait(m_fatherLock) != 0 )
-                  {
-                     perror("sem_wait father");
-                  }
-                  
-                  if ( sem_post(m_processLock) != 0 )
-                  {
-                     perror("sem_post process");
-                  }
-               }
-            }
-            
-            waitpid (pid, &status, 0);
-            
-            int res = WEXITSTATUS (status);
-            // Child must end normally 
-            if (WIFEXITED (status) == 0)
-            {
-               if (WIFSIGNALED (status))
-               {
-                   psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
-                   exit (EXIT_FAILURE);
-               }
-               std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
-               exit (EXIT_FAILURE);
-            }
-            
-            break;
-         }
-      }
+      
+      pKernelFct(nbKernelIteration, memory[processNumber], size);
    
       for (i = m_probes.size()-1 ; i >= 0; i--) /* Eval Stop */
       {
@@ -271,6 +213,17 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
          {
             broken = true;
          }
+      }
+      
+      
+      if ( sem_post(m_fatherLock) != 0 )
+      {
+         perror("sem_post");
+      }
+      
+      if ( sem_wait(m_processEndLock) != 0 )
+      {
+         perror("sem_wait");
       }
    } while(broken);
    
@@ -286,7 +239,6 @@ void KernelRunner::saveResults()
       for ( unsigned int i = 0 ; i < itMRepet->size() ; i++ )
       {
          libsOverheadAvg[i] += (*itMRepet)[i].second - (*itMRepet)[i].first;
-         // std::cout << " Lib : libsOverheadAvg[i]"
       }
       
    }
@@ -317,28 +269,97 @@ void KernelRunner::saveResults()
    }
 }
 
-void KernelRunner::start(unsigned int processNumber)
+void KernelRunner::syncLoop()
 {
-   for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
-	{
-      //flushCaches(processNumber);
-      calculateOverhead(metaRepet,processNumber);
-   }
-
-   for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
-	{
-      if ( processNumber == 0 )
+   std::cout << "syncLoop" << std::endl;
+   while (true) // Will be kill by SIGTERM
+   {
+      for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
       {
-         std::cout << "Repetition - " << metaRepet << "\r";
+         if ( sem_wait(m_fatherLock) != 0 )
+         {
+            perror("sem_wait father");
+         }
       }
       
-      //flushCaches(processNumber);
-      evaluation(m_runResults,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
+      for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
+      {         
+         if ( sem_post(m_processLock) != 0 )
+         {
+            perror("sem_post process");
+         }
+      }
+      
+      for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
+      {         
+         if ( sem_wait(m_fatherLock) != 0 )
+         {
+            perror("sem_post process");
+         }
+      }
+      
+      for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
+      {         
+         if ( sem_post(m_processEndLock) != 0 )
+         {
+            perror("sem_post process");
+         }
+      }
+   }
+}
+
+void KernelRunner::start(unsigned int processNumber)
+{
+   pid_t pid = -1;
+   if ( processNumber == 0)
+   {
+      pid = fork ();
+   }
+   else
+   {
+      pid = 1; // Parent, so, we will go in bench
+   }
+   
+   switch (pid)
+	{
+      case -1:
+      {
+         std::cerr << "Synchronization fork failed" << std::endl;
+         exit(EXIT_FAILURE);
+      }
+      case 0: // Child
+      {
+         syncLoop();
+      }
+      default: // Parent
+      {
+         for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
+         {
+            flushCaches(processNumber);
+            calculateOverhead(metaRepet,processNumber);
+         }
+
+         for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
+         {
+            if ( processNumber == 0 )
+            {
+               std::cout << "Repetition - " << metaRepet << "\r";
+            }
+            
+            flushCaches(processNumber);
+            evaluation(m_runResults,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
+         }
+         
+         if ( processNumber == 0 )
+         {
+            saveResults();
+            std::cout << std::endl;
+         }
+      }
    }
    
    if ( processNumber == 0 )
    {
-      saveResults();
-      std::cout << std::endl;
+      kill(pid,SIGTERM);
    }
 }

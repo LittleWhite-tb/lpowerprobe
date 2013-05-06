@@ -98,7 +98,7 @@ private:
     */
    void saveResults();
    
-   void syncProcesses(unsigned int processNumber);
+   void syncLoop();
    
    /**
     * play with the array (aka : flushing caches)
