@@ -133,6 +133,10 @@ KernelRunner::KernelRunner(const std::vector<std::string>& probePaths, const std
       std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
       perror("sem_init");
    }
+   
+   
+   // Special formatting for output file
+   m_resultFile << std::fixed;
 }
 
 KernelRunner::~KernelRunner()
@@ -246,7 +250,6 @@ void KernelRunner::saveResults()
    for ( std::vector<double>::iterator itLib = libsOverheadAvg.begin() ; itLib != libsOverheadAvg.end() ; ++itLib )
    {
       *itLib /= m_overheadResults[0].size();
-      std::cout << "Lib : " << *itLib << " on size: " << m_overheadResults[0].size() << std::endl;
    }
    
    std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_probes.size(),0));
@@ -271,8 +274,7 @@ void KernelRunner::saveResults()
 
 void KernelRunner::syncLoop()
 {
-   std::cout << "syncLoop" << std::endl;
-   while (true) // Will be kill by SIGTERM
+   while (true) // Will be killed by SIGTERM
    {
       for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
       {

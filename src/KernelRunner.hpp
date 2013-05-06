@@ -29,8 +29,7 @@
 #include "Probe.hpp"
 
 /**
- * @TODO
- * Actually, this file is a massive copy paste from Runner
+ * @TODO Actually, this file is a massive copy paste from Runner
  * 
  * Handler to run and benchmark a test
  * The class load all the probes passed to the constructor. Before starting
@@ -49,20 +48,20 @@ private:
    std::ofstream m_resultFile;   /*!< */
 
    ProbeList m_probes;  /*!< Probe to use during a test */
-   KernelFctPtr m_pKernelFct;
-   KernelFctPtr m_pDummyKernelFct;
+   KernelFctPtr m_pKernelFct; /*!< Kernel to bench */
+   KernelFctPtr m_pDummyKernelFct; /*!< Special kernel to calculate the overhead */
    
    unsigned int m_nbMetaRepet;/*!< Number of repetition to do */
    unsigned int m_nbProcess;  /*!< Number of process started */
    
    // Contain the memory segment for each process
-   std::vector<char*> m_overheadMemory;
-   std::vector<char*> m_memory;
+   std::vector<char*> m_overheadMemory; /*!< Memory chunk allocated for dummy kernel */
+   std::vector<char*> m_memory; /*!< Memory chunk where to work for kernel */
    
-   size_t m_iterationMemorySize;
-   size_t m_overheadMemorySize;
+   size_t m_iterationMemorySize; /*!< Size of the memory used by one kernel iteration */
+   size_t m_overheadMemorySize;  /*!< Size of the memory used by one kernel iteration (for dummy kernel) */
    
-   size_t m_nbKernelIteration;
+   size_t m_nbKernelIteration;   /*!< Number of time the inner kernel loop will run */
    
    // Contains results for 
    // - All process
@@ -87,7 +86,10 @@ private:
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
     * \param resultArray the memory array to keep the results
+    * \param pKernelFct the kernel to evaluate
     * \param memory the space where to apply the bench
+    * \param nbKernelIteration the number of inner kernel loop iteration
+    * \param size the size used by one kernel iteration
     * \param metaRepet the actual repetition number
     * \param processNumber the actual process number
     */
@@ -98,6 +100,9 @@ private:
     */
    void saveResults();
    
+   /**
+    * Infinite loop called to sync the bench processes
+    */
    void syncLoop();
    
    /**
