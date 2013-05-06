@@ -52,12 +52,25 @@ class KernelCompilationException: public std::exception
       std::string message;
 };
 
+/**
+ * Compiler wrapping for kernel
+ * 
+ * This compile using GCC a .s (assembly) file in order to create an executable of the kernel
+ */
 class KernelCompiler
 {
    private:
    
    public:
       // Note : could throw exception to handle errors
+      /**
+       * Compile a kernel specified by \a inputFile
+       * The location of the executable will be specified by \a outputFile
+       * if the function returns true
+       * \param inputFile the kernel to compile
+       * \param outputFile the executable location
+       * \return true if the compilation is successful
+       */
       static bool compile(const std::string& inputFile, std::string& outputFile);
 };
 

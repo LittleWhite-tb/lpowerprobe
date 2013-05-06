@@ -39,16 +39,23 @@ class Options;
 class Experimentation
 {
 private:
-   static const std::string DUMMY_KERNEL_FILE;
+   static const std::string DUMMY_KERNEL_FILE;  /*!< Name of the dummy kernel for overload calculation */
 
-   const Options& m_options;
-   std::string m_execFile;
+   const Options& m_options;  /*!< Set of option comming from program args */
+   std::string m_execFile; /*!< File to run (either a compiled kernel of a compiled program) */
    
-   std::string m_dummyKernelFile;
+   std::string m_dummyKernelFile;   /*!< Dummy kernel for overload calculation */
 
    std::vector<std::string> m_probePaths; /*!< List of probes to load */
    
+   /**
+    * Starts the experimentation for a program
+    */
    void startProgramExperimentation();
+   
+   /**
+    * Starts the experimentation for a kernel
+    */
    void startKernelExperimentation();
    
 public:
@@ -63,8 +70,6 @@ public:
    
    /**
     * Starts the experimentation process
-    * \param test the program to bench
-    * \param args the arguments to pass to the program
     */
    void startExperimentation();
 };

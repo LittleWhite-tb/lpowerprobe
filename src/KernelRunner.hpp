@@ -29,7 +29,7 @@
 #include "Probe.hpp"
 
 /**
- * @TODO Actually, this file is a massive copy paste from Runner
+ * \todo Actually, this file is a massive copy paste from Runner
  * 
  * Handler to run and benchmark a test
  * The class load all the probes passed to the constructor. Before starting
@@ -118,8 +118,9 @@ public:
     * \param probePaths list of probes to load
     * \param resultFileName file where to output the results
     * \param pKernelFct the kernel to bench
+    * \param pDummyKernelFct the dummy kernel to calculate probes overload
     * \param nbKernelIteration the number of iteration spent in the kernel
-    * \param memorySize the size of the memory segment where to apply the kernel
+    * \param iterationMemorySize the size of the memory segment where to apply the kernel
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */

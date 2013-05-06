@@ -33,16 +33,35 @@ class KernelException: public std::exception
       std::string message;
 };
 
+
+/**
+ * Kernel wrapper
+ * 
+ * This will take a kernel (compiled) and extract the function needed by the user
+ * with \a loadFunction
+ */
 class Kernel
 {
    private:
    
-      void* m_pLibHandle;
+      void* m_pLibHandle;  /*!< Handle of the lib file */
    
    public:
+      /**
+       * \throws KernelException if the file can't be loaded
+       * \param fileName the file to load as a kernel
+       */
       Kernel(const std::string& fileName);
+      
+      /**
+       */
       ~Kernel();
       
+      /**
+       * Find a function from the Kernel
+       * \param fctName the function name to find
+       * \return a pointer to the function or NULL if the function can't be found
+       */
       void* loadFunction(const std::string& fctName);
 };
 
