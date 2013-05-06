@@ -163,68 +163,106 @@ KernelRunner::~KernelRunner()
 
 void KernelRunner::flushCaches(unsigned int nbProcess)
 {
+   size_t size = m_iterationMemorySize*m_nbKernelIteration;
    char c = 0;
-   for (size_t i = 0 ; i < m_iterationMemorySize ; i++)
+   
+   for (size_t i = 0 ; i < size ; i+=4096)
    {
-      c += m_memory[nbProcess][i];
+      m_memory[nbProcess][i] = 125;
    }
    
-   m_memory[nbProcess][0] = c/m_iterationMemorySize;
+   // memset(m_memory[nbProcess],c/m_iterationMemorySize,size);
 }
 
 void KernelRunner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
 {
-   evaluation(m_overheadResults,m_pKernelFct,m_overheadMemory,OVERHEAD_KERNELITER,m_iterationMemorySize,metaRepet,processNumber);
+   evaluation(m_overheadResults,m_pDummyKernelFct,m_overheadMemory,OVERHEAD_KERNELITER,m_iterationMemorySize,metaRepet,processNumber);
 }
 
 void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
 {
    bool broken = false;
    int i = 0;
-
+   
    do
    {
       broken = false;
-      
-      CPUUtils::setFifoMaxPriority(-2);
-      if ( processNumber == 0 )
-      {
-         for ( unsigned int i = 0 ; i < m_nbProcess-1 ; i++ )
-         {
-            if ( sem_wait(m_fatherLock) != 0 )
-            {
-               perror("sem_wait father");
-            }
-         }
-
-         for ( unsigned int i = 0 ; i < m_nbProcess-1  ; i++ )
-         {        
-            if ( sem_post(m_processLock) != 0 )
-            {
-               perror("sem_post process");
-            }
-         }
-      }
-      else
-      {
-         if ( sem_post(m_fatherLock) != 0 )
-         {
-            perror("sem_post");
-         }
-         
-         if ( sem_wait(m_processLock) != 0 )
-         {
-            perror("sem_wait");
-         }
-      }
       
       for (i = 0; i < m_probes.size() ; i++) /* Eval Start */
       {
          resultArray[processNumber][metaRepet][i].first = m_probes[i]->startMeasure();
       }
-      
-      pKernelFct(nbKernelIteration, memory[processNumber], size);
-      
+
+      pid_t pid = fork ();
+      switch (pid)
+      {
+         case -1:
+         {
+            std::cerr << "My fork is totally failing" <<std::endl;
+            exit (EXIT_FAILURE);
+            break;
+         }
+         case 0:
+               
+               flushCaches(processNumber);
+               CPUUtils::setFifoMaxPriority(-2);
+               if ( sem_post(m_fatherLock) != 0 )
+               {
+                  perror("sem_post");
+               }
+               
+               if ( sem_wait(m_processLock) != 0 )
+               {
+                  perror("sem_wait");
+               }
+               
+               pKernelFct(nbKernelIteration, memory[processNumber], size);
+               
+               exit(EXIT_SUCCESS);
+               
+               break;
+            
+            
+         default:
+         {
+            // Father
+            int status;
+            
+            if ( processNumber == 0 )
+            {
+               for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
+               {
+                  if ( sem_wait(m_fatherLock) != 0 )
+                  {
+                     perror("sem_wait father");
+                  }
+                  
+                  if ( sem_post(m_processLock) != 0 )
+                  {
+                     perror("sem_post process");
+                  }
+               }
+            }
+            
+            waitpid (pid, &status, 0);
+            
+            int res = WEXITSTATUS (status);
+            // Child must end normally 
+            if (WIFEXITED (status) == 0)
+            {
+               if (WIFSIGNALED (status))
+               {
+                   psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
+                   exit (EXIT_FAILURE);
+               }
+               std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
+               exit (EXIT_FAILURE);
+            }
+            
+            break;
+         }
+      }
+   
       for (i = m_probes.size()-1 ; i >= 0; i--) /* Eval Stop */
       {
          resultArray[processNumber][metaRepet][i].second = m_probes[i]->stopMeasure();
@@ -234,41 +272,8 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
             broken = true;
          }
       }
-
-      // ensure all the tasks finished before going to the next iteration
-      if (processNumber == 0)
-      {
-         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
-         {
-            if ( sem_wait(m_fatherLock) != 0 )
-            {
-               perror("sem_wait father");
-            }
-         }
-
-         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
-         {
-            if ( sem_post(m_processEndLock) != 0 )
-            {
-               perror("sem_post processEnd");
-            }
-         }
-      }
-      else
-      {
-         if ( sem_post(m_fatherLock) != 0 )
-         {
-            perror("sem_post");
-         }
-      
-         if ( sem_wait(m_processEndLock) != 0 )
-         {
-            perror("sem_wait");
-         }
-      }
-
-
    } while(broken);
+   
 }
 
 void KernelRunner::saveResults()
@@ -281,12 +286,15 @@ void KernelRunner::saveResults()
       for ( unsigned int i = 0 ; i < itMRepet->size() ; i++ )
       {
          libsOverheadAvg[i] += (*itMRepet)[i].second - (*itMRepet)[i].first;
+         // std::cout << " Lib : libsOverheadAvg[i]"
       }
+      
    }
    
    for ( std::vector<double>::iterator itLib = libsOverheadAvg.begin() ; itLib != libsOverheadAvg.end() ; ++itLib )
    {
       *itLib /= m_overheadResults[0].size();
+      std::cout << "Lib : " << *itLib << " on size: " << m_overheadResults[0].size() << std::endl;
    }
    
    std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_probes.size(),0));
@@ -313,7 +321,7 @@ void KernelRunner::start(unsigned int processNumber)
 {
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
 	{
-      flushCaches(processNumber);
+      //flushCaches(processNumber);
       calculateOverhead(metaRepet,processNumber);
    }
 
@@ -324,7 +332,7 @@ void KernelRunner::start(unsigned int processNumber)
          std::cout << "Repetition - " << metaRepet << "\r";
       }
       
-      flushCaches(processNumber);
+      //flushCaches(processNumber);
       evaluation(m_runResults,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
    }
    

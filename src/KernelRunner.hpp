@@ -98,6 +98,8 @@ private:
     */
    void saveResults();
    
+   void syncProcesses(unsigned int processNumber);
+   
    /**
     * play with the array (aka : flushing caches)
     * \param nbProcess the number of process that will be started
