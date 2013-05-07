@@ -176,7 +176,6 @@ void KernelRunner::calculateOverhead(unsigned int metaRepet, unsigned int proces
 void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
 {
    bool broken = false;
-   int i = 0;
    
    do
    {
@@ -192,14 +191,14 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
          perror("sem_wait");
       }
       
-      for (i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
+      for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
       {
          resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
       }
       
       pKernelFct(nbKernelIteration, memory[processNumber], size);
    
-      for (i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
+      for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
       {
          resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
          
