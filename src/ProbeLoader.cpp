@@ -24,6 +24,7 @@
 ProbeLoader::ProbeLoader()
 {
    // Don't forget to end path with '/'
+   m_dirs.push_back("");
    m_dirs.push_back("./");
    m_dirs.push_back("./probes/");
    
