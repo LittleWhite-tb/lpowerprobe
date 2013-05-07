@@ -71,7 +71,7 @@ void usage()
 {
    std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
-   std::cout << "  -l, --libraries\t\t\t\tProbes libraries to load to benchmark" << std::endl;
+   std::cout << "  -l, --libraries\t\t\tProbes libraries to load to bench the execution" << std::endl;
    std::cout << "  -r, --repetition=NUMBER\t\tNumber of repetition for the test" << std::endl;
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;

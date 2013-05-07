@@ -160,6 +160,11 @@ void KernelRunner::flushCaches(unsigned int nbProcess)
    size_t size = m_iterationMemorySize*m_nbKernelIteration;
    char c = 0;
    
+   if ( size == 0 )
+   {
+      return;
+   }
+   
    for (size_t i = 0 ; i < size ; i+=4096)
    {
       c += m_memory[nbProcess][i];

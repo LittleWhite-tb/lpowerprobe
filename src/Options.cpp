@@ -220,8 +220,8 @@ void Options::setDefaultValues()
       std::cout << "Number of meta repetition set to default value -> " << DEFAULT_NUMBER_METAREPET << std::endl;
       m_nbMetaRepet = DEFAULT_NUMBER_METAREPET;
    }
-   
-   if ( isExecKernel() && m_nbKernelIteration == 0 )
+
+   if ( isExecKernel() && m_iterationMemorySize == 0 )
    {
       std::cout << "Number of kernel iteration set to default value -> " << DEFAULT_NUMBER_KERNELITER << std::endl;
       m_nbKernelIteration = DEFAULT_NUMBER_KERNELITER;
@@ -242,11 +242,6 @@ bool Options::hasMissingOptions()
       return true;
    }
    
-   if ( isExecKernel() && m_iterationMemorySize == 0 )
-   {
-      std::cout << "You did not specify the iteration memory size for kernel execution" << std::endl;
-      return true;
-   }
    // Additional check to tell that some options are ignored
    // TO FIX/TODO : Maybe this test should not be here
    if ( !isExecKernel() && m_iterationMemorySize )
