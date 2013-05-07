@@ -47,7 +47,7 @@ static struct option long_options[] =
    {"output", required_argument,   0, ID_ARG_OUTPUT},
    {"iteration-mem-size", required_argument,   0, ID_ARG_MEMSIZE},
    {"iteration", required_argument,   0, ID_ARG_KERNELITER},
-   {"probes", required_argument,   0, ID_ARG_PROBES},
+   {"libraries", required_argument,   0, ID_ARG_PROBES},
    {0,0,0,0}
 };
 
@@ -71,7 +71,7 @@ void usage()
 {
    std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
-   std::cout << "  -l, --probes\t\t\t\tProbes libraries to load to benchmark" << std::endl;
+   std::cout << "  -l, --libraries\t\t\t\tProbes libraries to load to benchmark" << std::endl;
    std::cout << "  -r, --repetition=NUMBER\t\tNumber of repetition for the test" << std::endl;
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;
