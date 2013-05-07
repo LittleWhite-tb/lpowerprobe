@@ -46,6 +46,11 @@ Experimentation::Experimentation(const Options& options)
    m_probePaths.push_back("probes/wallclock/wallclock.so");
    m_probePaths.push_back("probes/timer.so");
    
+   for ( std::vector<std::string>::const_iterator itPath = m_probePaths.begin() ; itPath != m_probePaths.end() ; ++itPath )
+   {
+      m_probes.push_back(new Probe(*itPath));
+   }
+   
    if ( options.isExecKernel() )
    {
       std::string kernelFile;
@@ -65,6 +70,10 @@ Experimentation::Experimentation(const Options& options)
 
 Experimentation::~Experimentation()
 {
+   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
+   {
+      delete *itProbe;
+   }
 }
 
 void Experimentation::startProgramExperimentation()
@@ -76,7 +85,7 @@ void Experimentation::startProgramExperimentation()
    unsigned int nbProcess(m_options.getNbProcess());
    std::vector<unsigned int> pinning(m_options.getPinning());
    
-   Runner run(m_probePaths, m_options.getOutputFile(), nbProcess, m_options.getNbMetaRepetition());
+   Runner run(&m_probes, m_options.getOutputFile(), nbProcess, m_options.getNbMetaRepetition());
    std::vector<pid_t> m_pids;
    
    for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
@@ -155,7 +164,7 @@ void Experimentation::startKernelExperimentation()
    unsigned int nbProcess(m_options.getNbProcess());
    std::vector<unsigned int> pinning(m_options.getPinning());
    
-   KernelRunner run(m_probePaths, m_options.getOutputFile(), pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
+   KernelRunner run(&m_probes, m_options.getOutputFile(), pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
    std::vector<pid_t> m_pids;
    
    for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )

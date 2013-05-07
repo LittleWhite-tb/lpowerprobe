@@ -39,10 +39,9 @@
 class Runner
 {
 private:
-   typedef std::vector<Probe*> ProbeList; 
    std::ofstream m_resultFile;   /*!< */
 
-   ProbeList m_probes;  /*!< Probe to use during a test */
+   ProbeList* m_pProbes;  /*!< Probe to use during a test */
    
    
    unsigned int m_nbMetaRepet;/*!< Number of repetition to do */
@@ -94,12 +93,12 @@ public:
    /**
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
-    * \param probePaths list of probes to load
+    * \param pProbes list of probes to use
     * \param resultFileName file where to output the results
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   Runner(const std::vector<std::string>& probePaths, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);
+   Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);
    
    /**
     */

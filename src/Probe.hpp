@@ -21,6 +21,7 @@
 #define PROBE_HPP
 
 #include <string>
+#include <vector>
 #include <exception>
 
 /**
@@ -93,5 +94,7 @@ public:
     */
    double stopMeasure();
 };
+
+typedef std::vector<Probe*> ProbeList; 
 
 #endif

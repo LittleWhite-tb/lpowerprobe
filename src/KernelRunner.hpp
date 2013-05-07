@@ -44,10 +44,9 @@ private:
    static const unsigned long int OVERHEAD_KERNELITER = 1;
 
    typedef unsigned long (*KernelFctPtr)(size_t, void*, unsigned);
-   typedef std::vector<Probe*> ProbeList; 
    std::ofstream m_resultFile;   /*!< */
 
-   ProbeList m_probes;  /*!< Probe to use during a test */
+   ProbeList* m_pProbes; /*!< Probes to use to benchmark */
    KernelFctPtr m_pKernelFct; /*!< Kernel to bench */
    KernelFctPtr m_pDummyKernelFct; /*!< Special kernel to calculate the overhead */
    
@@ -115,7 +114,7 @@ public:
    /**
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
-    * \param probePaths list of probes to load
+    * \param pProbes list of probes to use
     * \param resultFileName file where to output the results
     * \param pKernelFct the kernel to bench
     * \param pDummyKernelFct the dummy kernel to calculate probes overload
@@ -124,7 +123,7 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   KernelRunner(const std::vector<std::string>& probePaths, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
+   KernelRunner(ProbeList* pProbes, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
    
    /**
     */

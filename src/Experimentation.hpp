@@ -23,6 +23,8 @@
 #include <vector>
 #include <string>
 
+#include "Probe.hpp"
+
 class Options;
 
 /**
@@ -40,6 +42,8 @@ class Experimentation
 {
 private:
    static const std::string DUMMY_KERNEL_FILE;  /*!< Name of the dummy kernel for overload calculation */
+   
+   ProbeList m_probes;  /*!< Probe to use during a test */
 
    const Options& m_options;  /*!< Set of option comming from program args */
    std::string m_execFile; /*!< File to run (either a compiled kernel of a compiled program) */

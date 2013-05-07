@@ -36,16 +36,11 @@
 
 #include "CPUUtils.hpp" 
 
-Runner::Runner(const std::vector<std::string>& probePaths, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_resultFile(resultFileName.c_str()),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
+Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet)
+   :m_pProbes(pProbes),m_resultFile(resultFileName.c_str()),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
 {
-   for ( std::vector<std::string>::const_iterator itPath = probePaths.begin() ; itPath != probePaths.end() ; ++itPath )
-   {
-      m_probes.push_back(new Probe(*itPath));
-   }
-   
-   m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_probes.size(),std::pair<double, double>(0,0))));
-   m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_probes.size(),std::pair<double, double>(0,0))));
+   m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
+   m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
    
    // open fatherLock
    int shareSeg;
@@ -121,11 +116,6 @@ Runner::Runner(const std::vector<std::string>& probePaths, const std::string& re
 
 Runner::~Runner()
 {
-   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
-   {
-      delete *itProbe;
-   }
-      
    sem_destroy(m_processEndLock);
    shm_unlink("/shmProcessEnd");
    
@@ -176,16 +166,16 @@ void Runner::evaluation(GlobalResultsArray& resultArray, const std::string& test
    do
    {
       broken = false;
-      for (i = 0; i < m_probes.size() ; i++) /* Eval Start */
+      for (i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
       {
-         resultArray[processNumber][metaRepet][i].first = m_probes[i]->startMeasure();
+         resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
       }
       
       startTest(test, pArgv, processNumber);
       
-      for (i = m_probes.size()-1 ; i >= 0; i--) /* Eval Stop */
+      for (i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
       {
-         resultArray[processNumber][metaRepet][i].second = m_probes[i]->stopMeasure();
+         resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
          
          if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
          {
@@ -308,7 +298,7 @@ void Runner::startTest(const std::string& programName, char** pArgv, unsigned in
 void Runner::saveResults()
 {
    // We save only the results for the first process
-   std::vector<double> libsOverheadAvg(m_probes.size());
+   std::vector<double> libsOverheadAvg(m_pProbes->size());
    for ( std::vector<std::vector<std::pair<double, double> > >::const_iterator itMRepet = m_overheadResults[0].begin() ;
          itMRepet != m_overheadResults[0].end() ; ++itMRepet )
    {
@@ -323,7 +313,7 @@ void Runner::saveResults()
       *itLib /= m_overheadResults[0].size();
    }
    
-   std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_probes.size(),0));
+   std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_pProbes->size(),0));
    for ( unsigned int mRepet = 0 ; mRepet < m_runResults[0].size() ; mRepet++ )
    {
       for ( unsigned int i = 0 ; i < m_runResults[0][mRepet].size() ; i++ )
