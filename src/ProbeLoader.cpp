@@ -33,11 +33,13 @@ ProbeLoader::ProbeLoader()
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
 {
+   std::vector<std::string> errors;
    bool result = true;
    
    // User specified libs to load
    for ( std::vector<std::string>::const_iterator itProbePath = probesPath.begin() ; itProbePath != probesPath.end() ; ++itProbePath )
    {
+      errors.clear();
       bool loaded = false;
       std::cout << "Trying to load : " << *itProbePath << " ... ";
       for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false ; ++itDir )
@@ -50,13 +52,17 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
          }
          catch (ProbeLoadingException& ple)
          {
-            
+            errors.push_back(ple.what());
          }
       }
       
       if ( loaded == false )
       {
          std::cout << "Failed" << std::endl;
+         for ( std::vector<std::string>::const_iterator itError = errors.begin() ; itError != errors.end() ; ++itError )
+         {
+            std::cout << "==> " << *itError << std::endl;
+         }
          result = false;
       }
    }

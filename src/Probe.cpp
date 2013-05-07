@@ -8,7 +8,7 @@ Probe::Probe(const std::string& path)
    this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);
    if ( this->pLibHandle == NULL )
    {
-      throw ProbeLoadingException("Error to load probe : '" + path + "'");
+      throw ProbeLoadingException("Error to load probe : '" + path + "' (" + dlerror() + ")");
    }
    
    this->evaluationInit =(evalInit) dlsym(this->pLibHandle,"evaluationInit");
