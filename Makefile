@@ -21,8 +21,8 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CFLAGS=-Wextra -Wall -g -O3
-CXXFLAGS=-Wextra -Wall -g -O3
+CFLAGS=-Wextra -Wall -g -O0
+CXXFLAGS=-Wextra -Wall -g -O0
 LDFLAGS=-ldl -lpthread -lrt
 
 OBJ=src/main.o src/Runner.o src/Experimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o

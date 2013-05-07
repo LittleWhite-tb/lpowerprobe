@@ -173,8 +173,23 @@ void Options::setExecName(const char* pExecName)
    {
       std::cerr << "You are overriding exec name" << std::endl;
    }
-   
-   m_execName = std::string(pExecName);
+
+   // Special parsing when the exec has a space
+   std::istringstream iss(pExecName);
+   std::string token;
+   int nbToken = 0;
+   while ( iss >> token )
+   {
+      if ( nbToken == 0 )
+      {
+         m_execName = token;
+      }
+      else
+      {
+         m_args.push_back(token);
+      }
+      nbToken++;
+   }
 }
    
 const std::vector<std::string>& Options::getArgs()const
@@ -239,7 +254,7 @@ bool Options::hasMissingOptions()
    if ( m_execName.empty() )
    {
       std::cout << "You did not give an program to run" << std::endl;
-      return true;
+      return false;
    }
    
    // Additional check to tell that some options are ignored

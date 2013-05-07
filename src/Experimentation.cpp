@@ -228,6 +228,6 @@ void Experimentation::startExperimentation()
    }
    else
    {
-      startExperimentation();
+      startProgramExperimentation();
    }
 }
