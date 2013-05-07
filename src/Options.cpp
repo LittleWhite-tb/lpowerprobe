@@ -254,7 +254,7 @@ bool Options::hasMissingOptions()
    if ( m_execName.empty() )
    {
       std::cout << "You did not give an program to run" << std::endl;
-      return false;
+      return true;
    }
    
    // Additional check to tell that some options are ignored
