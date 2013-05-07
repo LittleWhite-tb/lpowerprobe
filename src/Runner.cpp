@@ -135,7 +135,6 @@ void Runner::calculateOverhead(unsigned int metaRepet, unsigned int processNumbe
 void Runner::evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber)
 {
    bool broken = false;
-   int i = 0;
    
    int nbArgs=0;
    char** pArgv = NULL;
@@ -166,14 +165,14 @@ void Runner::evaluation(GlobalResultsArray& resultArray, const std::string& test
    do
    {
       broken = false;
-      for (i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
+      for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
       {
          resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
       }
       
       startTest(test, pArgv, processNumber);
       
-      for (i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
+      for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
       {
          resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
          
@@ -218,7 +217,7 @@ void Runner::evaluation(GlobalResultsArray& resultArray, const std::string& test
 
    } while(broken);
    
-   for (unsigned int i = 0 ; i < nbArgs+1 ; i++ )
+   for (int i = 0 ; i < nbArgs+1 ; i++ )
    {
       free(pArgv[i]);
    }
@@ -248,7 +247,7 @@ void Runner::startTest(const std::string& programName, char** pArgv, unsigned in
          }
 
          execvp (programName.c_str(), pArgv);
-         exit(EXIT_FAILURE);
+         exit(EXIT_SUCCESS);
       }
       default:
 		{
@@ -278,6 +277,10 @@ void Runner::startTest(const std::string& programName, char** pArgv, unsigned in
 			waitpid (pid, &status, 0);
 			
 			int res = WEXITSTATUS (status);
+         if(res != EXIT_SUCCESS)
+         {
+            std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
+         }
 			/* Child must end normally */
 			if (WIFEXITED (status) == 0)
 			{

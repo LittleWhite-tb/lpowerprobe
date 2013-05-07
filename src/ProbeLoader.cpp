@@ -61,7 +61,7 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
       }
    }
    
-   return true;
+   return result;
 }
       
 bool ProbeLoader::loadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)

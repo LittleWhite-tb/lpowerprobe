@@ -71,20 +71,20 @@ void usage()
 {
    std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
-   std::cout << "  -l, --probes\t\t\tProbes libraries to load to benchmark" << std::endl;
+   std::cout << "  -l, --probes\t\t\t\tProbes libraries to load to benchmark" << std::endl;
    std::cout << "  -r, --repetition=NUMBER\t\tNumber of repetition for the test" << std::endl;
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;
-   std::cout << "  -p, --pinning=\"pin1;pin2;...\"\tWhere to pin the processes" << std::endl;
-   std::cout << "  -o, --output=\"resultFile\"\tWhere to write the results" << std::endl;
-   std::cout << "  -m, --iteration-mem-size=NUMBER\t\tThe memory size in bytes used in the kernel per iteration" << std::endl;
+   std::cout << "  -p, --pinning=\"pin1;pin2;...\"\t\tWhere to pin the processes" << std::endl;
+   std::cout << "  -o, --output=\"resultFile\"\t\tWhere to write the results" << std::endl;
+   std::cout << "  -m, --iteration-mem-size=NUMBER\tThe memory size in bytes used in the kernel per iteration" << std::endl;
    std::cout << "  -i, --iteration=NUMBER\t\tThe number of kernel iteration" << std::endl;
    exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char** argv)
 {
-   int flags, opt=0;
+   int opt=0;
    int option_index = 0;
    Options options;
    
