@@ -38,6 +38,8 @@ private:
    unsigned int m_nbProcess;
    std::vector<unsigned int> m_pinning;
    
+   std::vector<std::string> m_probesPath;
+   
    unsigned int m_nbRepet;
    unsigned int m_nbMetaRepet;
    
@@ -95,8 +97,19 @@ public:
    
    /**
     * \param pinning the pinning to apply to process
+    * \return false if the parsing of the code ID failed
     */
    bool setPinning(const std::string& pinning);
+   
+   /**
+    * \return the probes paths
+    */
+   const std::vector<std::string>& getProbesPath()const;
+   
+   /**
+    * \param probesPath a string ';' separated of paths for probes
+    */
+   bool setProbesPath(const std::string& probesPath);
    
    /**
     * \return the number of repetition to do

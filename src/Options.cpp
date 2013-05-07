@@ -82,6 +82,35 @@ bool Options::setPinning(const std::string& pinning)
    
    return true;
 }
+
+const std::vector<std::string>& Options::getProbesPath()const
+{
+   return m_probesPath;
+}
+
+bool Options::setProbesPath(const std::string& pinning)
+{
+   std::string tmpPinning(pinning);
+   size_t index=0;
+   while((index = tmpPinning.find(';',index)) != std::string::npos )
+   {
+      tmpPinning[index]=' ';
+   }
+   
+   std::istringstream iss(tmpPinning);
+   std::string path;
+   while ( iss >> path )
+   {
+      m_probesPath.push_back(path);
+   }
+   
+   if ( !iss.eof() )
+   {
+      return false;
+   }
+   
+   return true;
+}
    
 unsigned int Options::getNbRepetition()const
 {

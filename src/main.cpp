@@ -35,6 +35,7 @@ const int ID_ARG_PINNING = 4;
 const int ID_ARG_OUTPUT = 5;
 const int ID_ARG_MEMSIZE = 6;
 const int ID_ARG_KERNELITER = 7;
+const int ID_ARG_PROBES = 8;
 
 static struct option long_options[] =
 {
@@ -46,6 +47,7 @@ static struct option long_options[] =
    {"output", required_argument,   0, ID_ARG_OUTPUT},
    {"iteration-mem-size", required_argument,   0, ID_ARG_MEMSIZE},
    {"iteration", required_argument,   0, ID_ARG_KERNELITER},
+   {"probes", required_argument,   0, ID_ARG_PROBES},
    {0,0,0,0}
 };
 
@@ -69,6 +71,7 @@ void usage()
 {
    std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
+   std::cout << "  -l, --probes\t\t\tProbes libraries to load to benchmark" << std::endl;
    std::cout << "  -r, --repetition=NUMBER\t\tNumber of repetition for the test" << std::endl;
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
    std::cout << "  -d, --duplicate=NUMBER\t\tNumber of process to start" << std::endl;
@@ -89,7 +92,7 @@ int main(int argc, char** argv)
    
    while(1)
    {
-      opt = getopt_long(argc, argv, "r:d:p:o:m:i:h", long_options, &option_index);
+      opt = getopt_long(argc, argv, "r:d:p:o:m:i:l:h", long_options, &option_index);
       if (opt == -1 )
          break;
       
@@ -185,6 +188,16 @@ int main(int argc, char** argv)
                else
                {
                   std::cerr << "Invalid argument for --kernel-iteration option" << std::endl;
+                  usage();
+               }
+            }
+            break;
+         case ID_ARG_PROBES:
+         case 'l':
+            {
+               if ( !options.setProbesPath(optarg) )
+               {
+                  std::cerr << "Invalid argument for --probes option" << std::endl;
                   usage();
                }
             }
