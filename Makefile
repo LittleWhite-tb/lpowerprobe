@@ -25,7 +25,7 @@ CFLAGS=-Wextra -Wall -g -O3
 CXXFLAGS=-Wextra -Wall -g -O3
 LDFLAGS=-ldl -lpthread -lrt
 
-OBJ=src/main.o src/Runner.o src/Experimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o  src/Probe.o src/Options.o src/CPUUtils.o
+OBJ=src/main.o src/Runner.o src/Experimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
 .PHONY: clean test libs doc

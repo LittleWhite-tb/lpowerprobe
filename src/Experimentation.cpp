@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "ProbeLoader.hpp"
 #include "Kernel.hpp"
 #include "KernelCompiler.hpp"
 #include "Runner.hpp"
@@ -42,13 +43,12 @@ const std::string Experimentation::DUMMY_KERNEL_FILE = "./empty/empty.s";
 Experimentation::Experimentation(const Options& options)
    :m_options(options),m_execFile(options.getExecName())
 {
-   m_probePaths.push_back("probes/energy_snb_msr/energy_msr_snb.so");
-   m_probePaths.push_back("probes/wallclock/wallclock.so");
-   m_probePaths.push_back("probes/timer.so");
-   
-   for ( std::vector<std::string>::const_iterator itPath = m_probePaths.begin() ; itPath != m_probePaths.end() ; ++itPath )
+   ProbeLoader pl;
+   pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
+   if ( m_probes.size() == 0 )
    {
-      m_probes.push_back(new Probe(*itPath));
+      // No probes ... :(
+      throw ProbeLoadingException("No probes loaded");
    }
    
    if ( options.isExecKernel() )

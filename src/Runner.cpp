@@ -37,7 +37,7 @@
 #include "CPUUtils.hpp" 
 
 Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_pProbes(pProbes),m_resultFile(resultFileName.c_str()),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
+   :m_resultFile(resultFileName.c_str()),m_pProbes(pProbes),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
 {
    m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
    m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));

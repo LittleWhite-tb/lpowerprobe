@@ -37,7 +37,7 @@
 #include "CPUUtils.hpp" 
 
 KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_pProbes(pProbes),m_resultFile(resultFileName.c_str()),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_pDummyKernelFct(reinterpret_cast<KernelFctPtr>(pDummyKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_iterationMemorySize(iterationMemorySize),m_overheadMemorySize(iterationMemorySize),m_nbKernelIteration(nbKernelIteration)
+   :m_resultFile(resultFileName.c_str()),m_pProbes(pProbes),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_pDummyKernelFct(reinterpret_cast<KernelFctPtr>(pDummyKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_iterationMemorySize(iterationMemorySize),m_overheadMemorySize(iterationMemorySize),m_nbKernelIteration(nbKernelIteration)
 {
    assert(m_pKernelFct);
    
