@@ -129,7 +129,7 @@ Runner::~Runner()
 void Runner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
 {
    std::vector<std::string> emptyArgs;
-   evaluation(m_overheadResults,"./empty/empty", emptyArgs,metaRepet,processNumber);
+   evaluation(m_overheadResults, INSTALL_DIR "/share/lPowerProbe/empty", emptyArgs,metaRepet,processNumber);
 }
 
 void Runner::evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber)

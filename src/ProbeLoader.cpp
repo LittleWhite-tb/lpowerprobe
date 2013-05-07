@@ -24,12 +24,13 @@
 ProbeLoader::ProbeLoader()
 {
    // Don't forget to end path with '/'
+   m_dirs.push_back(INSTALL_DIR "/lib/lPowerProbe/");
    m_dirs.push_back("");
    m_dirs.push_back("./");
    m_dirs.push_back("./probes/");
    
-   m_defaultsProbes.push_back("probes/energy_snb_msr/energy_msr_snb.so");
-   m_defaultsProbes.push_back("probes/wallclock/wallclock.so");
+   m_defaultsProbes.push_back("energy_msr_snb.so");
+   m_defaultsProbes.push_back("wallclock.so");
 }
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)

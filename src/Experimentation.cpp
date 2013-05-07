@@ -38,7 +38,7 @@
 #include "Options.hpp"
 #include "CPUUtils.hpp"
 
-const std::string Experimentation::DUMMY_KERNEL_FILE = "./empty/empty.s";
+const std::string Experimentation::DUMMY_KERNEL_FILE = INSTALL_DIR "/share/lPowerProbe/empty.s";
 
 Experimentation::Experimentation(const Options& options)
    :m_options(options),m_execFile(options.getExecName())
