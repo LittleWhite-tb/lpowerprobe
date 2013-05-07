@@ -40,6 +40,7 @@ const int ID_ARG_PROBES = 8;
 static struct option long_options[] =
 {
    {"help", no_argument,   0, 'h' },
+   {"version", no_argument,   0, 'v' },
    {"repetition", required_argument,   0, ID_ARG_REPETITION},
    // {"meta-repetition", required_argument,   0, ID_ARG_METAREPETITION},
    {"duplicate", required_argument,   0, ID_ARG_PROCESS},
@@ -71,6 +72,10 @@ void usage()
 {
    std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
+   std::cout << "  -v, --version\t\t\t\tDisplay the program version" << std::endl;
+   
+   std::cout << std::endl;
+   
    std::cout << "  -l, --libraries\t\t\tProbes libraries to load to bench the execution" << std::endl;
    std::cout << "  -r, --repetition=NUMBER\t\tNumber of repetition for the test" << std::endl;
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
@@ -88,11 +93,9 @@ int main(int argc, char** argv)
    int option_index = 0;
    Options options;
    
-   version();
-   
    while(1)
    {
-      opt = getopt_long(argc, argv, "r:d:p:o:m:i:l:h", long_options, &option_index);
+      opt = getopt_long(argc, argv, "r:d:p:o:m:i:l:hv", long_options, &option_index);
       if (opt == -1 )
          break;
       
@@ -205,10 +208,16 @@ int main(int argc, char** argv)
          case 'h':
             usage();
             break;
+         case 'v':
+            version();
+            exit(EXIT_SUCCESS);
+            break;
          case '?':
             break;
       }
    }
+   
+   version();
    
    if (optind < argc)
    {
