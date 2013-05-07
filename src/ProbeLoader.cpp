@@ -29,7 +29,6 @@ ProbeLoader::ProbeLoader()
    
    m_defaultsProbes.push_back("probes/energy_snb_msr/energy_msr_snb.so");
    m_defaultsProbes.push_back("probes/wallclock/wallclock.so");
-   m_defaultsProbes.push_back("probes/timer.so");
 }
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
