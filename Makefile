@@ -17,20 +17,35 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+INSTALL_DIR=/usr
+
 CC=gcc
 CXX=g++
 LD=g++
 
-CFLAGS=-Wextra -Wall -g -O3
-CXXFLAGS=-Wextra -Wall -g -O3
+CFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CXXFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
 OBJ=src/main.o src/Runner.o src/Experimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
-.PHONY: clean test libs doc
+
+.PHONY: clean test libs doc all install uninstall
 
 all: export-globals $(EXEC) test libs
+
+install: all
+	cp $(EXEC) $(INSTALL_DIR)/bin
+	mkdir -p $(INSTALL_DIR)/lib/lPowerProbe/
+	cp probes/*/*.so $(INSTALL_DIR)/lib/lPowerProbe/
+	mkdir -p $(INSTALL_DIR)/share/lPowerProbe/
+	cp empty/empty empty/empty.s $(INSTALL_DIR)/share/lPowerProbe/
+
+uninstall:
+	rm -f $(INSTALL_DIR)/bin/$(EXEC)
+	rm -rf $(INSTALL_DIR)/lib/lPowerProbe
+	rm -rf $(INSTALL_DIR)/share/lPowerProbe
 
 $(EXEC): $(OBJ)
 	$(LD) $(OBJ) -o $@ $(LDFLAGS) 
@@ -50,6 +65,7 @@ test:
 libs:
 	make -C probes/energy_snb_msr
 	make -C probes/wallclock
+	make -C probes/yoko_energy
 
 doc:
 	doxygen lPowerProbe.doxy
@@ -58,6 +74,7 @@ clean:
 	make -C ./empty/ clean
 	make -C probes/energy_snb_msr clean
 	make -C probes/wallclock clean
+	make -C probes/yoko_energy mrproper 
 	rm -rf $(EXEC) $(OBJ)
 
 export-globals:

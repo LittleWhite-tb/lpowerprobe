@@ -13,7 +13,7 @@ libyoko_energy.so: libyoko_energy.o yokosrv.o
 %.o: %.c
 	$(CC) $< -c $(CFLAGS) -o $@
 
-.PHONY: clean mrproper
+.PHONY: clean mrproper all
 
 mrproper: clean
 	rm -f libyoko_energy.so
