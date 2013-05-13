@@ -18,10 +18,11 @@
  */
 
 #include <iostream>
-#include <sstream>
 #include <cstdlib>
 
 #include <getopt.h>
+
+#include "StringUtils.hpp"
 
 #include "Experimentation.hpp"
 #include "Options.hpp"
@@ -51,15 +52,6 @@ static struct option long_options[] =
    {"libraries", required_argument,   0, ID_ARG_PROBES},
    {0,0,0,0}
 };
-
-template<typename T>
-bool from_string( const std::string & Str, T & Dest )
-{
-    // créer un flux à partir de la chaîne donnée
-    std::istringstream iss( Str );
-    // tenter la conversion vers Dest
-    return iss >> Dest != 0;
-}
 
 void version()
 {
@@ -106,7 +98,7 @@ int main(int argc, char** argv)
          case 'r':
             {
                unsigned int repet = 0;
-               if ( from_string<unsigned int>(optarg,repet) )
+               if ( StringUtils::from_string<unsigned int>(optarg,repet) )
                {
                   // Hack to replace the repetition command to meta repetition
                   options.setNbMetaRepetition(repet);
@@ -121,7 +113,7 @@ int main(int argc, char** argv)
          case ID_ARG_METAREPETITION:
             {
                unsigned int mrepet = 0;
-               if ( from_string<unsigned int>(optarg,mrepet) )
+               if ( StringUtils::from_string<unsigned int>(optarg,mrepet) )
                {
                   options.setNbMetaRepetition(mrepet);
                }
@@ -136,7 +128,7 @@ int main(int argc, char** argv)
          case 'd':
             {
                unsigned int process = 0;
-               if ( from_string<unsigned int>(optarg,process) )
+               if ( StringUtils::from_string<unsigned int>(optarg,process) )
                {
                   options.setNbProcess(process);
                }
@@ -168,7 +160,7 @@ int main(int argc, char** argv)
          case 'm':
             {
                size_t iterationMemorySize = 0;
-               if ( from_string<size_t>(optarg,iterationMemorySize) )
+               if ( StringUtils::from_string<size_t>(optarg,iterationMemorySize) )
                {
                   options.setIterationMemorySize(iterationMemorySize);
                }
@@ -184,7 +176,7 @@ int main(int argc, char** argv)
          case 'i':
             {
                size_t nbKernelIteration = 0;
-               if ( from_string<unsigned long int>(optarg,nbKernelIteration) )
+               if ( StringUtils::from_string<unsigned long int>(optarg,nbKernelIteration) )
                {
                   options.setNbKernelIteration(nbKernelIteration);
                }

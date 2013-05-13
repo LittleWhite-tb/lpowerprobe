@@ -34,6 +34,7 @@
 #include <sys/stat.h>        /* For mode constants */
 #include <fcntl.h> 
 
+#include "StringUtils.hpp" 
 #include "CPUUtils.hpp" 
 
 KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
@@ -58,9 +59,18 @@ KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName
       memset(*itMem,0,m_overheadMemorySize * OVERHEAD_KERNELITER);
    }
    
+   // Get pid to put in semaphores names
+   m_pid = getpid();
+   // Convert it
+   if ( StringUtils::to_string(m_pid,m_pidString) == false )
+   {
+      std::cerr << "Fail to transform PID in a string" << std::endl;
+      m_pidString = "00000";
+   }
+   
    // open fatherLock
    int shareSeg;
-   if ((shareSeg = shm_open("/shmFather", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open(("/shmFather" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -84,7 +94,7 @@ KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName
    }
    
    // open processLock
-   if ((shareSeg = shm_open("/shmProcess", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open(("/shmProcess" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -107,7 +117,7 @@ KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName
    }
 
    // open processEndLock
-   if ((shareSeg = shm_open("/shmProcessEnd", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open(("/shmProcessEnd" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -137,13 +147,13 @@ KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName
 KernelRunner::~KernelRunner()
 {
    sem_destroy(m_processEndLock);
-   shm_unlink("/shmProcessEnd");
+   shm_unlink(("/shmProcessEnd" + m_pidString).c_str());
    
    sem_destroy(m_processLock);
-   shm_unlink("/shmProcess");
+   shm_unlink(("/shmProcess" + m_pidString).c_str());
    
    sem_destroy(m_fatherLock);
-   shm_unlink("/shmFather");
+   shm_unlink(("/shmFather" + m_pidString).c_str());
    
    for ( std::vector<char*>::iterator itMem = m_memory.begin() ; itMem != m_memory.end() ; ++itMem )
    {

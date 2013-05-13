@@ -34,6 +34,8 @@
 #include <sys/stat.h>        /* For mode constants */
 #include <fcntl.h> 
 
+#include "StringUtils.hpp" 
+
 #include "CPUUtils.hpp" 
 
 Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet)
@@ -42,9 +44,19 @@ Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned i
    m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
    m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
    
+   // Get pid to put in semaphores names
+   m_pid = getpid();
+   // Convert it
+   if ( StringUtils::to_string(m_pid,m_pidString) == false )
+   {
+      std::cerr << "Fail to transform PID in a string" << std::endl;
+      m_pidString = "00000";
+   }
+   
+   
    // open fatherLock
    int shareSeg;
-   if ((shareSeg = shm_open("/shmFather", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open(("/shmFather" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -68,7 +80,7 @@ Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned i
    }
    
    // open processLock
-   if ((shareSeg = shm_open("/shmProcess", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open(("/shmProcess" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -91,7 +103,7 @@ Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned i
    }
 
    // open processEndLock
-   if ((shareSeg = shm_open("/shmProcessEnd", O_RDWR | O_CREAT, S_IRWXU)) < 0) 
+   if ((shareSeg = shm_open(("/shmProcessEnd" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
@@ -117,13 +129,13 @@ Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned i
 Runner::~Runner()
 {
    sem_destroy(m_processEndLock);
-   shm_unlink("/shmProcessEnd");
+   shm_unlink(("/shmProcessEnd" + m_pidString).c_str());
    
    sem_destroy(m_processLock);
-   shm_unlink("/shmProcess");
+   shm_unlink(("/shmProcess" + m_pidString).c_str());
    
    sem_destroy(m_fatherLock);
-   shm_unlink("/shmFather");
+   shm_unlink(("/shmFather" + m_pidString).c_str());
 }
 
 void Runner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)

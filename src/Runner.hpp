@@ -54,6 +54,8 @@ private:
    GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
    GlobalResultsArray m_runResults; /*!< Probe results for the run test */
    
+   pid_t m_pid;   /*!< PID of the process to use as unique ID for semaphores */
+   std::string m_pidString; /*!< PID as a string */
    sem_t* m_fatherLock;       /*!< Process test synchronisation */
    sem_t* m_processLock;      /*!< Process test synchronisation */
    sem_t* m_processEndLock;   /*!< Process end synchronisation */
