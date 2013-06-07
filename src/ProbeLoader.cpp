@@ -60,11 +60,11 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
       
       if ( loaded == false )
       {
-         std::cout << "Failed" << std::endl;
          for ( std::vector<std::string>::const_iterator itError = errors.begin() ; itError != errors.end() ; ++itError )
          {
             std::cout << "==> " << *itError << std::endl;
          }
+         std::cout << "Failed" << std::endl;
          result = false;
       }
    }
