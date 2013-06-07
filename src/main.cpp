@@ -21,6 +21,10 @@
 #include <cstdlib>
 
 #include <getopt.h>
+#include <cstdio>
+#include <cerrno>
+#include <cassert>
+#include <sys/stat.h>
 
 #include "StringUtils.hpp"
 
@@ -77,6 +81,29 @@ void usage()
    std::cout << "  -m, --iteration-mem-size=NUMBER\tThe memory size in bytes used in the kernel per iteration" << std::endl;
    std::cout << "  -i, --iteration=NUMBER\t\tThe number of kernel iteration" << std::endl;
    exit(EXIT_SUCCESS);
+}
+
+bool isFileExecutable(const char* pPath)
+{
+   assert(pPath);
+   
+   struct stat fileInfo;
+   
+   if (stat(pPath,&fileInfo) != 0 )
+   {
+      std::cout << "Warning : Fail to stat the file '" << pPath << "'" << std::endl;
+      perror("");
+      std::cout << "Info : since the executable you want to run can be in PATH, we will continue" << std::endl;
+      return false;
+   }
+   
+   if ((fileInfo.st_mode & S_IEXEC) != 0 )
+   {
+      return true;
+   }
+   
+   std::cout << "The executable specified '" << pPath << "' is not executable" << std::endl;
+   return false;
 }
 
 int main(int argc, char** argv)
@@ -219,6 +246,9 @@ int main(int argc, char** argv)
          if ( i == 0 )
          {
             std::cout << "Test program : '" << argv[optind] << "'" << std::endl; 
+            
+            isFileExecutable(argv[optind]);
+
             options.setExecName(argv[optind]);
          }
          else
