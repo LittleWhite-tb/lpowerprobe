@@ -40,28 +40,14 @@ class Options;
  */
 class Experimentation
 {
-private:
-   static const std::string DUMMY_KERNEL_FILE;  /*!< Name of the dummy kernel for overload calculation */
-   
+protected:
    ProbeList m_probes;  /*!< Probe to use during a test */
 
    const Options& m_options;  /*!< Set of option comming from program args */
    std::string m_execFile; /*!< File to run (either a compiled kernel of a compiled program) */
    
-   std::string m_dummyKernelFile;   /*!< Dummy kernel for overload calculation */
-
    std::vector<std::string> m_probePaths; /*!< List of probes to load */
-   
-   /**
-    * Starts the experimentation for a program
-    */
-   void startProgramExperimentation();
-   
-   /**
-    * Starts the experimentation for a kernel
-    */
-   void startKernelExperimentation();
-   
+
 public:
    /**
     * \param options the options given by the user
@@ -70,12 +56,12 @@ public:
    
    /**
     */
-   ~Experimentation();
+   virtual ~Experimentation();
    
    /**
     * Starts the experimentation process
     */
-   void startExperimentation();
+   virtual void start()=0;
 };
 
 #endif

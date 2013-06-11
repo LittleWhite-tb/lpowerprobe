@@ -28,6 +28,7 @@
 
 #include "StringUtils.hpp"
 
+#include "ExperimentationFactory.hpp"
 #include "Experimentation.hpp"
 #include "Options.hpp"
 
@@ -268,9 +269,9 @@ int main(int argc, char** argv)
    }
    
 
-   Experimentation e(options);
-   e.startExperimentation();
-
+   Experimentation* pExp = ExperimentationFactory::createExperimentation(options);
+   pExp->start();
+   delete pExp;
 
    return 0;
 }

@@ -16,29 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include "Experimentation.hpp"
 
-#include "ProbeLoader.hpp"
+#ifndef PROGRAMEXPERIMENTATION_HPP
+#define PROGRAMEXPERIMENTATION_HPP
+
+#include "Experimentation.hpp"
 
 #include "Options.hpp"
 
-Experimentation::Experimentation(const Options& options)
-   :m_options(options),m_execFile(options.getExecName())
+class ProgramExperimentation : public Experimentation
 {
-   ProbeLoader pl;
-   pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
-   if ( m_probes.size() == 0 )
-   {
-      // No probes ... :(
-      throw ProbeLoadingException("No probes loaded");
-   }
-}
+private:
 
-Experimentation::~Experimentation()
-{
-   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
-   {
-      delete *itProbe;
-   }
-}
+public:
+    ProgramExperimentation(const Options& options);
+    ~ProgramExperimentation() {}
+
+    void start();
+};
+
+#endif

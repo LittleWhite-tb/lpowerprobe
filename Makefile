@@ -27,7 +27,7 @@ CFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 CXXFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
-OBJ=src/main.o src/Runner.o src/Experimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o
+OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
 
