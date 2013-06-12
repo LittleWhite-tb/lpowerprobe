@@ -22,6 +22,10 @@
 #ifndef H_WALLCLOCK
 #define H_WALLCLOCK
 
+#ifndef LPP_API_VERSION
+#error LPP_API_VERSION undefined, never call this makefile directly!
+#endif
+
 /**
  * API version used.
  */

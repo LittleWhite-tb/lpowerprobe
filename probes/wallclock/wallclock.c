@@ -55,6 +55,6 @@ extern double *stop (void *data) {
 }
 
 extern void update (void *data) {
-
+   (void) data;
 }
 
