@@ -22,10 +22,79 @@
 #ifndef H_WALLCLOCK
 #define H_WALLCLOCK
 
-extern void *evaluationInit (void);
-extern int evaluationClose (void *data);
+/**
+ * API version used.
+ */
+extern const unsigned int version = LPP_API_VERSION;
 
-extern double evaluationStart (void *data);
-extern double evaluationStop (void *data);
+/**
+ * Human readable label for the results.
+ */
+extern const char *label = "Time (us)";
+
+/**
+ * Period at which the update function has to be called. If 0, the function is
+ * never called. The period is expressed in micro seconds (us).
+ */
+extern const unsigned int period = 0;
+
+/**
+ * Returns the number of devices this library has detected.
+ *
+ * @return The number of devices considered by this lib.
+ */
+extern unsigned int nbDevices();
+
+/**
+ * Returns the number of channels per device to use.
+ *
+ * @return The number of channels to associate to every device. It is the number
+ * of different result values per device in the return value of stop.
+ */
+extern unsigned int nbChannels();
+
+/**
+ * Called first at initialization.
+ *
+ * @return A pointer to an internal library state. May be NULL.
+ */
+extern void *init (void);
+
+/**
+ * Called once at the end of the experiment.
+ *
+ * @param data A pointer to an internal library state as returned by init.
+ * May be NULL.
+ */
+extern void fini (void *data);
+
+/**
+ * Called at the begining of the experiment, right after init or stop.
+ * May be called several times during the experiment.
+ *
+ * @param data A pointer to an internal library state as returned by init.
+ */
+extern void start (void *data);
+
+/**
+ * Called a the end of the experiment, always after a call to start. May be
+ * called several times during the experiment.
+ *
+ * @param data The internal library state as returned by init.
+ *
+ * @return The final result to be stored in the result file. The result is made
+ * of one value per channel for every device. The results must be sorted by 
+ * device and then by channel: 
+ * device0/channel0, device0/channel1, ..., deviceN/channelM
+ */
+extern double *stop (void *data);
+
+/**
+ * Called periodically (rate defined by the period property). Can be used to
+ * periodically update some internal states.
+ *
+ * @param data The internal library state as returned by init.
+ */
+extern void update (void *data);
 
 #endif
