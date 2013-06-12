@@ -24,14 +24,6 @@
 
 #include "libwallclock.h"
 
-#ifndef LPP_API_VERSION
-#error LPP_API_VERSION undefined, never call this makefile directly!
-#endif
-
-extern unsigned int getVersion() {
-   return LPP_API_VERSION;
-}
-
 extern unsigned int nbDevices() {
    return 1;
 }

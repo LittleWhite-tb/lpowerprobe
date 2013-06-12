@@ -22,10 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef H_LIBENERGYMSR
 #define H_LIBENERGYMSR
 
+#ifndef LPP_API_VERSION
+#error LPP_API_VERSION undefined, never call this makefile directly!
+#endif
+
 /**
  * API version used.
  */
-extern unsigned int getVersion();
+const unsigned int version = LPP_API_VERSION;
 
 /**
  * Human readable label for the results.

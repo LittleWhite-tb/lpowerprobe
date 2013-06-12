@@ -28,15 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "libenergymsr.h"
 
-
-#ifndef LPP_API_VERSION
-#error LPP_API_VERSION undefined, never call this makefile directly!
-#endif
-
-extern unsigned int getVersion() {
-   return LPP_API_VERSION;
-}
-
 typedef struct
 {
    unsigned int nbCPUs; // number of CPUs on the system

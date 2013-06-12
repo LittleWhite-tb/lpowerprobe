@@ -22,10 +22,14 @@
 #ifndef H_LIBWALLCLOCK
 #define H_LIBWALLCLOCK
 
+#ifndef LPP_API_VERSION
+#error LPP_API_VERSION undefined, never call this makefile directly!
+#endif
+
 /**
  * API version used.
  */
-extern unsigned int getVersion();
+const unsigned int version = LPP_API_VERSION;
 
 /**
  * Human readable label for the results.
