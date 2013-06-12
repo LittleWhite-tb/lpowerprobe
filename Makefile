@@ -27,6 +27,8 @@ CFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 CXXFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
+LPP_VERSION=2
+
 OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/ProgramRunner.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
@@ -64,9 +66,9 @@ test:
 	make -C empty/
 
 libs:
-	make -C probes/energy_snb_msr
-	make -C probes/wallclock
-	make -C probes/yoko_energy
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/energy_snb_msr
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/wallclock
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/yoko_energy
 
 doc:
 	doxygen lPowerProbe.doxy
