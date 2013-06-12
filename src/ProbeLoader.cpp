@@ -19,6 +19,8 @@
 
 #include "ProbeLoader.hpp"
 
+#include "ProbeLoadingException.hpp""
+
 #include <iostream>
 
 ProbeLoader::ProbeLoader()
