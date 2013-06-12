@@ -31,7 +31,7 @@
 #include <sys/wait.h>
 
 #include "Kernel.hpp"
-#include "Runner.hpp"
+#include "ProgramRunner.hpp"
 #include "CPUUtils.hpp"
 
 ProgramExperimentation::ProgramExperimentation(const Options &options)
@@ -49,7 +49,7 @@ void ProgramExperimentation::start()
     unsigned int nbProcess(m_options.getNbProcess());
     std::vector<unsigned int> pinning(m_options.getPinning());
 
-    Runner run(&m_probes, m_options.getOutputFile(), nbProcess, m_options.getNbMetaRepetition());
+    ProgramRunner run(&m_probes, m_options.getOutputFile(), m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
     std::vector<pid_t> m_pids;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
@@ -66,7 +66,7 @@ void ProgramExperimentation::start()
              }
              CPUUtils::setFifoMaxPriority(-1);
 
-             run.start(m_execFile, args, process);
+             run.start(process);
 
              // Need to finish the son here
              _exit(EXIT_SUCCESS);

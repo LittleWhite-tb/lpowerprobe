@@ -21,12 +21,10 @@
 #define KERNELRUNNER_HPP
 
 #include <vector>
-#include <string>
-#include <fstream>
-
-#include <semaphore.h>
 
 #include "Probe.hpp"
+
+#include "Runner.hpp"
 
 /**
  * \todo Actually, this file is a massive copy paste from Runner
@@ -38,20 +36,15 @@
  * are outputted in a file. The results gets the overhead removed before getting
  * outputted.
  */
-class KernelRunner
+class KernelRunner : public Runner
 {
 private:
    static const unsigned long int OVERHEAD_KERNELITER = 1;
 
    typedef unsigned long (*KernelFctPtr)(size_t, void*, unsigned);
-   std::ofstream m_resultFile;   /*!< */
 
-   ProbeList* m_pProbes; /*!< Probes to use to benchmark */
    KernelFctPtr m_pKernelFct; /*!< Kernel to bench */
    KernelFctPtr m_pDummyKernelFct; /*!< Special kernel to calculate the overhead */
-   
-   unsigned int m_nbMetaRepet;/*!< Number of repetition to do */
-   unsigned int m_nbProcess;  /*!< Number of process started */
    
    // Contain the memory segment for each process
    std::vector<char*> m_overheadMemory; /*!< Memory chunk allocated for dummy kernel */
@@ -62,19 +55,7 @@ private:
    
    size_t m_nbKernelIteration;   /*!< Number of time the inner kernel loop will run */
    
-   // Contains results for 
-   // - All process
-   // - All meta repease
-   // - All probes
-   typedef std::vector < std::vector<std::vector<std::pair<double, double> > > > GlobalResultsArray;
-   GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
-   GlobalResultsArray m_runResults; /*!< Probe results for the run test */
-   
-   pid_t m_pid;   /*!< PID of the process to use as unique ID for semaphores */
-   std::string m_pidString; /*!< PID as a string */
-   sem_t* m_fatherLock;       /*!< Process test synchronisation */
-   sem_t* m_processLock;      /*!< Process test synchronisation */
-   sem_t* m_processEndLock;   /*!< Process end synchronisation */
+
    
    /**
     * Starter for the overhead benchmark

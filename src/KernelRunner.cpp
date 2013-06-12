@@ -38,7 +38,8 @@
 #include "CPUUtils.hpp" 
 
 KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_resultFile(resultFileName.c_str()),m_pProbes(pProbes),m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_pDummyKernelFct(reinterpret_cast<KernelFctPtr>(pDummyKernelFct)),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess),m_iterationMemorySize(iterationMemorySize),m_overheadMemorySize(iterationMemorySize),m_nbKernelIteration(nbKernelIteration)
+    :Runner(pProbes,resultFileName,nbProcess,nbMetaRepet),
+     m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_pDummyKernelFct(reinterpret_cast<KernelFctPtr>(pDummyKernelFct)),m_iterationMemorySize(iterationMemorySize)
 {
    assert(m_pKernelFct);
    
@@ -59,102 +60,12 @@ KernelRunner::KernelRunner(ProbeList* pProbes, const std::string& resultFileName
       memset(*itMem,0,m_overheadMemorySize * OVERHEAD_KERNELITER);
    }
    
-   // Get pid to put in semaphores names
-   m_pid = getpid();
-   // Convert it
-   if ( StringUtils::to_string(m_pid,m_pidString) == false )
-   {
-      std::cerr << "Fail to transform PID in a string" << std::endl;
-      m_pidString = "00000";
-   }
-   
-   // open fatherLock
-   int shareSeg;
-   if ((shareSeg = shm_open(("/shmFather" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
-   {
-      perror("shm_open");
-      exit(1);
-   }
-
-  if ( ftruncate(shareSeg, sizeof(sem_t)) < 0 ) {
-    perror("ftruncate");
-    exit(1);
-  }
-
-  if ((m_fatherLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE,MAP_SHARED, shareSeg, 0)) == MAP_FAILED) 
-  {
-      perror("mmap");
-      exit(1);
-   }
-   
-   if ( sem_init(m_fatherLock, 1, 0) != 0 )
-   {
-      std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
-      perror("sem_init");
-   }
-   
-   // open processLock
-   if ((shareSeg = shm_open(("/shmProcess" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
-   {
-      perror("shm_open");
-      exit(1);
-   }
-
-  if ( ftruncate(shareSeg, sizeof(sem_t)) < 0 ) {
-    perror("ftruncate");
-    exit(1);
-  }
-
-  if ((m_processLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE,MAP_SHARED, shareSeg, 0)) == MAP_FAILED) {
-    perror("mmap");
-    exit(1);
-  }
-   
-   if ( sem_init(m_processLock, 1, 0) != 0 )
-   {
-      std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
-      perror("sem_init");
-   }
-
-   // open processEndLock
-   if ((shareSeg = shm_open(("/shmProcessEnd" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
-   {
-      perror("shm_open");
-      exit(1);
-   }
-
-  if ( ftruncate(shareSeg, sizeof(sem_t)) < 0 ) {
-    perror("ftruncate");
-    exit(1);
-  }
-
-  if ((m_processEndLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED, shareSeg, 0)) == MAP_FAILED) {
-    perror("mmap");
-    exit(1);
-  }
-   
-   if ( sem_init(m_processEndLock, 1, 0) != 0 )
-   {
-      std::cerr << "Fail to create semaphore, process will not be synced" << std::endl;
-      perror("sem_init");
-   }
-   
-   
    // Special formatting for output file
    m_resultFile << std::fixed;
 }
 
 KernelRunner::~KernelRunner()
 {
-   sem_destroy(m_processEndLock);
-   shm_unlink(("/shmProcessEnd" + m_pidString).c_str());
-   
-   sem_destroy(m_processLock);
-   shm_unlink(("/shmProcess" + m_pidString).c_str());
-   
-   sem_destroy(m_fatherLock);
-   shm_unlink(("/shmFather" + m_pidString).c_str());
-   
    for ( std::vector<char*>::iterator itMem = m_memory.begin() ; itMem != m_memory.end() ; ++itMem )
    {
       delete [] *itMem;
