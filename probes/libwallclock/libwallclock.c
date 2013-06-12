@@ -22,6 +22,8 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
+#include "libwallclock.h"
+
 extern unsigned int nbDevices() {
    return 1;
 }

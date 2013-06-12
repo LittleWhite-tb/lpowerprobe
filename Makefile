@@ -67,7 +67,7 @@ test:
 
 libs:
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/energy_snb_msr
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/wallclock
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/yoko_energy
 
 doc:
@@ -76,7 +76,7 @@ doc:
 clean:
 	make -C ./empty/ clean
 	make -C probes/energy_snb_msr clean
-	make -C probes/wallclock clean
+	make -C probes/libwallclock clean
 	make -C probes/yoko_energy mrproper 
 	rm -rf $(EXEC) $(OBJ)
 
