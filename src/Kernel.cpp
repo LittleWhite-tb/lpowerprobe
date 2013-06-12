@@ -26,7 +26,7 @@ void* Kernel::loadFunction(const std::string& fctName)
    void* pKernelFct = dlsym (m_pLibHandle, fctName.c_str());
    if (pKernelFct == NULL)
    {
-      std::cerr << "Fail to find the 'entryPoint' in the kernel" << std::endl;
+      std::cerr << "Fail to find the '" << fctName.c_str () << " ' in the kernel" << std::endl;
       return NULL;
    }
    
