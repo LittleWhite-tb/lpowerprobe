@@ -220,48 +220,10 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
    }
 }
 
-void ProgramRunner::saveResults()
-{
-   // We save only the results for the first process
-   std::vector<double> libsOverheadAvg(m_pProbes->size());
-   for ( std::vector<std::vector<std::pair<double, double> > >::const_iterator itMRepet = m_overheadResults[0].begin() ;
-         itMRepet != m_overheadResults[0].end() ; ++itMRepet )
-   {
-      for ( unsigned int i = 0 ; i < itMRepet->size() ; i++ )
-      {
-         libsOverheadAvg[i] += (*itMRepet)[i].second - (*itMRepet)[i].first;
-      }
-   }
-
-   for ( std::vector<double>::iterator itLib = libsOverheadAvg.begin() ; itLib != libsOverheadAvg.end() ; ++itLib )
-   {
-      *itLib /= m_overheadResults[0].size();
-   }
-
-   std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_pProbes->size(),0));
-   for ( unsigned int mRepet = 0 ; mRepet < m_runResults[0].size() ; mRepet++ )
-   {
-      for ( unsigned int i = 0 ; i < m_runResults[0][mRepet].size() ; i++ )
-      {
-         runResults[mRepet][i] += (m_runResults[0][mRepet][i].second - m_runResults[0][mRepet][i].first) - libsOverheadAvg[i];
-
-         m_resultFile << runResults[mRepet][i];
-         if ( i !=  m_runResults[0][mRepet].size()-1 )
-         {
-            m_resultFile << ";";
-         }
-         else
-         {
-            m_resultFile << std::endl;
-         }
-      }
-   }
-}
-
 void ProgramRunner::start(unsigned int processNumber)
 {
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
-    {
+   {
       calculateOverhead(metaRepet,processNumber);
    }
 

@@ -52,6 +52,11 @@ protected:
     sem_t* m_processLock;      /*!< Process test synchronisation */
     sem_t* m_processEndLock;   /*!< Process end synchronisation */
 
+    /**
+     * Saves the result in a file after applying the overhead bias
+     */
+    void saveResults();
+
 public:
 
     Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);

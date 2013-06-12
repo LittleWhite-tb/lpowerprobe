@@ -78,11 +78,6 @@ private:
    void evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber);
    
    /**
-    * Saves the result in a file after applying the overhead bias
-    */
-   void saveResults();
-   
-   /**
     * Infinite loop called to sync the bench processes
     */
    void syncLoop();

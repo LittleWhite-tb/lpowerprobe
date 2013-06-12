@@ -65,11 +65,6 @@ private:
     */
    void startTest(const std::string& programName, char** pArgv, unsigned int processNumber);
 
-   /**
-    * Saves the result in a file after applying the overhead bias
-    */
-   void saveResults();
-
 public:
    /**
     * Prepare a benchmark run
