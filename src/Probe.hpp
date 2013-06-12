@@ -22,37 +22,6 @@
 
 #include <string>
 #include <vector>
-#include <exception>
-
-/**
- * @class ProbeLoadingException
- * @brief Thrown when a probe could not be loaded properly
- */
-class ProbeLoadingException: public std::exception
-{
-   public:
-   
-      /**
-       * \param message reason of the exception
-       */
-      ProbeLoadingException(const std::string& message)
-         :message(message)
-      {
-      }
-   
-      virtual ~ProbeLoadingException(void)throw() {}
-
-      /**
-       * \return the littral reason of the exception
-       */
-      virtual const char* what() const throw()
-      {
-         return message.c_str();
-      }
-   
-   private:
-      std::string message;
-};
 
 /**
  * Wrapper around dynamic evaluation library
