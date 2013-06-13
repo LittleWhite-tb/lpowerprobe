@@ -17,11 +17,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <stdlib.h>
+
 #include "libenergyyoko.h"
 #include "yokosrv.h"
 
+
 typedef struct {
-  yokoctx_t ctx;
+  yokoctx_t *ctx;
   double e;
 } libdata_t;
 
