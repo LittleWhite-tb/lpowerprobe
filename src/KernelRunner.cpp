@@ -117,23 +117,26 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
          perror("sem_wait");
       }
       
-      for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
-      {
-         resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
+      if (processNumber == 0) {
+        for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
+        {
+           resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
+        }
       }
       
       pKernelFct(nbKernelIteration, memory[processNumber], size);
    
-      for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
-      {
-         resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
+      if (processNumber == 0) {
+        for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
+        {
+           resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
          
-         if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
-         {
-            broken = true;
-         }
+           if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
+           {
+              broken = true;
+           }
+        }
       }
-      
       
       if ( sem_post(m_fatherLock) != 0 )
       {
