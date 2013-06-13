@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3 -g -Wall -Wextra -fPIC -DLPP_API_VERSION=$(LPP_API_VERSION) #-DNDEBUG
+CFLAGS=-O3 -g -Wall -Wextra -fPIC -DLPP_API_VERSION=$(LPP_API_VERSION) -DNDEBUG
 LDFLAGS=-shared -lm
 
 all: libenergyyoko.so
