@@ -22,32 +22,41 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-extern void *evaluationInit (void)
-{
-	return NULL;
+#include "libwallclock.h"
+
+extern unsigned int nbDevices() {
+   return 1;
 }
 
-extern int evaluationClose (void *data)
-{
-	(void) data;
-	
-	return 0;
+extern unsigned int nbChannels() {
+   return 1;
 }
 
-extern double evaluationStart (void *data)
-{
-	struct timeval tv;
-	
-	(void) data;
-	
+extern void *init (void) {
+   return malloc(sizeof(double));
+}
+
+extern void fini (void *data) {
+   free(data);
+}
+
+static double getTimeStamp() {
+   struct timeval tv;
+
 	gettimeofday(&tv, NULL);
 	return tv.tv_usec + tv.tv_sec * 1000000.;
 }
 
-extern double evaluationStop (void *data)
-{
-	(void) data;
-	
-	return evaluationStart(NULL);
+extern void start (void *data) {
+   *((double *) data) = -getTimeStamp();
+}
+
+extern double *stop (void *data) {
+   *((double *) data) += getTimeStamp();
+   return data;
+}
+
+extern void update (void *data) {
+   (void) data;
 }
 

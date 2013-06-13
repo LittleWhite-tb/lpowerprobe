@@ -3,6 +3,8 @@
 #include <iostream>
 #include <dlfcn.h>
 
+#include "ProbeLoadingException.hpp"
+
 Probe::Probe(const std::string& path)
 {
    this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);

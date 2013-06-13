@@ -27,7 +27,9 @@ CFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 CXXFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
-OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/ProgramRunner.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/Options.o src/CPUUtils.o
+LPP_VERSION=2
+
+OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/ProgramRunner.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/ProbeV2.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
 
@@ -64,17 +66,17 @@ test:
 	make -C empty/
 
 libs:
-	make -C probes/energy_snb_msr
-	make -C probes/wallclock
-	make -C probes/yoko_energy
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/yoko_energy
 
 doc:
 	doxygen lPowerProbe.doxy
 
 clean:
 	make -C ./empty/ clean
-	make -C probes/energy_snb_msr clean
-	make -C probes/wallclock clean
+	make -C probes/libenergymsr clean
+	make -C probes/libwallclock clean
 	make -C probes/yoko_energy mrproper 
 	rm -rf $(EXEC) $(OBJ)
 
