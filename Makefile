@@ -68,17 +68,17 @@ test:
 libs:
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/yoko_energy
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko
 
 doc:
 	doxygen lPowerProbe.doxy
 
 clean:
 	make -C ./empty/ clean
-	make -C probes/libenergymsr clean
 	make -C probes/libwallclock clean
-	make -C probes/yoko_energy mrproper 
-	rm -rf $(EXEC) $(OBJ)
+	make -C probes/libenergymsr clean
+	make -C probes/libenergyyoko distclean 
+	rm -f $(EXEC) $(OBJ)
 
 export-globals:
 	@echo "#define GIT_COUNT" \"`git rev-list HEAD --count`\" > src/version.hpp

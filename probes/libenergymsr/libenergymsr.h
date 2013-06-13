@@ -34,7 +34,7 @@ const unsigned int version = LPP_API_VERSION;
 /**
  * Human readable label for the results.
  */
-const char *label = "Energy (J)";
+const char *label = "CPU energy (J)";
 
 /**
  * Period at which the update function has to be called. If 0, the function is
