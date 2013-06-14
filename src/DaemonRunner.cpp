@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstdio>
 #include <csignal>
+#include <fstream>
 #include <unistd.h>
 
 #include "DaemonRunner.hpp"
@@ -25,6 +27,8 @@
 static void sighandler(int sig);
 
 bool DaemonRunner::end = false;
+
+#define PID_FILE "/tmp/lppDaemonPID"
 
 DaemonRunner::DaemonRunner(ProbeList* pProbes, const std::string& resultFileName)
     : Runner(pProbes, resultFileName, 1, 1)
@@ -41,6 +45,12 @@ DaemonRunner::DaemonRunner(ProbeList* pProbes, const std::string& resultFileName
    sigaction(SIGTERM, &sact, NULL);
    sigaction(SIGINT, &sact, NULL);
    sigaction(SIGUSR1, &sact, NULL);
+
+   // also notify the processes of our pid
+   std::fstream fs(PID_FILE);
+   fs << getpid();
+   fs.flush();
+   fs.close();
 }
 
 DaemonRunner::~DaemonRunner()
@@ -57,6 +67,8 @@ DaemonRunner::~DaemonRunner()
    sigaction(SIGTERM, &sact, NULL);
    sigaction(SIGINT, &sact, NULL);
    sigaction(SIGUSR1, &sact, NULL);
+
+   remove(PID_FILE);
 }
 
 void sighandler(int sig) {
