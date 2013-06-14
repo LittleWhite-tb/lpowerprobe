@@ -177,6 +177,11 @@ public:
     * \return true if the exec is a kernel
     */
    bool isExecKernel()const;
+
+   /**
+    * \return true if we run as a daemon waiting for signals.
+    */
+   bool isDaemon() const;
    
    /**
     * Set the default values to unset options

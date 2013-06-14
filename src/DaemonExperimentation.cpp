@@ -17,21 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ExperimentationFactory.hpp"
-
 #include "DaemonExperimentation.hpp"
-#include "ProgramExperimentation.hpp"
-#include "KernelExperimentation.hpp"
+#include "DaemonRunner.hpp"
 
-Experimentation* ExperimentationFactory::createExperimentation(const Options& options)
+DaemonExperimentation::DaemonExperimentation(const Options &options)
+    : Experimentation(options)
 {
-   if (options.isDaemon()) {
-      return new DaemonExperimentation(options);
-   }
-   
-   if ( options.isExecKernel()) {
-      return new KernelExperimentation(options);
-   }
+}
 
-   return new ProgramExperimentation(options);
+DaemonExperimentation::~DaemonExperimentation()
+{
+
+}
+
+void DaemonExperimentation::start()
+{
+   DaemonRunner runner(&m_probes, m_options.getOutputFile());
+   runner.start(0);
 }
