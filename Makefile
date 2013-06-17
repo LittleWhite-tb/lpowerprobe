@@ -29,13 +29,14 @@ LDFLAGS=-ldl -lpthread -lrt
 
 LPP_VERSION=2
 
-OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/ProgramRunner.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/ProbeV2.o src/Options.o src/CPUUtils.o
+SRC=$(wildcard src/*.cpp)
+OBJ=$(SRC:.cpp=.o)
 EXEC=lPowerProbe
 
 
-.PHONY: clean test libs doc all install uninstall
+.PHONY: clean test doc all install uninstall extra distclean
 
-all: export-globals $(EXEC) test libs
+all: export-globals $(EXEC) test extra
 
 install: all
 	cp $(EXEC) $(INSTALL_DIR)/bin
@@ -65,20 +66,25 @@ $(EXEC): $(OBJ)
 test:
 	make -C empty/
 
-libs:
+extra:
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko
+	make -C scripts/MPI_preload
 
 doc:
 	doxygen lPowerProbe.doxy
 
 clean:
+	rm -f $(OBJ)
+
+distclean: clean
 	make -C ./empty/ clean
 	make -C probes/libwallclock clean
 	make -C probes/libenergymsr clean
-	make -C probes/libenergyyoko distclean 
-	rm -f $(EXEC) $(OBJ)
+	make -C probes/libenergyyoko distclean
+	make -C scripts/MPI_preload clean
+	rm -f $(EXEC)
 
 export-globals:
 	@echo "#define GIT_COUNT" \"`git rev-list HEAD --count`\" > src/version.hpp
