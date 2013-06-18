@@ -32,13 +32,13 @@ T Probe::loadSymbol(const char* symbol)
 {
     assert(symbol);
 
-   T pSymbol = (T)dlsym(this->pLibHandle,symbol);
-   if ( pSymbol == NULL )
-   {
-       throw ProbeLoadingException(std::string("Error to load '") + symbol + std::string("'"));
-   }
+    T pSymbol = (T)dlsym(this->pLibHandle,symbol);
+    if ( pSymbol == NULL )
+    {
+        throw ProbeLoadingException(std::string("Error to load '") + symbol + std::string("'"));
+    }
 
-   return pSymbol;
+    return pSymbol;
 }*/
 
 Probe::Probe(const std::string& path)

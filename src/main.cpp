@@ -67,7 +67,13 @@ void version()
 
 void usage()
 {
-   std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
+   std::cout << "./lPowerProbe [OPTION] [prog] [args]" << std::endl;
+   std::cout << std::endl;
+   std::cout << "Performs standardized and accurate measurements." << std::endl;
+   std::cout << "It can work in three different modes depending on the prog argument value:" << std::endl;
+   std::cout << "\t- prog is not specified: the measurement is (re)started/ended when receiving SIGUSR1." << std::endl;
+   std::cout << "\t- prog ends by .s: it is compiled and run instrumented as a kernel." << std::endl;
+   std::cout << "\t- otherwise: prog is run instrumented as an executable file." << std::endl;
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
    std::cout << "  -v, --version\t\t\t\tDisplay the program version" << std::endl;
    

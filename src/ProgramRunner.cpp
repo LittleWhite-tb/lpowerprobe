@@ -82,11 +82,13 @@ void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::strin
         pArgv[i] = NULL;
     }
 
+
     m_pProbesDataCollector->start();
 
     startTest(test, pArgv, processNumber);
 
     m_pProbesDataCollector->stop();
+    // Collect data for the iteration
     for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
     {
         resultArray[processNumber][metaRepet][i] = m_pProbesDataCollector->getData(i);

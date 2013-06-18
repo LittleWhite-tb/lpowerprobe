@@ -1,8 +1,5 @@
 /*
- * lPowerProbe - A light benchmark tool oriented for energy probing
- *               heavely based on likwid
  * Copyright (C) 2013 Universite de Versailles
- * Copyright (C) 2012 Exascale Research Center
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,8 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef H_LIBWALLCLOCK
-#define H_LIBWALLCLOCK
+#ifndef H_LIBENERGYYOKO
+#define H_LIBENERGYYOKO
 
 #ifndef LPP_API_VERSION
 #error LPP_API_VERSION undefined, never call this makefile directly!
@@ -34,7 +31,7 @@ const unsigned int version = LPP_API_VERSION;
 /**
  * Human readable label for the results.
  */
-const char *label = "Time (us)";
+const char *label = "System energy (J)";
 
 /**
  * Period at which the update function has to be called. If 0, the function is

@@ -1,26 +1,26 @@
 /*
- * lPowerProbe - A light benchmark tool oriented for energy probing
- *               heavely based on likwid
- * Copyright (C) 2013 Universite de Versailles
- * Copyright (C) 2012 Exascale Research Center
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+lPowerProbe - A light benchmark tool oriented for energy probing
+              heavely based on likwid
+Copyright (C) 2013 Universite de Versailles
+Copyright (C) 2011 Exascale Research Center
 
-#ifndef H_LIBWALLCLOCK
-#define H_LIBWALLCLOCK
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+
+#ifndef H_LIBENERGYMSR
+#define H_LIBENERGYMSR
 
 #ifndef LPP_API_VERSION
 #error LPP_API_VERSION undefined, never call this makefile directly!
@@ -34,13 +34,13 @@ const unsigned int version = LPP_API_VERSION;
 /**
  * Human readable label for the results.
  */
-const char *label = "Time (us)";
+const char *label = "CPU energy (J)";
 
 /**
  * Period at which the update function has to be called. If 0, the function is
  * never called. The period is expressed in micro seconds (us).
  */
-const unsigned int period = 0;
+const unsigned int period = 20000000;
 
 /**
  * Returns the number of devices this library has detected.

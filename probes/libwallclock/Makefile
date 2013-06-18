@@ -20,13 +20,13 @@
 CC?=gcc
 CFLAGS=-O3 -Wall -Wextra -g -DLPP_API_VERSION=$(LPP_API_VERSION)
 
-.PHONY:
-	clean
+.PHONY: all clean
 
 all: libwallclock.so
 
-libwallclock.so: 
-	$(CC) libwallclock.c $(CFLAGS) -o $@ -fPIC -shared
+libwallclock.so: libwallclock.c libwallclock.h
+	$(CC) $(CFLAGS) $< -o $@ -fPIC -shared
 
 clean:
-	rm -f ./libwallclock.so
+	rm -f libwallclock.so
+

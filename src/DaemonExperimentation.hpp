@@ -17,21 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ExperimentationFactory.hpp"
+#ifndef DAEMONEXPERIMENTATION_HPP
+#define DAEMONEXPERIMENTATION_HPP
 
-#include "DaemonExperimentation.hpp"
-#include "ProgramExperimentation.hpp"
-#include "KernelExperimentation.hpp"
+#include "Experimentation.hpp"
 
-Experimentation* ExperimentationFactory::createExperimentation(const Options& options)
+#include "Options.hpp"
+
+class DaemonExperimentation : public Experimentation
 {
-   if (options.isDaemon()) {
-      return new DaemonExperimentation(options);
-   }
-   
-   if ( options.isExecKernel()) {
-      return new KernelExperimentation(options);
-   }
+private:
+  
+public:
+   DaemonExperimentation(const Options& options);
+   ~DaemonExperimentation();
 
-   return new ProgramExperimentation(options);
-}
+   void start();
+};
+
+#endif
