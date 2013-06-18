@@ -49,7 +49,7 @@ void ProgramExperimentation::start()
     unsigned int nbProcess(m_options.getNbProcess());
     std::vector<unsigned int> pinning(m_options.getPinning());
 
-    ProgramRunner run(&m_probes, m_options.getOutputFile(), m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
+    ProgramRunner run(m_pProbeDataCollector, m_options.getOutputFile(), m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
     std::vector<pid_t> m_pids;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )

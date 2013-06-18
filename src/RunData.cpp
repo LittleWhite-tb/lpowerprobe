@@ -16,35 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include "Experimentation.hpp"
 
-#include "ProbeLoadingException.hpp"
-#include "ProbeLoader.hpp"
-#include "ProbeDataCollector.hpp"
+#include "RunData.hpp"
 
-#include "Options.hpp"
+#include <cassert>
 
-Experimentation::Experimentation(const Options& options)
-   :m_options(options),m_execFile(options.getExecName())
+RunData::RunData(unsigned int maxBufferSize, unsigned int nbDevices, unsigned int nbChannels)
+    :m_maxData(maxBufferSize),m_dataIndex(0),m_data(m_maxData,ProbeData(nbDevices,nbChannels))
 {
-   ProbeLoader pl;
-   pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
-   if ( m_probes.size() == 0 )
-   {
-      // No probes ... :(
-      throw ProbeLoadingException("No probes loaded");
-   }
 
-   m_pProbeDataCollector = new ProbeDataCollector(&m_probes);
 }
 
-Experimentation::~Experimentation()
+const ProbeData& RunData::getProbeData(unsigned int index)const
 {
-   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
-   {
-      delete *itProbe;
-   }
+    assert(index < m_dataIndex);
 
-   delete m_pProbeDataCollector;
+    return m_data[index];
+}
+
+bool RunData::needDump()const
+{
+    return m_dataIndex >= m_maxData;
+}
+
+void RunData::addValue(double* pData)
+{
+    assert(pData);
+
+    m_data[m_dataIndex].setData(pData);
+    m_dataIndex++;
 }

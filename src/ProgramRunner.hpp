@@ -76,7 +76,7 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   ProgramRunner(ProbeList* pProbes, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
+   ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
 
    /**
     */

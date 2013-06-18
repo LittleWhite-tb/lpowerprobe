@@ -38,11 +38,14 @@
 
 #include "CPUUtils.hpp" 
 
-Runner::Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet)
-   :m_resultFile(resultFileName.c_str()),m_pProbes(pProbes),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
+#include "RunData.hpp"
+#include "ProbeData.hpp"
+
+Runner::Runner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet)
+   :m_resultFile(resultFileName.c_str()),m_pProbesDataCollector(pProbesDataCollector),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
 {
-   m_overheadResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
-   m_runResults.resize(m_nbProcess, std::vector< std::vector < std::pair<double, double> > >(m_nbMetaRepet, std::vector<std::pair<double, double> >(m_pProbes->size(),std::pair<double, double>(0,0))));
+   m_overheadResults.resize(m_nbProcess, std::vector< std::vector < RunData* > >(m_nbMetaRepet, std::vector<RunData*>(m_pProbesDataCollector->getNumberProbes(),NULL)));
+   m_runResults.resize(m_nbProcess, std::vector< std::vector < RunData* > >(m_nbMetaRepet, std::vector<RunData*>(m_pProbesDataCollector->getNumberProbes(),NULL)));
    
    // Get pid to put in semaphores names
    m_pid = getpid();
@@ -141,38 +144,52 @@ Runner::~Runner()
 void Runner::saveResults()
 {
    // We save only the results for the first process
-   std::vector<double> libsOverheadAvg(m_pProbes->size());
-   for ( std::vector<std::vector<std::pair<double, double> > >::const_iterator itMRepet = m_overheadResults[0].begin() ;
+   std::vector<ProbeData*> libsOverheadAvg(m_pProbesDataCollector->getNumberProbes(),NULL);
+   for ( std::vector<std::vector<RunData*> >::const_iterator itMRepet = m_overheadResults[0].begin() ;
          itMRepet != m_overheadResults[0].end() ; ++itMRepet )
    {
       for ( unsigned int i = 0 ; i < itMRepet->size() ; i++ )
       {
-         libsOverheadAvg[i] += (*itMRepet)[i].second - (*itMRepet)[i].first;
+          const ProbeData& pd = (*itMRepet)[i]->getProbeData(0);
+          if ( libsOverheadAvg[i] == NULL )
+          {
+              libsOverheadAvg[i] = new ProbeData(pd.getNbDevices(),pd.getNbChannels());
+          }
+
+          // We only manage the first (single shot) libraries
+          (*libsOverheadAvg[i]) += pd;
       }
-
    }
 
-   for ( std::vector<double>::iterator itLib = libsOverheadAvg.begin() ; itLib != libsOverheadAvg.end() ; ++itLib )
+   for ( std::vector<ProbeData*>::iterator itData = libsOverheadAvg.begin() ; itData != libsOverheadAvg.end() ; ++itData )
    {
-      *itLib /= m_overheadResults[0].size();
+      (*(*itData)) /= m_overheadResults[0].size();
    }
 
-   std::vector< std::vector<double> > runResults(m_runResults[0].size(),std::vector<double>(m_pProbes->size(),0));
    for ( unsigned int mRepet = 0 ; mRepet < m_runResults[0].size() ; mRepet++ )
    {
       for ( unsigned int i = 0 ; i < m_runResults[0][mRepet].size() ; i++ )
       {
-         runResults[mRepet][i] += (m_runResults[0][mRepet][i].second - m_runResults[0][mRepet][i].first) - libsOverheadAvg[i];
+          const ProbeData& rawProbeData = m_runResults[0][mRepet][i]->getProbeData(0);
 
-         m_resultFile << runResults[mRepet][i];
-         if ( i !=  m_runResults[0][mRepet].size()-1 )
-         {
+          ProbeData* pPD = rawProbeData -(*libsOverheadAvg[i]);
+
+        m_resultFile << *pPD;
+        if ( i !=  m_runResults[0][mRepet].size()-1 )
+        {
             m_resultFile << ";";
-         }
-         else
-         {
-            m_resultFile << std::endl;
-         }
+        }
+        else
+        {
+          m_resultFile << std::endl;
+        }
+
+        delete pPD;
       }
+   }
+
+   for ( std::vector<ProbeData*>::iterator itData = libsOverheadAvg.begin() ; itData != libsOverheadAvg.end() ; ++itData )
+   {
+       delete *itData;
    }
 }

@@ -20,30 +20,24 @@
 #ifndef PROBEV2_HPP
 #define PROBEV2_HPP
 
+#include "Probe.hpp"
+
 #include <string>
 
-class ProbeV2
+class ProbeV2 : public Probe
 {
     typedef unsigned int (*libGetNbDevices)();
     typedef unsigned int (*libGetNbChannels)();
 
-    typedef void* (*libInit)(void);
-    typedef void (*libFini)(void*);
     typedef void (*libStart)(void *data);
-    typedef void (*libUpdate)(void *data);
     typedef double* (*libStop)(void *data);
+    typedef void (*libUpdate)(void *data);
 
 private:
-
-    void* pLibHandle;
-    void* pProbeHandle;
 
     unsigned int m_version;
     unsigned int m_period;
     const char* m_pLabel;
-
-    libInit evaluationInit;
-    libFini evaluationFini;
 
     libUpdate evaluationUpdate;
 
@@ -63,7 +57,7 @@ public:
 
    /**
     */
-   ~ProbeV2();
+   ~ProbeV2() {}
 
    void update();
 

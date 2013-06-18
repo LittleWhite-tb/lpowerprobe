@@ -25,7 +25,9 @@
 
 #include <semaphore.h>
 
-#include "Probe.hpp"
+#include "ProbeDataCollector.hpp"
+
+class RunData;
 
 class Runner
 {
@@ -33,7 +35,7 @@ protected:
 
     std::ofstream m_resultFile;   /*!< */
 
-    ProbeList* m_pProbes; /*!< Probes to use to benchmark */
+    ProbeDataCollector* m_pProbesDataCollector; /*!< Data collector for probes */
 
     unsigned int m_nbMetaRepet;/*!< Number of repetition to do */
     unsigned int m_nbProcess;  /*!< Number of process started */
@@ -42,7 +44,7 @@ protected:
     // - All process
     // - All meta repease
     // - All probes
-    typedef std::vector < std::vector<std::vector<std::pair<double, double> > > > GlobalResultsArray;
+    typedef std::vector < std::vector<std::vector< RunData* > > > GlobalResultsArray;
     GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
     GlobalResultsArray m_runResults; /*!< Probe results for the run test */
 
@@ -59,7 +61,7 @@ protected:
 
 public:
 
-    Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);
+    Runner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);
     virtual ~Runner();
 
     /**

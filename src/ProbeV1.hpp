@@ -16,35 +16,47 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include "Experimentation.hpp"
 
-#include "ProbeLoadingException.hpp"
-#include "ProbeLoader.hpp"
-#include "ProbeDataCollector.hpp"
+#ifndef PROBEV1_HPP
+#define PROBEV1_HPP
 
-#include "Options.hpp"
+#include <string>
+#include <vector>
 
-Experimentation::Experimentation(const Options& options)
-   :m_options(options),m_execFile(options.getExecName())
+#include "Probe.hpp"
+
+/**
+ * Wrapper around dynamic evaluation library version 1
+ */
+class ProbeV1 : public Probe
 {
-   ProbeLoader pl;
-   pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
-   if ( m_probes.size() == 0 )
-   {
-      // No probes ... :(
-      throw ProbeLoadingException("No probes loaded");
-   }
+   typedef double (*libGet)(void *data);
+   
+private:
 
-   m_pProbeDataCollector = new ProbeDataCollector(&m_probes);
-}
+   libGet evaluationStart;
+   libGet evaluationStop;
 
-Experimentation::~Experimentation()
-{
-   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
-   {
-      delete *itProbe;
-   }
+   double m_startValue;
+   double m_measureValue;
 
-   delete m_pProbeDataCollector;
-}
+public:
+   /**
+    * Loads a probe from \a path
+    * \param path the path to the file to load
+    * \exception ProbeLoadingException on failure
+    */
+   ProbeV1(const std::string& path);
+   
+   /**
+    */
+   ~ProbeV1() {}
+
+
+   void startMeasure();
+   double* stopMeasure();
+};
+
+
+
+#endif

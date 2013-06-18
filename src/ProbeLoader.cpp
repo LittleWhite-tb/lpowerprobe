@@ -19,7 +19,11 @@
 
 #include "ProbeLoader.hpp"
 
-#include "ProbeLoadingException.hpp""
+#include "ProbeLoadingException.hpp"
+#include "InvalidProbeVersionException.hpp"
+
+#include "ProbeV1.hpp"
+#include "ProbeV2.hpp"
 
 #include <iostream>
 
@@ -33,6 +37,25 @@ ProbeLoader::ProbeLoader()
    
    m_defaultsProbes.push_back("libenergymsr.so");
    m_defaultsProbes.push_back("libwallclock.so");
+}
+
+bool ProbeLoader::tryLoadProbe(const std::string& probePath, ProbeList& probes)
+{
+    try
+    {
+       ProbeV2* pProbe = new ProbeV2(probePath);
+       probes.push_back(pProbe);
+       return true;
+    }
+    catch (InvalidProbeVersionException& ple)
+    {
+       // Now, we try to load V1
+        ProbeV1* pProbe = new ProbeV1(probePath);
+        probes.push_back(pProbe);
+        return true;
+    }
+
+    return false;
 }
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
@@ -50,8 +73,7 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
       {
          try
          {
-            Probe* pProbe = new Probe(*itDir + *itProbePath);
-            probes.push_back(pProbe);
+            tryLoadProbe(*itDir + *itProbePath,probes);
             loaded = true; // stops the loop
          }
          catch (ProbeLoadingException& ple)

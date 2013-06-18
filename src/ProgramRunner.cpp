@@ -36,8 +36,8 @@
 
 #include "CPUUtils.hpp"
 
-ProgramRunner::ProgramRunner(ProbeList* pProbes, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
-    :Runner(pProbes,resultFileName,nbProcess,nbMetaRepet),
+ProgramRunner::ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
+    :Runner(pProbesDataCollector,resultFileName,nbProcess,nbMetaRepet),
       m_test(test),m_args(args)
 {
 
@@ -56,94 +56,82 @@ void ProgramRunner::calculateOverhead(unsigned int metaRepet, unsigned int proce
 
 void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber)
 {
-   bool broken = false;
+    int nbArgs=0;
+    char** pArgv = NULL;
 
-   int nbArgs=0;
-   char** pArgv = NULL;
+    /* If argv == NULL, we have to create an argv table anyway... */
+    if (args.size() == 0)
+    {
+        nbArgs = 1;
+        pArgv = new char*[nbArgs+1];
+        pArgv[0] = strdup(test.c_str());
+        pArgv[1] = NULL;
+    }
+    /* Else, simply execute it with the argv table we got... */
+    else
+    {
+        nbArgs = args.size();
+        pArgv = new char*[nbArgs+2];
+        pArgv[0] = strdup(test.c_str());
 
-   /* If argv == NULL, we have to create an argv table anyway... */
-   if (args.size() == 0)
-   {
-      nbArgs = 1;
-      pArgv = new char*[nbArgs+1];
-      pArgv[0] = strdup(test.c_str());
-      pArgv[1] = NULL;
-   }
-   /* Else, simply execute it with the argv table we got... */
-   else
-   {
-      nbArgs = args.size();
-      pArgv = new char*[nbArgs+2];
-      pArgv[0] = strdup(test.c_str());
+        size_t i = 1;
+        for ( i = 1 ; i-1 < args.size()  ; i++ )
+        {
+            pArgv[i] = strdup(args[i-1].c_str());
+        }
+        pArgv[i] = NULL;
+    }
 
-      size_t i = 1;
-      for ( i = 1 ; i-1 < args.size()  ; i++ )
-      {
-         pArgv[i] = strdup(args[i-1].c_str());
-      }
-      pArgv[i] = NULL;
-   }
+    m_pProbesDataCollector->start();
 
-   do
-   {
-      broken = false;
-      for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
-      {
-         resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
-      }
+    startTest(test, pArgv, processNumber);
 
-      startTest(test, pArgv, processNumber);
+    m_pProbesDataCollector->stop();
+    for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
+    {
+        resultArray[processNumber][metaRepet][i] = m_pProbesDataCollector->getData(i);
+    }
 
-      for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
-      {
-         resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
-
-         if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
-         {
-            broken = true;
-         }
-      }
-
-      // ensure all the tasks finished before going to the next iteration
-      if (processNumber == 0)
-      {
-         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
-         {
+    // ensure all the tasks finished before going to the next iteration
+    if (processNumber == 0)
+    {
+        for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
+        {
             if ( sem_wait(m_fatherLock) != 0 )
             {
-               perror("sem_wait father");
+                perror("sem_wait father");
             }
-         }
+        }
 
-         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
-         {
+        for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
+        {
             if ( sem_post(m_processEndLock) != 0 )
             {
-               perror("sem_post processEnd");
+                perror("sem_post processEnd");
             }
-         }
-      }
-      else
-      {
-         if ( sem_post(m_fatherLock) != 0 )
-         {
+        }
+    }
+    else
+    {
+        if ( sem_post(m_fatherLock) != 0 )
+        {
             perror("sem_post");
-         }
+        }
 
-         if ( sem_wait(m_processEndLock) != 0 )
-         {
+        if ( sem_wait(m_processEndLock) != 0 )
+        {
             perror("sem_wait");
-         }
-      }
+        }
+    }
 
+    m_pProbesDataCollector->clear();
+    m_pProbesDataCollector->allocateMemory();
 
-   } while(broken);
-
-   for (int i = 0 ; i < nbArgs+1 ; i++ )
-   {
-      free(pArgv[i]);
-   }
-   delete [] pArgv;
+    for (int i = 0 ; i < nbArgs+1 ; i++ )
+    {
+        free(pArgv[i]);
+    }
+    delete [] pArgv;
 }
 
 void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsigned int processNumber)

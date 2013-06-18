@@ -1,66 +1,63 @@
+/*
+ * lPowerProbe - A light benchmark tool oriented for energy probing
+ *               heavely based on likwid
+ * Copyright (C) 2013 Universite de Versailles
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "Probe.hpp"
 
-#include <iostream>
+#include <exception>
+#include <stdexcept>
+#include <cassert>
+
 #include <dlfcn.h>
 
 #include "ProbeLoadingException.hpp"
+/*
+template <typename T>
+T Probe::loadSymbol(const char* symbol)
+{
+    assert(symbol);
+
+   T pSymbol = (T)dlsym(this->pLibHandle,symbol);
+   if ( pSymbol == NULL )
+   {
+       throw ProbeLoadingException(std::string("Error to load '") + symbol + std::string("'"));
+   }
+
+   return pSymbol;
+}*/
 
 Probe::Probe(const std::string& path)
 {
-   this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);
-   if ( this->pLibHandle == NULL )
-   {
+    this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);
+    if ( this->pLibHandle == NULL )
+    {
       throw ProbeLoadingException("Error to load probe : '" + path + "' (" + dlerror() + ")");
-   }
-   
-   this->evaluationInit =(evalInit) dlsym(this->pLibHandle,"evaluationInit");
-   if ( this->evaluationInit == NULL )
-   {
-      throw ProbeLoadingException("Error to load evaluationInit in probe : '" + path + "'");
-   }
-   
-   this->evaluationStart =(evalGet) dlsym(this->pLibHandle,"evaluationStart");
-   if ( this->evaluationStart == NULL )
-   {
-      throw ProbeLoadingException("Error to load evaluationStart in probe : '" + path + "'");
-   }
-   
-   this->evaluationStop = (evalGet) dlsym(this->pLibHandle,"evaluationStop");
-   if ( this->evaluationStop == NULL )
-   {
-      throw ProbeLoadingException("Error to load evaluationStop in probe : '" + path + "'");
-   }
-
-   this->evaluationClose = (evalClose) dlsym(this->pLibHandle,"evaluationClose");
-   if ( this->evaluationClose == NULL )
-   {
-      throw ProbeLoadingException("Error to load evaluationClose in probe : '" + path + "'");
-   }
-
-   std::cout << "'" << path << "' successfully loaded" << std::endl;
-   
-   // Now, we just start the probe
-   if ( this->evaluationInit )
-   {
-      this->pProbeHandle = this->evaluationInit();
-   }
+    }
 }
 
 Probe::~Probe()
 {
-   this->evaluationClose(this->pProbeHandle);
-   
+   this->evaluationFini(this->pProbeHandle);
+
    dlclose(this->pLibHandle); // Should return zero
-   
-   std::cerr << "[sampler : INFO] ProbeLib successfully closed" << std::endl;
-}
-   
-double Probe::startMeasure()
-{
-   return this->evaluationStart(this->pProbeHandle);
 }
 
-double Probe::stopMeasure()
+void Probe::update()
 {
-   return this->evaluationStop(this->pProbeHandle);
+    throw std::runtime_error("Probe::update() not available for probe version 1");
 }

@@ -29,7 +29,7 @@ LDFLAGS=-ldl -lpthread -lrt
 
 LPP_VERSION=2
 
-OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/ProgramRunner.o src/KernelRunner.o src/ProbeLoader.o src/Probe.o src/ProbeV2.o src/Options.o src/CPUUtils.o
+OBJ=src/main.o src/Runner.o src/ExperimentationFactory.o src/Experimentation.o src/KernelExperimentation.o src/ProgramExperimentation.o src/Kernel.o src/KernelCompiler.o src/ProgramRunner.o src/KernelRunner.o src/ProbeLoader.o src/ProbeData.o src/RunData.o src/ProbeDataCollector.o src/Probe.o src/ProbeV1.o src/ProbeV2.o src/Options.o src/CPUUtils.o
 EXEC=lPowerProbe
 
 

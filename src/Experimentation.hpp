@@ -25,6 +25,7 @@
 
 #include "Probe.hpp"
 
+class ProbeDataCollector;
 class Options;
 
 /**
@@ -42,6 +43,7 @@ class Experimentation
 {
 protected:
    ProbeList m_probes;  /*!< Probe to use during a test */
+   ProbeDataCollector* m_pProbeDataCollector;
 
    const Options& m_options;  /*!< Set of option comming from program args */
    std::string m_execFile; /*!< File to run (either a compiled kernel of a compiled program) */

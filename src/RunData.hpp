@@ -16,35 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include "Experimentation.hpp"
 
-#include "ProbeLoadingException.hpp"
-#include "ProbeLoader.hpp"
-#include "ProbeDataCollector.hpp"
 
-#include "Options.hpp"
+#ifndef RUNDATA_HPP
+#define RUNDATA_HPP
 
-Experimentation::Experimentation(const Options& options)
-   :m_options(options),m_execFile(options.getExecName())
+#include <vector>
+
+#include "ProbeData.hpp"
+
+class RunData
 {
-   ProbeLoader pl;
-   pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
-   if ( m_probes.size() == 0 )
-   {
-      // No probes ... :(
-      throw ProbeLoadingException("No probes loaded");
-   }
+private:
+    unsigned int m_maxData;
+    unsigned int m_dataIndex;
 
-   m_pProbeDataCollector = new ProbeDataCollector(&m_probes);
-}
+    std::vector< ProbeData > m_data;
 
-Experimentation::~Experimentation()
-{
-   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
-   {
-      delete *itProbe;
-   }
+public:
+    RunData(unsigned int maxBufferSize, unsigned int nbDevices, unsigned int nbChannels);
+    ~RunData() {}
 
-   delete m_pProbeDataCollector;
-}
+    unsigned int getNbData()const { return m_dataIndex; }
+
+    const ProbeData& getProbeData(unsigned int index)const;
+
+    bool needDump()const;
+    void addValue(double* pData);
+
+    void reinit() { m_dataIndex = 0; }
+};
+
+#endif

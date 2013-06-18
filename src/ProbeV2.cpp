@@ -22,83 +22,32 @@
 #include <iostream>
 #include <dlfcn.h>
 
-#include "ProbeLoadingException.hpp"
+#include "InvalidProbeVersionException.hpp"
 
 ProbeV2::ProbeV2(const std::string& path)
+    :Probe(path)
 {
-    this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);
-    if ( this->pLibHandle == NULL )
-    {
-       throw ProbeLoadingException("Error to load probe : '" + path + "' (" + dlerror() + ")");
-    }
-
-    unsigned int* pVersion = (unsigned int*)dlsym(this->pLibHandle,"version");
-    if ( pVersion == NULL )
-    {
-        m_version = 1; // If the symbol is not found, we have certainly the old lib version
-        throw ProbeLoadingException("Error to load 'version' in probe : '" + path + "'");
-    }
+    unsigned int* pVersion = loadSymbol<unsigned int*>("version");
     m_version = *pVersion;
     if ( m_version != 2 )
     {
-        throw ProbeLoadingException("Incompatible probe version (required : 2)");
+        throw InvalidProbeVersionException("Incompatible probe version (required : 2)");
     }
 
-
-    unsigned int* pPeriod = (unsigned int*)dlsym(this->pLibHandle,"period");
-    if ( pPeriod == NULL )
-    {
-        throw ProbeLoadingException("Error to load 'period' in probe : '" + path + "'");
-    }
+    unsigned int* pPeriod = loadSymbol<unsigned int*>("period");
     m_period = *pPeriod;
 
-    this->m_pLabel = (const char*)dlsym(this->pLibHandle,"label");
-    if ( this->m_pLabel == NULL )
-    {
-        throw ProbeLoadingException("Error to load 'label' in probe : '" + path + "'");
-    }
+    this->m_pLabel = loadSymbol<const char*>("label");
 
-    this->evaluationInit =(libInit) dlsym(this->pLibHandle,"init");
-    if ( this->evaluationInit == NULL )
-    {
-        throw ProbeLoadingException("Error to load 'init' in probe : '" + path + "'");
-    }
+    this->evaluationInit =loadSymbol<libInit>("init");
+    this->evaluationFini = loadSymbol<libFini>("fini");
 
-    this->evaluationStart =(libStart) dlsym(this->pLibHandle,"start");
-    if ( this->evaluationStart == NULL )
-    {
-        throw ProbeLoadingException("Error to load 'start' in probe : '" + path + "'");
-    }
+    this->evaluationStart = loadSymbol<libStart>("start");
+    this->evaluationUpdate = loadSymbol<libUpdate>("update");
+    this->evaluationStop = loadSymbol<libStop>("stop");
 
-    this->evaluationStop = (libStop) dlsym(this->pLibHandle,"stop");
-    if ( this->evaluationStop == NULL )
-    {
-        throw ProbeLoadingException("Error to load 'stop' in probe : '" + path + "'");
-    }
-
-    this->evaluationFini = (libFini) dlsym(this->pLibHandle,"fini");
-    if ( this->evaluationFini == NULL )
-    {
-       throw ProbeLoadingException("Error to load 'fini' in probe : '" + path + "'");
-    }
-
-    this->evaluationFini = (libFini) dlsym(this->pLibHandle,"fini");
-    if ( this->evaluationFini == NULL )
-    {
-       throw ProbeLoadingException("Error to load 'fini' in probe : '" + path + "'");
-    }
-
-    this->evaluationGetNbDevices = (libGetNbDevices) dlsym(this->pLibHandle,"nbDevices");
-    if ( this->evaluationGetNbDevices == NULL )
-    {
-       throw ProbeLoadingException("Error to load 'nbDevices' in probe : '" + path + "'");
-    }
-
-    this->evaluationGetNbChannels = (libGetNbChannels) dlsym(this->pLibHandle,"nbChannels");
-    if ( this->evaluationGetNbChannels == NULL )
-    {
-       throw ProbeLoadingException("Error to load 'nbChannels' in probe : '" + path + "'");
-    }
+    this->evaluationGetNbDevices = loadSymbol<libGetNbDevices>("nbDevices");
+    this->evaluationGetNbChannels = loadSymbol<libGetNbChannels>("nbChannels");
 
     std::cout << "'" << path << "' successfully loaded" << std::endl;
 
@@ -107,13 +56,6 @@ ProbeV2::ProbeV2(const std::string& path)
     {
        this->pProbeHandle = this->evaluationInit();
     }
-}
-
-ProbeV2::~ProbeV2()
-{
-    this->evaluationFini(this->pProbeHandle);
-
-    dlclose(this->pLibHandle); // Should return zero
 }
 
 void ProbeV2::update()

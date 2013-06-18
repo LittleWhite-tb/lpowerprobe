@@ -33,6 +33,13 @@ class ProbeLoader
       std::vector<std::string> m_defaultsProbes;   /*!< default libraries to load when non have been specified */
 
       /**
+       * Tries to load a probe (either v1 or v2)
+       * @param probePath
+       * @return true if it is a success
+       */
+      bool tryLoadProbe(const std::string& probePath, ProbeList& probes);
+
+      /**
        * Goes throught the directories to load the probes specified by \a probesPath
        * \param probesPath the probes to load
        * \param probes list of probes loaded

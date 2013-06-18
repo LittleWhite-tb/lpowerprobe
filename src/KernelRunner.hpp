@@ -101,7 +101,7 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   KernelRunner(ProbeList* pProbes, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
+   KernelRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
    
    /**
     */

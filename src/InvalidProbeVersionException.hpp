@@ -16,35 +16,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include "Experimentation.hpp"
 
-#include "ProbeLoadingException.hpp"
-#include "ProbeLoader.hpp"
-#include "ProbeDataCollector.hpp"
+#ifndef INVALIDPROBEVERSIONEXCEPTION_HPP
+#define INVALIDPROBEVERSIONEXCEPTION_HPP
 
-#include "Options.hpp"
+#include <exception>
 
-Experimentation::Experimentation(const Options& options)
-   :m_options(options),m_execFile(options.getExecName())
+/**
+ * @class InvalidProbeVersionException
+ * @brief Thrown when a probe is not in compatible version
+ */
+class InvalidProbeVersionException : public std::exception
 {
-   ProbeLoader pl;
-   pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
-   if ( m_probes.size() == 0 )
-   {
-      // No probes ... :(
-      throw ProbeLoadingException("No probes loaded");
-   }
+   public:
 
-   m_pProbeDataCollector = new ProbeDataCollector(&m_probes);
-}
+      /**
+       * \param message reason of the exception
+       */
+      InvalidProbeVersionException(const std::string& message)
+         :message(message)
+      {
+      }
 
-Experimentation::~Experimentation()
-{
-   for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
-   {
-      delete *itProbe;
-   }
+      virtual ~InvalidProbeVersionException(void)throw() {}
 
-   delete m_pProbeDataCollector;
-}
+      /**
+       * \return the littral reason of the exception
+       */
+      virtual const char* what() const throw()
+      {
+         return message.c_str();
+      }
+
+   private:
+      std::string message;
+};
+
+#endif

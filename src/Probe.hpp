@@ -22,48 +22,64 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 
-/**
- * Wrapper around dynamic evaluation library
- */
+#include <dlfcn.h>
+
+#include "ProbeLoadingException.hpp"
+
 class Probe
 {
-   typedef double (*evalGet)(void *data);
-   typedef  void* (*evalInit)(void);
-   typedef int (*evalClose)(void *data);
-   
 private:
-   void* pLibHandle;
-   void* pProbeHandle;
 
-   evalGet evaluationStart;   
-	evalGet evaluationStop;    
-	evalInit evaluationInit;   
-	evalClose evaluationClose;  
+protected:
+    void* pLibHandle;
+    void* pProbeHandle;
+
+    template <typename T>
+    T loadSymbol(const char* symbol)
+    {
+        assert(symbol);
+
+       T pSymbol = (T)dlsym(this->pLibHandle,symbol);
+       if ( pSymbol == NULL )
+       {
+           throw ProbeLoadingException(std::string("Error to load '") + symbol + std::string("'"));
+       }
+
+       return pSymbol;
+    }
+
+protected:
+    typedef double* (*libFini)(void *data);
+    typedef  void* (*libInit)(void);
+
+    libInit evaluationInit;
+    libFini evaluationFini;
 
 public:
-   /**
-    * Loads a probe from \a path
-    * \param path the path to the file to load
-    * \exception ProbeLoadingException on failure
-    */
-   Probe(const std::string& path);
-   
-   /**
-    */
-   ~Probe();
+    Probe(const std::string& path);
+    virtual ~Probe();
 
-   /**
-    * \return the actual value of the probe (start value)
-    */
-   double startMeasure();
-   
-   /**
-    * \return the actual value of the probe (end value)
-    */
-   double stopMeasure();
+    virtual void update();
+
+    /**
+     */
+    virtual void startMeasure()=0;
+
+    /**
+     * \return the actual value of the probe (end value)
+     */
+    virtual double* stopMeasure()=0;
+
+    virtual unsigned int getVersion()const { return 1; }
+
+    virtual unsigned int getNbDevices()const { return 1; }
+    virtual unsigned int getNbChannels()const { return 1; }
+
+    virtual unsigned int getPeriod()const { return 0; }
+    virtual const char* getLabel()const { return ""; }
 };
-
-typedef std::vector<Probe*> ProbeList; 
+typedef std::vector<Probe*> ProbeList;
 
 #endif
