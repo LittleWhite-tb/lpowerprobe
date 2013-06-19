@@ -35,6 +35,7 @@ private:
 
     pthread_t m_collectorThread;
     pthread_mutex_t m_mutex;
+    bool m_needThread;
     bool m_threadRunning;
 
     ProbeList* m_pProbes; /*!< All probes to use */
@@ -55,7 +56,9 @@ public:
 
     void updateThread();
 
-    size_t getNumberProbes()const { return m_pProbes->  size(); }
+    const ProbeList& getProbes()const { return *m_pProbes; }
+
+    size_t getNumberProbes()const { return m_pProbes->size(); }
     RunData* getData(unsigned int index)const;
     const char* getLabel(unsigned int index)const;
 

@@ -26,6 +26,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "libenergymsr.h"
 
 typedef struct
@@ -90,11 +94,13 @@ extern unsigned int nbChannels() {
 }
 
 extern void *init (void) {
+   unsigned int i;
+
    libdata_t *data = malloc(sizeof(*data));
 
    data->nbCPUs = nbDevices();
    data->fds = malloc(data->nbCPUs * sizeof(*data->fds));
-   for (i = 0; i < ldata->nbCPUs; i++) {
+   for (i = 0; i < data->nbCPUs; i++) {
       data->fds[i] = -1;
    }
 
@@ -107,7 +113,7 @@ extern void *init (void) {
    // open one MSR file per socket
    unsigned int s, c;
    const unsigned int nb_cores = sysconf(_SC_NPROCESSORS_ONLN);
-   for (s = 0; s < ldata->nbCPUs; s++)
+   for (s = 0; s < data->nbCPUs; s++)
    {
       char path[64];
 
@@ -135,14 +141,14 @@ extern void *init (void) {
 
       if (c >= nb_cores) {
          printf("Failed to find a valid core on socket %u\n", s);
-         return;
+         return NULL;
       }
 
       snprintf(path, 64, "/dev/cpu/%u/msr", c);
 
       if ((data->fds[s] = open(path, O_RDONLY)) < 0) {
          perror("Failed to open MSR file");
-         return;
+         return NULL;
       }
 
       // read the MSR to fetch energy unit
@@ -150,14 +156,16 @@ extern void *init (void) {
       pread(data->fds[s], &energy_unit, sizeof(energy_unit), MSR_RAPL_POWER_UNIT);
       data->eUnits[s] = pow(0.5, subvalue(energy_unit, 8, 5));
    }
+
+   return data;
 }
 
 extern void fini (void *data) {
    unsigned int i;
-   libdata_t *ldata = (libdata_t) data;
+   libdata_t *ldata = (libdata_t*) data;
 
    for (i = 0; i < ldata->nbCPUs; i++) {
-      if (ld->fds[i] != -1) {
+      if (ldata->fds[i] != -1) {
          close(ldata->fds[i]);
       }
    }
@@ -174,7 +182,7 @@ extern void fini (void *data) {
 extern void start (void *data) {
    unsigned int s;
    uint64_t e_base;
-   libdata_t *ldata = (libdata_t) data;
+   libdata_t *ldata = (libdata_t*) data;
 
    // init the structures with the current counter values
    for (s = 0; s < ldata->nbCPUs; s++)
@@ -195,7 +203,7 @@ extern void start (void *data) {
 
 extern double *stop (void *data) {
    unsigned int s;
-   libdata_t *ldata = (libdata_t) data;
+   libdata_t *ldata = (libdata_t*) data;
 
    // get fresh data when we stop
    update(data);
@@ -210,7 +218,7 @@ extern double *stop (void *data) {
 extern void update (void *data) {
    unsigned int s;
    uint64_t e_base;
-   libdata_t *ldata = (libdata_t) data;
+   libdata_t *ldata = (libdata_t*) data;
 
    for (s = 0; s < ldata->nbCPUs; s++)
    {

@@ -35,9 +35,8 @@ class ProbeLoader
       /**
        * Tries to load a probe (either v1 or v2)
        * @param probePath
-       * @return true if it is a success
        */
-      bool tryLoadProbe(const std::string& probePath, ProbeList& probes);
+      void tryLoadProbe(const std::string& probePath, ProbeList& probes);
 
       /**
        * Goes throught the directories to load the probes specified by \a probesPath

@@ -23,8 +23,8 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
-CXXFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CFLAGS=-Wextra -Wall -g -O0 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CXXFLAGS=-Wextra -Wall -g -O0 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
 LPP_VERSION=2

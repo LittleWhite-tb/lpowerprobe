@@ -81,7 +81,6 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
 {
     assert(pProbes);
 
-    bool needThread = false;
     // Get the highest update period required
     for (ProbeList::const_iterator itProbe = m_pProbes->begin() ; itProbe != m_pProbes->end() ; ++itProbe)
     {
@@ -97,12 +96,12 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
             {
                 m_minPeriod = period;
             }
-            needThread = true;
+            m_needThread = true;
         }
     }
 
     // Create the update thread
-    if (needThread)
+    if (m_needThread)
     {
         pthread_attr_t attr;
         if (pthread_attr_init(&attr) != 0 )
@@ -126,11 +125,14 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
 
 ProbeDataCollector::~ProbeDataCollector()
 {
-    m_threadRunning = false;
-    if ( pthread_cancel(m_collectorThread) != 0 )
+    if ( m_needThread )
     {
-        std::cerr << "Failed to cancel collector thread" << std::endl;
-        throw std::runtime_error("pthread_cancel");
+        m_threadRunning = false;
+        if ( pthread_cancel(m_collectorThread) != 0 )
+        {
+            std::cerr << "Failed to cancel collector thread" << std::endl;
+            throw std::runtime_error("pthread_cancel");
+        }
     }
 
     for (unsigned int i = 0 ; i < m_runData.size() ; i++ )
@@ -138,10 +140,13 @@ ProbeDataCollector::~ProbeDataCollector()
         delete m_runData[i];
     }
 
-    if ( pthread_mutex_destroy(&m_mutex) != 0 )
+    if ( m_needThread )
     {
-        std::cerr << "Failed to destroy mutex" << std::endl;
-        throw std::runtime_error("pthread_mutex_destroy");
+        if ( pthread_mutex_destroy(&m_mutex) != 0 )
+        {
+            std::cerr << "Failed to destroy mutex" << std::endl;
+            throw std::runtime_error("pthread_mutex_destroy");
+        }
     }
 }
 

@@ -166,6 +166,18 @@ void Runner::saveResults()
       (*(*itData)) /= m_overheadResults[0].size();
    }
 
+   // Write header for file
+   const ProbeList& probeList = m_pProbesDataCollector->getProbes();
+   for ( ProbeList::const_iterator itProbe = probeList.begin() ; itProbe != probeList.end() ; ++itProbe)
+   {
+       m_resultFile << (*itProbe)->getLabel();
+       for ( unsigned int i = 0 ; i < (*itProbe)->getNbDevices() * (*itProbe)->getNbChannels() - 1 ; i++ )
+       {
+           m_resultFile << ";";
+       }
+   }
+   m_resultFile << std::endl;
+
    for ( unsigned int mRepet = 0 ; mRepet < m_runResults[0].size() ; mRepet++ )
    {
       for ( unsigned int i = 0 ; i < m_runResults[0][mRepet].size() ; i++ )

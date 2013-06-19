@@ -42,6 +42,7 @@ T Probe::loadSymbol(const char* symbol)
 }*/
 
 Probe::Probe(const std::string& path)
+    :evaluationInit(NULL),evaluationFini(NULL)
 {
     this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);
     if ( this->pLibHandle == NULL )
@@ -52,9 +53,12 @@ Probe::Probe(const std::string& path)
 
 Probe::~Probe()
 {
-   this->evaluationFini(this->pProbeHandle);
+    if ( this->evaluationFini )
+    {
+        this->evaluationFini(this->pProbeHandle);
+    }
 
-   dlclose(this->pLibHandle); // Should return zero
+    dlclose(this->pLibHandle); // Should return zero
 }
 
 void Probe::update()

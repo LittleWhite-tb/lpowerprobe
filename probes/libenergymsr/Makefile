@@ -26,8 +26,8 @@ LDFLAGS=-lm
 
 all: libenergymsr.so
 
-libenergymsr.so: $(MSR_OBJ) $(ENERGY_OBJ)
-	$(CC) $(CFLAGS) $< -o $@ -fPIC -shared $(LDFLAGS)
+libenergymsr.so: libenergymsr.c libenergymsr.h
+	$(CC) $(CFLAGS) -fPIC -shared $< -o $@ $(LDFLAGS)
 
 clean:
 	rm -f libenergymsr.so
