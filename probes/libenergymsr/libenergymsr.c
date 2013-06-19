@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -43,6 +44,27 @@ typedef struct
 
    double *res;
 } libdata_t;
+
+void freeLibData(libdata_t* pData)
+{
+   unsigned int i=0;
+   
+   assert(pData);
+   
+   for (i = 0; i < pData->nbCPUs; i++) {
+      if (pData->fds[i] != -1) {
+         close(pData->fds[i]);
+      }
+   }
+
+   free(pData->ovfCnt);
+   free(pData->lastE);
+   free(pData->refE);
+   free(pData->eUnits);
+   free(pData->fds);
+   free(pData->res);
+   free(pData);
+}
 
 #define MSR_RAPL_POWER_UNIT   0x606
 #define MSR_PKG_ENERGY_STATUS 0x611
@@ -141,6 +163,7 @@ extern void *init (void) {
 
       if (c >= nb_cores) {
          printf("Failed to find a valid core on socket %u\n", s);
+         freeLibData(data);
          return NULL;
       }
 
@@ -148,6 +171,7 @@ extern void *init (void) {
 
       if ((data->fds[s] = open(path, O_RDONLY)) < 0) {
          perror("Failed to open MSR file");
+         freeLibData(data);
          return NULL;
       }
 
@@ -161,22 +185,15 @@ extern void *init (void) {
 }
 
 extern void fini (void *data) {
-   unsigned int i;
+   
+   if ( data == NULL )
+   {
+      return;
+   }
+      
    libdata_t *ldata = (libdata_t*) data;
 
-   for (i = 0; i < ldata->nbCPUs; i++) {
-      if (ldata->fds[i] != -1) {
-         close(ldata->fds[i]);
-      }
-   }
-
-   free(ldata->ovfCnt);
-   free(ldata->lastE);
-   free(ldata->refE);
-   free(ldata->eUnits);
-   free(ldata->fds);
-   free(ldata->res);
-   free(ldata);
+   freeLibData(ldata);
 }
 
 extern void start (void *data) {

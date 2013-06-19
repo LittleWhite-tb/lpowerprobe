@@ -20,6 +20,7 @@
 #include "ProbeLoader.hpp"
 
 #include "ProbeLoadingException.hpp"
+#include "ProbeInitialisationException.hpp"
 #include "InvalidProbeVersionException.hpp"
 
 #include "ProbeV1.hpp"
@@ -64,8 +65,9 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
    {
       errors.clear();
       bool loaded = false;
+      bool loopStopper = false;
       std::cout << "Trying to load : " << *itProbePath << " ... ";
-      for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false ; ++itDir )
+      for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false && loopStopper == false ; ++itDir )
       {
          try
          {
@@ -76,6 +78,13 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
          {
             errors.push_back(ple.what());
          }
+          catch (ProbeInitialisationException& pie)
+          {
+              // we don't bother about old 'not found' errors, since we found it, but not able to init it
+              errors.clear();
+             errors.push_back(pie.what());
+             loopStopper = true;
+          }
       }
       
       if ( loaded == false )

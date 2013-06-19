@@ -204,4 +204,6 @@ void Runner::saveResults()
    {
        delete *itData;
    }
+
+   m_resultFile.flush();
 }

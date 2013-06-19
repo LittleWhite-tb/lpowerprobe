@@ -3,7 +3,7 @@
 #include <iostream>
 #include <dlfcn.h>
 
-#include "ProbeLoadingException.hpp"
+#include "ProbeInitialisationException.hpp"
 
 ProbeV1::ProbeV1(const std::string& path)
     :Probe(path)
@@ -18,7 +18,11 @@ ProbeV1::ProbeV1(const std::string& path)
     // Now, we just start the probe
     if ( this->evaluationInit )
     {
-      this->pProbeHandle = this->evaluationInit();
+        this->pProbeHandle = this->evaluationInit();
+        if ( this->pProbeHandle == NULL )
+        {
+            throw ProbeInitialisationException(path);
+        }
     }
 }
 

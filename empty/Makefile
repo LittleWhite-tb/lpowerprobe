@@ -1,6 +1,6 @@
 EXE=empty
 CC=gcc
-CFLAGS=-Wall -Wextra -O3
+CFLAGS=-Wall -Wextra -O0 -g
 
 all:$(EXE)
 

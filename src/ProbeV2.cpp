@@ -23,6 +23,7 @@
 #include <dlfcn.h>
 
 #include "InvalidProbeVersionException.hpp"
+#include "ProbeInitialisationException.hpp"
 
 ProbeV2::ProbeV2(const std::string& path)
     :Probe(path)
@@ -37,7 +38,7 @@ ProbeV2::ProbeV2(const std::string& path)
     unsigned int* pPeriod = loadSymbol<unsigned int*>("period");
     m_period = *pPeriod;
 
-    this->m_pLabel = loadSymbol<const char*>("label");
+    this->m_pLabel = *loadSymbol<const char**>("label");
 
     this->evaluationInit =loadSymbol<libInit>("init");
     this->evaluationFini = loadSymbol<libFini>("fini");
@@ -54,7 +55,11 @@ ProbeV2::ProbeV2(const std::string& path)
     // Now, we just start the probe
     if ( this->evaluationInit )
     {
-       this->pProbeHandle = this->evaluationInit();
+        this->pProbeHandle = this->evaluationInit();
+        if ( this->pProbeHandle == NULL )
+        {
+            throw ProbeInitialisationException(path);
+        }
     }
 }
 

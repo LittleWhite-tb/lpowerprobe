@@ -77,9 +77,11 @@ void ProbeDataCollector::clear()
 }
 
 ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
-    :m_threadRunning(true),m_pProbes(pProbes),m_runData(pProbes->size()),m_minPeriod(INT_MAX)
+    :m_needThread(false),m_threadRunning(true),m_pProbes(pProbes),m_runData(pProbes->size()),m_minPeriod(INT_MAX)
 {
     assert(pProbes);
+
+    allocateMemory();
 
     // Get the highest update period required
     for (ProbeList::const_iterator itProbe = m_pProbes->begin() ; itProbe != m_pProbes->end() ; ++itProbe)
@@ -128,6 +130,7 @@ ProbeDataCollector::~ProbeDataCollector()
     if ( m_needThread )
     {
         m_threadRunning = false;
+        pthread_mutex_unlock(&m_mutex); // Get the thread to give up
         if ( pthread_cancel(m_collectorThread) != 0 )
         {
             std::cerr << "Failed to cancel collector thread" << std::endl;
@@ -157,7 +160,10 @@ void ProbeDataCollector::start()
         (*itProbe)->startMeasure();
     }
 
-    pthread_mutex_unlock(&m_mutex);
+    if ( m_needThread )
+    {
+        pthread_mutex_unlock(&m_mutex);
+    }
 }
 
 void ProbeDataCollector::stop()
@@ -167,7 +173,10 @@ void ProbeDataCollector::stop()
         m_runData[i]->addValue((*m_pProbes)[i]->stopMeasure());
     }
 
-    pthread_mutex_lock(&m_mutex);
+    if ( m_needThread )
+    {
+        pthread_mutex_lock(&m_mutex);
+    }
 }
 
 void ProbeDataCollector::updateThread()
