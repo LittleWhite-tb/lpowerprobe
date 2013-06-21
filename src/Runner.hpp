@@ -41,7 +41,6 @@ protected:
     unsigned int m_nbProcess;  /*!< Number of process started */
 
     // Contains results for
-    // - All process
     // - All meta repease
     // - All probes
     typedef std::vector < std::vector<std::vector< RunData* > > > GlobalResultsArray;

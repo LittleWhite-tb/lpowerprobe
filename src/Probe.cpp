@@ -22,7 +22,6 @@
 #include <exception>
 #include <stdexcept>
 #include <cassert>
-#include <iostream>
 
 #include <dlfcn.h>
 
@@ -58,13 +57,11 @@ Probe::~Probe()
 {
     if ( this->evaluationFini )
     {
-        std::cout << "Delete probe (~Probe) (Fini will be called)" << std::endl;
         this->evaluationFini(this->pProbeHandle);
         this->pProbeHandle = NULL;
     }
 
     dlclose(this->pLibHandle); // Should return zero
-    std::cout << "Delete probe (~Probe)" << std::endl;
 }
 
 void Probe::update()

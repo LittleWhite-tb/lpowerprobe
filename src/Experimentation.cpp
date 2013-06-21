@@ -25,8 +25,6 @@
 
 #include "Options.hpp"
 
-#include <iostream>
-
 Experimentation::Experimentation(const Options& options)
    :m_options(options),m_execFile(options.getExecName())
 {
@@ -47,7 +45,6 @@ Experimentation::~Experimentation()
 
     for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
     {
-        std::cout << "Delete probe" << std::endl;
        delete *itProbe;
     }
 

@@ -193,7 +193,7 @@ void Runner::saveResults()
    for ( ProbeList::const_iterator itProbe = probeList.begin() ; itProbe != probeList.end() ; ++itProbe)
    {
        m_resultFile << (*itProbe)->getLabel();
-       for ( unsigned int i = 0 ; i < (*itProbe)->getNbDevices() * (*itProbe)->getNbChannels() - 1 ; i++ )
+       for ( unsigned int i = 0 ; i < (*itProbe)->getNbDevices() * (*itProbe)->getNbChannels() ; i++ )
        {
            m_resultFile << ";";
        }
@@ -209,11 +209,7 @@ void Runner::saveResults()
           ProbeData* pPD = rawProbeData -(*libsOverheadAvg[i]);
 
         m_resultFile << *pPD;
-        if ( i !=  m_runResults[0][mRepet].size()-1 )
-        {
-            m_resultFile << ";";
-        }
-        else
+        if ( i ==  m_runResults[0][mRepet].size()-1)
         {
           m_resultFile << std::endl;
         }
