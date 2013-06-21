@@ -42,17 +42,18 @@ ProbeLoader::ProbeLoader()
 
 void ProbeLoader::tryLoadProbe(const std::string& probePath, ProbeList& probes)
 {
+    Probe* pProbe = NULL;
     try
     {
-       ProbeV2* pProbe = new ProbeV2(probePath);
-       probes.push_back(pProbe);
+       pProbe = new ProbeV2(probePath);
+
     }
     catch (InvalidProbeVersionException& ple)
     {
        // Now, we try to load V1
-        ProbeV1* pProbe = new ProbeV1(probePath);
-        probes.push_back(pProbe);
+        pProbe = new ProbeV1(probePath);
     }
+    probes.push_back(pProbe);
 }
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)

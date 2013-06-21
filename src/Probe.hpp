@@ -44,7 +44,7 @@ protected:
        T pSymbol = (T)dlsym(this->pLibHandle,symbol);
        if ( pSymbol == NULL )
        {
-           throw ProbeLoadingException(std::string("Error to load '") + symbol + std::string("'"));
+           throw ProbeLoadingException(std::string("Error to load '") + symbol + "' (" + dlerror() + ")");
        }
 
        return pSymbol;

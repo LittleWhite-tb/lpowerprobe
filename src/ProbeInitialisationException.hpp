@@ -34,7 +34,7 @@ class ProbeInitialisationException: public std::exception
        * \param libName the name of the probe that failed
        */
       ProbeInitialisationException(const std::string& libName)
-         :libName(libName)
+         :message(std::string("Probe ") + libName + std::string(" failed to init"))
       {
       }
 
@@ -45,11 +45,11 @@ class ProbeInitialisationException: public std::exception
        */
       virtual const char* what() const throw()
       {
-          return (std::string("Probe ") + libName + std::string(" failed to init")).c_str();
+          return message.c_str();
       }
 
    private:
-      std::string libName;
+      std::string message;
 };
 
 #endif

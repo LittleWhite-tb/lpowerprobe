@@ -131,14 +131,36 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, const std::string& resu
 
 Runner::~Runner()
 {
-   sem_destroy(m_processEndLock);
-   shm_unlink(("/shmProcessEnd" + m_pidString).c_str());
-   
-   sem_destroy(m_processLock);
-   shm_unlink(("/shmProcess" + m_pidString).c_str());
-   
-   sem_destroy(m_fatherLock);
-   shm_unlink(("/shmFather" + m_pidString).c_str());
+    for ( GlobalResultsArray::const_iterator itResult = m_overheadResults.begin() ; itResult != m_overheadResults.end() ; ++itResult)
+    {
+        for ( std::vector<std::vector< RunData* > >::const_iterator itSubResult = itResult->begin() ; itSubResult  != itResult->end() ; ++itSubResult )
+        {
+            for ( std::vector<RunData*>::const_iterator itSubSubResult = itSubResult->begin() ; itSubSubResult != itSubResult->end() ; ++itSubSubResult )
+            {
+                delete (*itSubSubResult);
+            }
+        }
+    }
+
+    for ( GlobalResultsArray::const_iterator itResult = m_runResults.begin() ; itResult != m_runResults.end() ; ++itResult)
+    {
+        for ( std::vector<std::vector< RunData* > >::const_iterator itSubResult = itResult->begin() ; itSubResult  != itResult->end() ; ++itSubResult )
+        {
+            for ( std::vector<RunData*>::const_iterator itSubSubResult = itSubResult->begin() ; itSubSubResult != itSubResult->end() ; ++itSubSubResult )
+            {
+                delete (*itSubSubResult);
+            }
+        }
+    }
+
+    sem_destroy(m_processEndLock);
+    shm_unlink(("/shmProcessEnd" + m_pidString).c_str());
+
+    sem_destroy(m_processLock);
+    shm_unlink(("/shmProcess" + m_pidString).c_str());
+
+    sem_destroy(m_fatherLock);
+    shm_unlink(("/shmFather" + m_pidString).c_str());
 }
 
 void Runner::saveResults()
