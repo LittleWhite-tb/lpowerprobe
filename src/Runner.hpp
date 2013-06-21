@@ -42,7 +42,7 @@ protected:
 
     // Contains results for
     // - All process
-    // - All meta repease
+    // - All meta repet
     // - All probes
     typedef std::vector < std::vector<std::vector< RunData* > > > GlobalResultsArray;
     GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */

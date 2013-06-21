@@ -81,6 +81,22 @@ void DaemonRunner::start(unsigned int processNumber)
 {
    (void) processNumber;
 
+   // compute overhead based on one iteration
+   m_overheadResults.resize(1,
+         std::vector< std::vector < RunData* > >(1,
+            std::vector<RunData*>(m_pProbesDataCollector->getNumberProbes(),
+               NULL)));
+
+   m_pProbesDataCollector->start();
+   m_pProbesDataCollector->stop();
+   for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
+   {
+      m_overheadResults[0][0][i] = m_pProbesDataCollector->getData(i);
+   }
+   m_pProbesDataCollector->clear();
+   m_pProbesDataCollector->allocateMemory();
+
+   // running
    for (unsigned int metaRepet = 0; !DaemonRunner::end; metaRepet++) {
       m_nbMetaRepet = metaRepet + 1;
 

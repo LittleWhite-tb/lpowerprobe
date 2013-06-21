@@ -54,7 +54,7 @@ int gcd(int val1, int val2)
 
 void ProbeDataCollector::allocateMemory()
 {
-    // ¨Prepare the memory space for probes
+    // Prepare the memory space for probes
     for (size_t i = 0 ; i < m_pProbes->size() ; i++ )
     {
         unsigned int nbDevices = (*m_pProbes)[i]->getNbDevices();
@@ -73,7 +73,7 @@ void ProbeDataCollector::allocateMemory()
 
 void ProbeDataCollector::clear()
 {
-    m_runData.clear();
+   m_runData.clear();
 }
 
 ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
