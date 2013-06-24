@@ -36,6 +36,8 @@ public:
     ~KernelExperimentation() {}
 
     void start();
+
+    friend void* kernelRunnerThread(void* pArgs);
 };
 
 #endif

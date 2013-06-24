@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include <cstdlib>
 #include <cstdio>
@@ -29,6 +30,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 #include "KernelCompiler.hpp"
 #include "KernelRunner.hpp"
@@ -36,6 +38,36 @@
 #include "CPUUtils.hpp"
 
 const std::string KernelExperimentation::DUMMY_KERNEL_FILE = INSTALL_DIR "/share/lPowerProbe/empty.s";
+
+// @Rafoctorisable
+struct ThreadArgs
+{
+    KernelExperimentation* pExp;
+    KernelRunner* pRunner;
+    unsigned int threadNumber;
+
+    ThreadArgs(KernelExperimentation* pExp, KernelRunner* pRunner, unsigned int threadNumber)
+        :pExp(pExp),pRunner(pRunner),threadNumber(threadNumber) {}
+};
+
+void* kernelRunnerThread(void* pArgs)
+{
+    ThreadArgs* pTArgs = reinterpret_cast<ThreadArgs*>(pArgs);
+
+    std::vector<unsigned int> pinning(pTArgs->pExp->m_options.getPinning());
+    if ( pinning.size() != 0 )
+    {
+       // Pin it
+       CPUUtils::pinCPU(pinning[pTArgs->threadNumber]);
+    }
+    CPUUtils::setFifoMaxPriority(-1);
+
+    pTArgs->pRunner->start(pTArgs->pExp->m_pOverheadResults,
+                           pTArgs->pExp->m_pResults,
+                           pTArgs->threadNumber);
+
+    return NULL;
+}
 
 KernelExperimentation::KernelExperimentation(const Options &options)
     :Experimentation(options)
@@ -78,57 +110,42 @@ void KernelExperimentation::start()
     std::vector<unsigned int> pinning(m_options.getPinning());
 
     KernelRunner run(m_pProbeDataCollector, pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
-    std::vector<pid_t> m_pids;
+    std::vector<std::pair<pthread_t,ThreadArgs*> > threads;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
     {
        for ( unsigned int process = 0 ; process < nbProcess ; process++ )
        {
-          pid_t pid = fork();
-          if ( pid == 0 ) // Son
-          {
-             if ( pinning.size() != 0 )
-             {
-                // Pin it
-                CPUUtils::pinCPU(pinning[process]);
-             }
-             CPUUtils::setFifoMaxPriority(-1);
+           pthread_t threadId;
+           pthread_attr_t attr;
+           ThreadArgs* pArgs = new ThreadArgs(this, &run,process);
 
-             run.start(m_pOverheadResults,m_pResults,process);
+           if (pthread_attr_init(&attr) != 0 )
+           {
+               std::cerr << "Failed to init attributes for thread" << std::endl;
+               throw std::runtime_error("pthread_attr_init");
+           }
+           if ( pthread_create(&threadId,&attr,kernelRunnerThread,pArgs) != 0 )
+           {
+               std::cerr << "Failed to create runner thread" << std::endl;
+               throw std::runtime_error("pthread_create");
+           }
 
-             // Need to finish the son here
-             _exit(EXIT_SUCCESS);
-          }
-          else if ( pid > 0 ) // Father
-          {
-             m_pids.push_back(pid);
-          }
-          else
-          {
-             std::cerr << "Fail to create subprocess" << std::endl;
-             perror("fork");
-             return;
-          }
+           threads.push_back(std::pair<pthread_t,ThreadArgs*>(threadId,pArgs));
        }
 
        // Wait for all the child to finish
        for (unsigned int i = 0 ; i < nbProcess ; i++)
        {
-          int status=0;
+           void* pReturn;
+           int status = pthread_join(threads[i].first,&pReturn);
+           if ( status != 0 )
+           {
+               std::cerr << "Child exited with status " << status << ", an error occured.\n" << std::endl;
+               perror("pthread_join");
+           }
 
-          waitpid (m_pids[i], &status, WUNTRACED | WCONTINUED);
-          int res = WEXITSTATUS(status);
-          if(res != EXIT_SUCCESS)
-          {
-             std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
-          }
-          if (WIFEXITED(status) == 0)
-          {
-             char buf[512];
-
-             snprintf (buf, 512, "Error: Child %d received a signal ", i);
-             psignal (WTERMSIG (status), buf);
-          }
+           delete threads[i].second;
        }
     }
 
