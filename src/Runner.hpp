@@ -29,6 +29,10 @@
 
 class RunData;
 
+/**
+ * @brief The Runner class
+ * @warning This class should be thread-safe
+ */
 class Runner
 {
 protected:

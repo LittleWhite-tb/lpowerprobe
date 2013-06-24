@@ -33,6 +33,8 @@ public:
     ~ProgramExperimentation() {}
 
     void start();
+
+    friend void* runnerThread(void* pArgs);
 };
 
 #endif

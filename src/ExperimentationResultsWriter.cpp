@@ -65,7 +65,6 @@ void ExperimentationResultsWriter::write(const ExperimentationResults& overheade
 
            // We only manage the first (single shot) libraries
            (*libsOverheadAvg[i]) += pd;
-           std::cout << "Overhead stuff : " << pd << std::endl;
        }
     }
 
@@ -83,7 +82,6 @@ void ExperimentationResultsWriter::write(const ExperimentationResults& overheade
            const ProbeData& rawProbeData = results.getResults()[mRepet].getProbeData(i);
 
            ProbeData* pPD = rawProbeData -(*libsOverheadAvg[i]);
-           std::cout << "Result : " << *pPD << " Liboverhader : " << *libsOverheadAvg[i] << std::endl;
 
          (*output) << *pPD;
          if ( i ==  results.getResults()[mRepet].getNbProbeData() -1)
