@@ -17,28 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RunData.hpp"
+#include "ExperimentationResults.hpp"
 
 #include <cassert>
 
-RunData::RunData(const ProbeList &probes)
+ExperimentationResults::ExperimentationResults(unsigned int nbMetaRepeat, const ProbeList& probes)
+    :m_results(nbMetaRepeat,RunData(probes)),m_nbMeasurement(0)
 {
-    for ( unsigned int i = 0 ; i < probes.size() ; i++ )
+}
+
+void ExperimentationResults::extend(const ProbeList& probes)
+{
+    for ( unsigned int i = 0 ; i < m_results.size() ; i++ )
     {
-        m_data.push_back(ProbeData(probes[i]->getNbDevices(),probes[i]->getNbChannels()));
+        m_results.push_back(RunData(probes));
     }
 }
 
-const ProbeData& RunData::getProbeData(unsigned int index)const
+void ExperimentationResults::setProbeData(unsigned int probeIndex, double* pData)
 {
-    assert(index < getNbProbeData());
+    assert(probeIndex<m_results[m_nbMeasurement].getNbProbeData());
+    assert(pData);
 
-    return m_data[index];
-}
-
-void RunData::setValue(unsigned int index, double* pData)
-{
-    assert(index < getNbProbeData());
-
-    m_data[index].setData(pData);
+    m_results[m_nbMeasurement].setValue(probeIndex,pData);
 }

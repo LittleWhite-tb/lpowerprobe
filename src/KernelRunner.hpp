@@ -63,7 +63,7 @@ private:
     * \param metaRepet actual repetition number
     * \param processNumber actual process id running this function
     */
-   void calculateOverhead(unsigned int metaRepet, unsigned int processNumber);
+   void calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int metaRepet, unsigned int processNumber);
    
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
@@ -75,7 +75,7 @@ private:
     * \param metaRepet the actual repetition number
     * \param processNumber the actual process number
     */
-   void evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber);
+   void evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber);
    
    /**
     * Infinite loop called to sync the bench processes
@@ -93,7 +93,6 @@ public:
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
     * \param pProbes list of probes to use
-    * \param resultFileName file where to output the results
     * \param pKernelFct the kernel to bench
     * \param pDummyKernelFct the dummy kernel to calculate probes overload
     * \param nbKernelIteration the number of iteration spent in the kernel
@@ -101,7 +100,7 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   KernelRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
+   KernelRunner(ProbeDataCollector* pProbesDataCollector, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
    
    /**
     */
@@ -111,7 +110,7 @@ public:
     * Start the benchmark
     * \param processNumber the process number
     */
-   void start(unsigned int processNumber);
+   void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber);
 };
 
 #endif

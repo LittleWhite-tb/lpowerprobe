@@ -17,28 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RunData.hpp"
+#ifndef EXPERIMENTATIONRESULTSWRITER_HPP
+#define EXPERIMENTATIONRESULTSWRITER_HPP
 
-#include <cassert>
+#include <fstream>
+#include <string>
 
-RunData::RunData(const ProbeList &probes)
+#include "ExperimentationResults.hpp"
+#include "Probe.hpp"
+
+class ExperimentationResultsWriter
 {
-    for ( unsigned int i = 0 ; i < probes.size() ; i++ )
-    {
-        m_data.push_back(ProbeData(probes[i]->getNbDevices(),probes[i]->getNbChannels()));
-    }
-}
+private:
+    std::ofstream m_outputFile;
 
-const ProbeData& RunData::getProbeData(unsigned int index)const
-{
-    assert(index < getNbProbeData());
+    void writeHeader(std::ostream &output, const ProbeList& probes);
 
-    return m_data[index];
-}
+public:
+    ExperimentationResultsWriter(const std::string& filePath);
 
-void RunData::setValue(unsigned int index, double* pData)
-{
-    assert(index < getNbProbeData());
+    bool isOpen()const { return m_outputFile.is_open(); }
+    void write(const ExperimentationResults& overheadResults, const ExperimentationResults& results, const ProbeList &probes);
+};
 
-    m_data[index].setData(pData);
-}
+#endif

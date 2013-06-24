@@ -36,8 +36,8 @@
 
 #include "CPUUtils.hpp"
 
-ProgramRunner::ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
-    :Runner(pProbesDataCollector,resultFileName,nbProcess,nbMetaRepet),
+ProgramRunner::ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
+    :Runner(pProbesDataCollector,nbProcess,nbMetaRepet),
       m_test(test),m_args(args)
 {
 
@@ -48,13 +48,13 @@ ProgramRunner::~ProgramRunner()
 
 }
 
-void ProgramRunner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
+void ProgramRunner::calculateOverhead(ExperimentationResults* pOverheadResults, unsigned int processNumber)
 {
    std::vector<std::string> emptyArgs;
-   evaluation(m_overheadResults, INSTALL_DIR "/share/lPowerProbe/empty", emptyArgs,metaRepet,processNumber);
+   evaluation(pOverheadResults, INSTALL_DIR "/share/lPowerProbe/empty", emptyArgs,processNumber);
 }
 
-void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber)
+void ProgramRunner::evaluation(ExperimentationResults* pResults, const std::string& test, const std::vector<std::string>& args, unsigned int processNumber)
 {
     int nbArgs=0;
     char** pArgv = NULL;
@@ -83,15 +83,16 @@ void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::strin
     }
 
 
-    m_pProbesDataCollector->start();
+    if ( processNumber == 0 )
+    {
+        m_pProbesDataCollector->start();
+    }
 
     startTest(test, pArgv, processNumber);
 
-    m_pProbesDataCollector->stop();
-    // Collect data for the iteration
-    for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
+    if ( processNumber == 0 )
     {
-        resultArray[processNumber][metaRepet][i] = m_pProbesDataCollector->getData(i);
+        m_pProbesDataCollector->stop(pResults);
     }
 
     // ensure all the tasks finished before going to the next iteration
@@ -125,9 +126,6 @@ void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::strin
             perror("sem_wait");
         }
     }
-
-    m_pProbesDataCollector->clear();
-    m_pProbesDataCollector->allocateMemory();
 
     for (int i = 0 ; i < nbArgs+1 ; i++ )
     {
@@ -210,11 +208,11 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
    }
 }
 
-void ProgramRunner::start(unsigned int processNumber)
+void ProgramRunner::start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)
 {
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
    {
-      calculateOverhead(metaRepet,processNumber);
+      calculateOverhead(pOverheadExpResult,processNumber);
    }
 
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
@@ -223,11 +221,6 @@ void ProgramRunner::start(unsigned int processNumber)
       {
          std::cout << "Repetition - " << metaRepet << std::endl;
       }
-      evaluation(m_runResults,m_test,m_args,metaRepet,processNumber);
-   }
-
-   if ( processNumber == 0 )
-   {
-      saveResults();
+      evaluation(pExpResult,m_test,m_args,processNumber);
    }
 }

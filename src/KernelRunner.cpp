@@ -37,8 +37,8 @@
 #include "StringUtils.hpp" 
 #include "CPUUtils.hpp" 
 
-KernelRunner::KernelRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
-    :Runner(pProbesDataCollector,resultFileName,nbProcess,nbMetaRepet),
+KernelRunner::KernelRunner(ProbeDataCollector* pProbesDataCollector, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet)
+    :Runner(pProbesDataCollector,nbProcess,nbMetaRepet),
      m_pKernelFct(reinterpret_cast<KernelFctPtr>(pKernelFct)),m_pDummyKernelFct(reinterpret_cast<KernelFctPtr>(pDummyKernelFct)),m_iterationMemorySize(iterationMemorySize),m_nbKernelIteration(nbKernelIteration)
 {
    assert(m_pKernelFct);
@@ -56,9 +56,6 @@ KernelRunner::KernelRunner(ProbeDataCollector* pProbesDataCollector, const std::
       *itMem = new char[m_overheadMemorySize * OVERHEAD_KERNELITER];
       memset(*itMem,0,m_overheadMemorySize * OVERHEAD_KERNELITER);
    }
-   
-   // Special formatting for output file
-   m_resultFile << std::fixed;
 }
 
 KernelRunner::~KernelRunner()
@@ -91,12 +88,12 @@ void KernelRunner::flushCaches(unsigned int nbProcess)
    m_memory[nbProcess][0] = c/size;
 }
 
-void KernelRunner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
+void KernelRunner::calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int metaRepet, unsigned int processNumber)
 {
-   evaluation(m_overheadResults,m_pDummyKernelFct,m_overheadMemory,OVERHEAD_KERNELITER,m_iterationMemorySize,metaRepet,processNumber);
+   evaluation(pOverheadExpResult,m_pDummyKernelFct,m_overheadMemory,OVERHEAD_KERNELITER,m_iterationMemorySize,metaRepet,processNumber);
 }
 
-void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
+void KernelRunner::evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
 {
     if ( sem_post(m_fatherLock) != 0 )
     {
@@ -108,17 +105,17 @@ void KernelRunner::evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKer
         perror("sem_wait");
     }
 
-    m_pProbesDataCollector->start();
+    if ( processNumber == 0 )
+    {
+        m_pProbesDataCollector->start();
+    }
 
     pKernelFct(nbKernelIteration, memory[processNumber], size);
 
-    m_pProbesDataCollector->stop();
-    for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
+    if ( processNumber == 0 )
     {
-        resultArray[processNumber][metaRepet][i] = m_pProbesDataCollector->getData(i);
+        m_pProbesDataCollector->stop(pExpResult);
     }
-    m_pProbesDataCollector->clear();
-    m_pProbesDataCollector->allocateMemory();
 
     if ( sem_post(m_fatherLock) != 0 )
     {
@@ -169,7 +166,7 @@ void KernelRunner::syncLoop()
    }
 }
 
-void KernelRunner::start(unsigned int processNumber)
+void KernelRunner::start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)
 {
    pid_t pid = -1;
    if ( processNumber == 0)
@@ -197,7 +194,7 @@ void KernelRunner::start(unsigned int processNumber)
          for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
          {
             flushCaches(processNumber);
-            calculateOverhead(metaRepet,processNumber);
+            calculateOverhead(pOverheadExpResult,metaRepet,processNumber);
          }
 
          for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
@@ -208,13 +205,7 @@ void KernelRunner::start(unsigned int processNumber)
             }
             
             flushCaches(processNumber);
-            evaluation(m_runResults,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
-         }
-         
-         if ( processNumber == 0 )
-         {
-            saveResults();
-            std::cout << std::endl;
+            evaluation(pExpResult,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
          }
       }
    }

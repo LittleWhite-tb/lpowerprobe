@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "Probe.hpp"
+#include "ExperimentationResults.hpp"
 
 class RunData;
 
@@ -40,7 +41,6 @@ private:
 
     ProbeList* m_pProbes; /*!< All probes to use */
     ProbeList m_periodicProbes;
-    std::vector<RunData*> m_runData;
 
     unsigned int m_minPeriod; /** in µs */
 
@@ -48,18 +48,15 @@ public:
     ProbeDataCollector(ProbeList* pProbes);
     ~ProbeDataCollector();
 
-    void allocateMemory();
-    void clear();
-
     void start();
-    void stop();
+    void stop(ExperimentationResults* pResults);
 
     void updateThread();
 
     const ProbeList& getProbes()const { return *m_pProbes; }
 
     size_t getNumberProbes()const { return m_pProbes->size(); }
-    RunData* getData(unsigned int index)const;
+
     const char* getLabel(unsigned int index)const;
 
     friend void* probeThread(void*);

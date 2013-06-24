@@ -32,6 +32,8 @@ DaemonExperimentation::~DaemonExperimentation()
 
 void DaemonExperimentation::start()
 {
-   DaemonRunner runner(m_pProbeDataCollector, m_options.getOutputFile());
-   runner.start(0);
+   DaemonRunner runner(m_pProbeDataCollector);
+   runner.start(m_pOverheadResults,m_pResults,0);
+
+   saveResults();
 }

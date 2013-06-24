@@ -33,19 +33,10 @@ class Runner
 {
 protected:
 
-    std::ofstream m_resultFile;   /*!< */
-
     ProbeDataCollector* m_pProbesDataCollector; /*!< Data collector for probes */
 
     unsigned int m_nbMetaRepet;/*!< Number of repetition to do */
     unsigned int m_nbProcess;  /*!< Number of process started */
-
-    // Contains results for
-    // - All meta repet
-    // - All probes
-    typedef std::vector < std::vector<std::vector< RunData* > > > GlobalResultsArray;
-    GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
-    GlobalResultsArray m_runResults; /*!< Probe results for the run test */
 
     pid_t m_pid;   /*!< PID of the process to use as unique ID for semaphores */
     std::string m_pidString; /*!< PID as a string */
@@ -53,21 +44,16 @@ protected:
     sem_t* m_processLock;      /*!< Process test synchronisation */
     sem_t* m_processEndLock;   /*!< Process end synchronisation */
 
-    /**
-     * Saves the result in a file after applying the overhead bias
-     */
-    void saveResults();
-
 public:
 
-    Runner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);
+    Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess, unsigned int nbMetaRepet);
     virtual ~Runner();
 
     /**
      * Start the benchmark
      * \param processNumber the process number
      */
-    virtual void start(unsigned int processNumber)=0;
+    virtual void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)=0;
 };
 
 #endif

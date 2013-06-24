@@ -23,28 +23,24 @@
 
 #include <vector>
 
+#include "Probe.hpp"
 #include "ProbeData.hpp"
 
 class RunData
 {
 private:
-    unsigned int m_maxData;
-    unsigned int m_dataIndex;
-
-    std::vector< ProbeData > m_data;
+    std::vector< ProbeData > m_data; /*!< Vector sized with the number of probe */
 
 public:
-    RunData(unsigned int maxBufferSize, unsigned int nbDevices, unsigned int nbChannels);
+    RunData(const ProbeList& probes);
     ~RunData() {}
 
-    unsigned int getNbData()const { return m_dataIndex; }
+    size_t getNbProbeData()const { return m_data.size(); }
 
+    const std::vector<ProbeData>& getData()const { return m_data; }
     const ProbeData& getProbeData(unsigned int index)const;
 
-    bool needDump()const;
-    void addValue(double* pData);
-
-    void reinit() { m_dataIndex = 0; }
+    void setValue(unsigned int index, double* pData);
 };
 
 #endif

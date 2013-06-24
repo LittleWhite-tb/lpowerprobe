@@ -43,20 +43,15 @@ public:
    /**
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
-    * \param pProbes list of probes to use
-    * \param resultFileName file where to output the results
-    * \param test the program to bench
-    * \param args the args to pass to the program to bench
-    * \param nbProcess the number of process that will be started
-    * \param nbMetaRepet the number of meta repetition to run
+    * \param pProbesDataCollector data collector
     */
-   DaemonRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName);
+   DaemonRunner(ProbeDataCollector* pProbesDataCollector);
 
    /**
     */
    ~DaemonRunner();
 
-   void start(unsigned int processNumber);
+   void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber);
 };
 
 #endif

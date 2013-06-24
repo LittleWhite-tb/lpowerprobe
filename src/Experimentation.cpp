@@ -22,6 +22,7 @@
 #include "ProbeLoadingException.hpp"
 #include "ProbeLoader.hpp"
 #include "ProbeDataCollector.hpp"
+#include "ExperimentationResultsWriter.hpp"
 
 #include "Options.hpp"
 
@@ -36,12 +37,16 @@ Experimentation::Experimentation(const Options& options)
       throw ProbeLoadingException("No probes loaded");
    }
 
+   m_pOverheadResults = new ExperimentationResults(options.getNbRepetition(),m_probes);
+   m_pResults = new ExperimentationResults(options.getNbRepetition(),m_probes);
    m_pProbeDataCollector = new ProbeDataCollector(&m_probes);
 }
 
 Experimentation::~Experimentation()
 {
     delete m_pProbeDataCollector;
+    delete m_pResults;
+    delete m_pOverheadResults;
 
     for ( ProbeList::const_iterator itProbe = m_probes.begin() ; itProbe != m_probes.end() ; ++itProbe )
     {
@@ -49,4 +54,10 @@ Experimentation::~Experimentation()
     }
 
     m_probes.clear();
+}
+
+void Experimentation::saveResults()
+{
+    ExperimentationResultsWriter writer(m_options.getOutputFile());
+    writer.write(*m_pOverheadResults,*m_pResults,m_probes);
 }

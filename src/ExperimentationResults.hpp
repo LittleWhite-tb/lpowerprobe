@@ -17,28 +17,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef EXPERIMENTATIONRESULTS_HPP
+#define EXPERIMENTATIONRESULTS_HPP
+
+#include <vector>
+
 #include "RunData.hpp"
 
-#include <cassert>
-
-RunData::RunData(const ProbeList &probes)
+class ExperimentationResults
 {
-    for ( unsigned int i = 0 ; i < probes.size() ; i++ )
-    {
-        m_data.push_back(ProbeData(probes[i]->getNbDevices(),probes[i]->getNbChannels()));
-    }
-}
+private:
 
-const ProbeData& RunData::getProbeData(unsigned int index)const
-{
-    assert(index < getNbProbeData());
+    std::vector<RunData> m_results; /*!< Results contained in a vector of meta repeat size */
+    unsigned int m_nbMeasurement;
+public:
 
-    return m_data[index];
-}
+    ExperimentationResults(unsigned int nbMetaRepeat, const ProbeList& probes);
 
-void RunData::setValue(unsigned int index, double* pData)
-{
-    assert(index < getNbProbeData());
+    bool isFull()const { return m_nbMeasurement >= m_results.size(); }
+    void extend(const ProbeList& probes);
 
-    m_data[index].setData(pData);
-}
+    void setProbeData(unsigned int probeIndex, double* pData);
+    void measurementDone() { m_nbMeasurement++; }
+
+    const std::vector<RunData>& getResults()const { return m_results; }
+
+};
+
+#endif

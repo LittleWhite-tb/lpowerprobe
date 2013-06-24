@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 
+#include "ExperimentationResults.hpp"
 #include "Probe.hpp"
 
 class ProbeDataCollector;
@@ -43,12 +44,16 @@ class Experimentation
 {
 protected:
    ProbeList m_probes;  /*!< Probe to use during a test */
+   ExperimentationResults* m_pOverheadResults;
+   ExperimentationResults* m_pResults;
    ProbeDataCollector* m_pProbeDataCollector;
 
    const Options& m_options;  /*!< Set of option comming from program args */
    std::string m_execFile; /*!< File to run (either a compiled kernel of a compiled program) */
    
    std::vector<std::string> m_probePaths; /*!< List of probes to load */
+
+   void saveResults();
 
 public:
    /**

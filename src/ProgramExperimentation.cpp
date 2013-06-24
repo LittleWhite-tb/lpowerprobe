@@ -49,7 +49,7 @@ void ProgramExperimentation::start()
     unsigned int nbProcess(m_options.getNbProcess());
     std::vector<unsigned int> pinning(m_options.getPinning());
 
-    ProgramRunner run(m_pProbeDataCollector, m_options.getOutputFile(), m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
+    ProgramRunner run(m_pProbeDataCollector, m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
     std::vector<pid_t> m_pids;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
@@ -66,7 +66,11 @@ void ProgramExperimentation::start()
              }
              CPUUtils::setFifoMaxPriority(-1);
 
-             run.start(process);
+             run.start(m_pOverheadResults,m_pResults,process);
+             if ( process == 0 )
+             {
+                 saveResults();
+             }
 
              // Need to finish the son here
              _exit(EXIT_SUCCESS);
@@ -103,4 +107,6 @@ void ProgramExperimentation::start()
           }
        }
     }
+
+    // saveResults();
 }

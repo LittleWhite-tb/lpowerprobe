@@ -77,7 +77,7 @@ void KernelExperimentation::start()
     unsigned int nbProcess(m_options.getNbProcess());
     std::vector<unsigned int> pinning(m_options.getPinning());
 
-    KernelRunner run(m_pProbeDataCollector, m_options.getOutputFile(), pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
+    KernelRunner run(m_pProbeDataCollector, pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
     std::vector<pid_t> m_pids;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
@@ -94,7 +94,7 @@ void KernelExperimentation::start()
              }
              CPUUtils::setFifoMaxPriority(-1);
 
-             run.start(process);
+             run.start(m_pOverheadResults,m_pResults,process);
 
              // Need to finish the son here
              _exit(EXIT_SUCCESS);
@@ -131,4 +131,6 @@ void KernelExperimentation::start()
           }
        }
     }
+
+    saveResults();
 }

@@ -30,8 +30,8 @@ bool DaemonRunner::end = false;
 
 #define PID_FILE "/tmp/lppDaemonPID"
 
-DaemonRunner::DaemonRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName)
-    : Runner(pProbesDataCollector, resultFileName, 1, 1)
+DaemonRunner::DaemonRunner(ProbeDataCollector* pProbesDataCollector)
+    : Runner(pProbesDataCollector, 1, 1)
 {
    struct sigaction sact;
    sigset_t block_mask;
@@ -77,48 +77,25 @@ void sighandler(int sig) {
    }
 }
 
-void DaemonRunner::start(unsigned int processNumber)
+void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)
 {
    (void) processNumber;
 
    // compute overhead based on one iteration
-   m_overheadResults.resize(1,
-         std::vector< std::vector < RunData* > >(1,
-            std::vector<RunData*>(m_pProbesDataCollector->getNumberProbes(),
-               NULL)));
-
    m_pProbesDataCollector->start();
-   m_pProbesDataCollector->stop();
-   for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
-   {
-      m_overheadResults[0][0][i] = m_pProbesDataCollector->getData(i);
-   }
-   m_pProbesDataCollector->clear();
-   m_pProbesDataCollector->allocateMemory();
+   m_pProbesDataCollector->stop(pOverheadExpResult);
 
    // running
-   for (unsigned int metaRepet = 0; !DaemonRunner::end; metaRepet++) {
+   for (unsigned int metaRepet = 0; !DaemonRunner::end; metaRepet++)
+   {
       m_nbMetaRepet = metaRepet + 1;
-
-      m_runResults.resize(1,
-         std::vector< std::vector < RunData* > >(m_nbMetaRepet,
-            std::vector<RunData*>(m_pProbesDataCollector->getNumberProbes(),
-               NULL)));
 
       m_pProbesDataCollector->start();
 
       pause();
 
-      m_pProbesDataCollector->stop();
-      for (unsigned int i = 0 ; i < m_pProbesDataCollector->getNumberProbes() ; i++ )
-      {
-          m_runResults[0][metaRepet][i] = m_pProbesDataCollector->getData(i);
-      }
-      m_pProbesDataCollector->clear();
-      m_pProbesDataCollector->allocateMemory();
+      m_pProbesDataCollector->stop(pExpResult);
    }
 
    DaemonRunner::end = true;
-
-   saveResults();
 }

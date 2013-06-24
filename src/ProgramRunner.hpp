@@ -45,7 +45,7 @@ private:
     * \param metaRepet actual repetition number
     * \param processNumber actual process id running this function
     */
-   void calculateOverhead(unsigned int metaRepet, unsigned int processNumber);
+   void calculateOverhead(ExperimentationResults* pOverheadResults, unsigned int processNumber);
 
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
@@ -55,7 +55,7 @@ private:
     * \param metaRepet the actual repetition number
     * \param processNumber the actual process number
     */
-   void evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber);
+   void evaluation(ExperimentationResults* pResults, const std::string& test, const std::vector<std::string>& args, unsigned int processNumber);
 
    /**
     * Start the real test in a fork. Synchonises all active process starting the test
@@ -70,19 +70,18 @@ public:
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
     * \param pProbes list of probes to use
-    * \param resultFileName file where to output the results
     * \param test the program to bench
     * \param args the args to pass to the program to bench
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
+   ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
 
    /**
     */
    ~ProgramRunner();
 
-   void start(unsigned int processNumber);
+   void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber);
 };
 
 #endif

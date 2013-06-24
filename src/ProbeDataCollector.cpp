@@ -52,36 +52,10 @@ int gcd(int val1, int val2)
         return gcd (val2, ret);
 }
 
-void ProbeDataCollector::allocateMemory()
-{
-    // Prepare the memory space for probes
-    for (size_t i = 0 ; i < m_pProbes->size() ; i++ )
-    {
-        unsigned int nbDevices = (*m_pProbes)[i]->getNbDevices();
-        unsigned int nbChannels = (*m_pProbes)[i]->getNbChannels();
-        unsigned int bufferSize = 1;
-        /*
-        if ( m_pProbes[i]->getPeriod() > 0 )
-        {
-            bufferSize = ProbeDataCollector::MAX_BUFFER_SIZE;
-        }
-        */
-
-        m_runData[i] = new RunData(bufferSize,nbDevices,nbChannels);
-    }
-}
-
-void ProbeDataCollector::clear()
-{
-   m_runData.clear();
-}
-
 ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
-    :m_needThread(false),m_threadRunning(true),m_pProbes(pProbes),m_runData(pProbes->size()),m_minPeriod(INT_MAX)
+    :m_needThread(false),m_threadRunning(true),m_pProbes(pProbes),m_minPeriod(INT_MAX)
 {
     assert(pProbes);
-
-    allocateMemory();
 
     // Get the highest update period required
     for (ProbeList::const_iterator itProbe = m_pProbes->begin() ; itProbe != m_pProbes->end() ; ++itProbe)
@@ -138,11 +112,6 @@ ProbeDataCollector::~ProbeDataCollector()
         }
     }
 
-    for (unsigned int i = 0 ; i < m_runData.size() ; i++ )
-    {
-        delete m_runData[i];
-    }
-
     if ( m_needThread )
     {
         if ( pthread_mutex_destroy(&m_mutex) != 0 )
@@ -166,13 +135,21 @@ void ProbeDataCollector::start()
     }
 }
 
-void ProbeDataCollector::stop()
+void ProbeDataCollector::stop(ExperimentationResults* pResults)
 {
-    for (unsigned int i = 0 ; i < m_pProbes->size() ; i++)
+    if ( pResults->isFull() )
     {
-        m_runData[i]->addValue((*m_pProbes)[i]->stopMeasure());
+        std::cout << "Warning : we are allocating more memory for the measurements. This is because the ExperimentationResults is undersized" << std::endl;
+        pResults->extend(*m_pProbes);
     }
 
+    for (unsigned int i = 0 ; i < m_pProbes->size() ; i++)
+    {
+        pResults->setProbeData(i,(*m_pProbes)[i]->stopMeasure());
+    }
+    pResults->measurementDone();
+
+    // Blocking the update thread
     if ( m_needThread )
     {
         pthread_mutex_lock(&m_mutex);
@@ -208,12 +185,7 @@ void ProbeDataCollector::updateThread()
     }
 }
 
-RunData* ProbeDataCollector::getData(unsigned int index)const
-{
-    assert(index < m_pProbes->size());
 
-    return m_runData[index];
-}
 const char* ProbeDataCollector::getLabel(unsigned int index)const
 {
     assert(index < m_pProbes->size());
