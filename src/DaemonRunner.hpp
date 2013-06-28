@@ -38,7 +38,7 @@ public:
    /**
     * Do we have to exit start?
     */
-   static bool end;
+   static volatile bool end;
 
    /**
     * Prepare a benchmark run

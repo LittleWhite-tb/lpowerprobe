@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <climits>
+#include <csignal>
 
 #include <ctime>
 
@@ -79,23 +80,36 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
     // Create the update thread
     if (m_needThread)
     {
+        if ( pthread_mutex_init(&m_mutex,NULL) != 0 )
+        {
+            std::cerr << "Failed to create mutex for collector thread" << std::endl;
+            throw std::runtime_error("pthread_mutex_init");
+        }
+
         pthread_attr_t attr;
         if (pthread_attr_init(&attr) != 0 )
         {
             std::cerr << "Failed to init attributes for thread" << std::endl;
             throw std::runtime_error("pthread_attr_init");
         }
+         
+        // this new thread is not qualified to handle termination and user signals
+        sigset_t blocked, oldsigs;
+        sigemptyset(&blocked);
+        sigaddset(&blocked, SIGTERM);
+        sigaddset(&blocked, SIGINT);
+        sigaddset(&blocked, SIGUSR1);
+        sigaddset(&blocked, SIGUSR2);
+        pthread_sigmask(SIG_BLOCK, &blocked, &oldsigs);   // inherited
+
         if ( pthread_create(&m_collectorThread,&attr,probeThread,this) != 0 )
         {
             std::cerr << "Failed to create collector thread" << std::endl;
             throw std::runtime_error("pthread_create");
         }
 
-        if ( pthread_mutex_init(&m_mutex,NULL) != 0 )
-        {
-            std::cerr << "Failed to create mutex for collector thread" << std::endl;
-            throw std::runtime_error("pthread_mutex_init");
-        }
+        // restore the old signal state
+        pthread_sigmask(SIG_SETMASK, &oldsigs, NULL);
     }
 }
 
@@ -148,6 +162,20 @@ void ProbeDataCollector::stop(ExperimentationResults* pResults)
         pResults->setProbeData(i,(*m_pProbes)[i]->stopMeasure());
     }
     pResults->measurementDone();
+
+    // Blocking the update thread
+    if ( m_needThread )
+    {
+        pthread_mutex_lock(&m_mutex);
+    }
+}
+
+void ProbeDataCollector::cancel() 
+{
+    for (unsigned int i = 0 ; i < m_pProbes->size() ; i++)
+    {
+        (*m_pProbes)[i]->stopMeasure();
+    }
 
     // Blocking the update thread
     if ( m_needThread )

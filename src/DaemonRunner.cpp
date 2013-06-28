@@ -26,7 +26,7 @@
 
 static void sighandler(int sig);
 
-bool DaemonRunner::end = false;
+volatile bool DaemonRunner::end = false;
 
 #define PID_FILE "/tmp/lppDaemonPID"
 
@@ -72,8 +72,11 @@ DaemonRunner::~DaemonRunner()
 }
 
 void sighandler(int sig) {
+   std::cout << "Signal received in daemon: " << sig << std::endl;
+
    if (sig == SIGTERM || sig == SIGINT) {
       DaemonRunner::end = true;
+      std::cout << "Exiting daemon" << std::endl;
    }
 }
 
@@ -94,8 +97,13 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
 
       pause();
 
-      m_pProbesDataCollector->stop(pExpResult);
+      if (DaemonRunner::end) {
+         m_pProbesDataCollector->cancel();
+      } else {
+         m_pProbesDataCollector->stop(pExpResult);
+      }
    }
 
-   DaemonRunner::end = true;
+   DaemonRunner::end = false;
+   std::cout << "daemon exit ok" << std::endl;
 }

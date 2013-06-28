@@ -50,6 +50,7 @@ public:
 
     void start();
     void stop(ExperimentationResults* pResults);
+    void cancel();
 
     void updateThread();
 
