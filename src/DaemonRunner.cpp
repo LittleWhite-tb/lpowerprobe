@@ -47,9 +47,13 @@ DaemonRunner::DaemonRunner(ProbeDataCollector* pProbesDataCollector)
    sigaction(SIGUSR1, &sact, NULL);
 
    // also notify the processes of our pid
-   std::fstream fs(PID_FILE);
-   fs << getpid();
-   fs.flush();
+   std::fstream fs(PID_FILE, std::fstream::out);
+   if (!fs) {
+      std::cerr << "Failed to open the PID file." << std::endl;
+   } else {
+      fs << getpid();
+      fs.flush();
+   }
    fs.close();
 }
 
