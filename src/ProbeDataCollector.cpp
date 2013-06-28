@@ -30,6 +30,12 @@
 
 #include "RunData.hpp"
 
+static void threadSigalrmHandler(int sig) {
+   (void) sig;
+
+   // do nothing here
+}
+
 void* probeThread(void* args)
 {
     ProbeDataCollector* pProbeDataCollector = reinterpret_cast<ProbeDataCollector*>(args);
@@ -38,7 +44,7 @@ void* probeThread(void* args)
     return NULL;
 }
 
-int gcd(int val1, int val2)
+static int gcd(int val1, int val2)
 {
     int ret = 0;
 
@@ -80,11 +86,27 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
     // Create the update thread
     if (m_needThread)
     {
-        if ( pthread_mutex_init(&m_mutex,NULL) != 0 )
+        pthread_mutexattr_t mattrs;
+
+        if (pthread_mutexattr_init(&mattrs) != 0) {
+           std::cerr << "Failed to initialize collector thread mutex" << std::endl;
+           throw std::runtime_error("pthread_mutexattr_init");
+        }
+
+        if (pthread_mutexattr_settype(&mattrs, PTHREAD_MUTEX_ERRORCHECK) != 0) {
+           std::cerr << "Failed to set the correct mode for the collector thread mutex" << std::endl;
+           throw std::runtime_error("pthread_mutexattr_settype");
+        }
+
+        if ( pthread_mutex_init(&m_mutex, &mattrs) != 0 )
         {
             std::cerr << "Failed to create mutex for collector thread" << std::endl;
             throw std::runtime_error("pthread_mutex_init");
         }
+        std::cout << "mutex created" << std::endl;
+        pthread_mutex_lock(&m_mutex);
+
+        pthread_mutexattr_destroy(&mattrs);
 
         pthread_attr_t attr;
         if (pthread_attr_init(&attr) != 0 )
@@ -119,15 +141,9 @@ ProbeDataCollector::~ProbeDataCollector()
     {
         m_threadRunning = false;
         pthread_mutex_unlock(&m_mutex); // Get the thread to give up
-        if ( pthread_cancel(m_collectorThread) != 0 )
-        {
-            std::cerr << "Failed to cancel collector thread" << std::endl;
-            throw std::runtime_error("pthread_cancel");
-        }
-    }
+        pthread_kill(m_collectorThread, SIGALRM); // in case it was running
+        pthread_join(m_collectorThread, NULL);
 
-    if ( m_needThread )
-    {
         if ( pthread_mutex_destroy(&m_mutex) != 0 )
         {
             std::cerr << "Failed to destroy mutex" << std::endl;
@@ -166,6 +182,7 @@ void ProbeDataCollector::stop(ExperimentationResults* pResults)
     // Blocking the update thread
     if ( m_needThread )
     {
+        pthread_kill(m_collectorThread, SIGALRM);
         pthread_mutex_lock(&m_mutex);
     }
 }
@@ -180,37 +197,57 @@ void ProbeDataCollector::cancel()
     // Blocking the update thread
     if ( m_needThread )
     {
+        pthread_kill(m_collectorThread, SIGALRM);
         pthread_mutex_lock(&m_mutex);
     }
 }
 
 void ProbeDataCollector::updateThread()
 {
-    long unsigned int elapsedTime = 0; /* in µs */
-    timespec ts;
-    ts.tv_sec = m_minPeriod/1000000;
-    ts.tv_nsec = (m_minPeriod%1000000) *1000;
+   long unsigned int elapsedTime = 0; /* in µs */
+   timespec ts;
+   ts.tv_sec = m_minPeriod/1000000;
+   ts.tv_nsec = (m_minPeriod%1000000) *1000;
 
-    while ( m_threadRunning )
-    {
-        pthread_mutex_lock(&m_mutex);
+   // capture SIGALRM signals (and do nothing of them)
+   struct sigaction sact;
+   sigset_t mask;
 
-        nanosleep(&ts,NULL);
-        elapsedTime += m_minPeriod;
+   sigemptyset(&mask);
+   sact.sa_handler = threadSigalrmHandler;
+   sact.sa_mask = mask;
+   sact.sa_flags = 0;
 
-        for (unsigned int i = 0 ; i < m_periodicProbes.size() ; i++)
-        {
+   sigaction(SIGALRM, &sact, NULL);
+
+   // main loop
+   while ( m_threadRunning )
+   {
+      pthread_mutex_lock(&m_mutex);
+
+      if (!m_threadRunning) {
+         pthread_mutex_unlock(&m_mutex);
+         break;
+      }
+
+      // do not update if the sleep is interrupted by a signal
+      if (nanosleep(&ts,NULL) != -1) {
+         elapsedTime += m_minPeriod;
+
+         for (unsigned int i = 0 ; i < m_periodicProbes.size() ; i++)
+         {
             unsigned int period = m_periodicProbes[i]->getPeriod();
             long int stepTime = elapsedTime % period;
             long int relativeTime = stepTime - period;
             if ( relativeTime < 5 && relativeTime > -5 )
             {
-                m_periodicProbes[i]->update();
+               m_periodicProbes[i]->update();
             }
-        }
+         }   
+      }
 
-        pthread_mutex_unlock(&m_mutex);
-    }
+      pthread_mutex_unlock(&m_mutex);
+   }
 }
 
 

@@ -76,11 +76,8 @@ DaemonRunner::~DaemonRunner()
 }
 
 void sighandler(int sig) {
-   std::cout << "Signal received in daemon: " << sig << std::endl;
-
    if (sig == SIGTERM || sig == SIGINT) {
       DaemonRunner::end = true;
-      std::cout << "Exiting daemon" << std::endl;
    }
 }
 
@@ -97,6 +94,12 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
    {
       m_nbMetaRepet = metaRepet + 1;
 
+      pause();
+
+      if (DaemonRunner::end) {
+         break;
+      }
+
       m_pProbesDataCollector->start();
 
       pause();
@@ -109,5 +112,4 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
    }
 
    DaemonRunner::end = false;
-   std::cout << "daemon exit ok" << std::endl;
 }

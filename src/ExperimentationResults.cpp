@@ -28,7 +28,9 @@ ExperimentationResults::ExperimentationResults(unsigned int nbMetaRepeat, const 
 
 void ExperimentationResults::extend(const ProbeList& probes)
 {
-    for ( unsigned int i = 0 ; i < m_results.size() ; i++ )
+    const unsigned int res_sz = m_results.size();
+
+    for ( unsigned int i = 0 ; i < res_sz; i++ )
     {
         m_results.push_back(RunData(probes));
     }
