@@ -26,20 +26,46 @@
 #include "Probe.hpp"
 #include "ProbeData.hpp"
 
+/**
+ * \a ProbeData Array wrapper for each probes
+ */
 class RunData
 {
 private:
     std::vector< ProbeData > m_data; /*!< Vector sized with the number of probe */
 
 public:
+    /**
+     * Contructs the array following the number of probes in \a ProbeList
+     * @param probes the list of probes
+     */
     RunData(const ProbeList& probes);
+
+    /**
+     */
     ~RunData() {}
 
+    /**
+     * @return Gets the number of probes
+     */
     size_t getNbProbeData()const { return m_data.size(); }
 
+    /**
+     * @return Gets the whole array of data
+     */
     const std::vector<ProbeData>& getData()const { return m_data; }
+
+    /**
+     * @param index index of the probe from which you want the data
+     * @return Gets a specific \a ProbeData following the index of the Probe
+     */
     const ProbeData& getProbeData(unsigned int index)const;
 
+    /**
+     * @brief Sets new data from a specific probe at \a index
+     * @param index index of the probe from which the data are
+     * @param pData the pointer of raw probe data
+     */
     void setValue(unsigned int index, double* pData);
 };
 

@@ -24,22 +24,57 @@
 
 #include "RunData.hpp"
 
+/**
+ * Storage for all the data of an experimentation
+ * Wrapper around an array of \a RunData
+ * Since we needs to handle a unknown number of run, the functoin \a extend() allows to double the size (provoquing an allocation).
+ * To avoid this allocation, the \a ExperimentationResults is prepared following the information passed to the constructor.
+ */
 class ExperimentationResults
 {
 private:
 
     std::vector<RunData> m_results; /*!< Results contained in a vector of meta repeat size */
-    unsigned int m_nbMeasurement;
+    unsigned int m_nbMeasurement; /*!< Number of measurement done for this \a Experimentation */
 public:
 
+    /**
+     * Prepares the storage for the \a Experimentation data
+     * @param nbMetaRepeat
+     * @param probes
+     */
     ExperimentationResults(unsigned int nbMetaRepeat, const ProbeList& probes);
 
+    /**
+     * Checks if the probe data array is full (and needs to be extended with \a extend() next time a new data is pushed with \a setProbeData())
+     * @return true when the array is full and requires a new memomry allocation to keep more data
+     */
     bool isFull()const { return m_nbMeasurement >= m_results.size(); }
+
+    /**
+     * Increase the space allocated to store the \a Experimentation data
+     * @param probes the list of probes from which one the data will be collected
+     */
     void extend(const ProbeList& probes);
 
+    /**
+     * Set new data for a specific probe \a probeIndex
+     * @param probeIndex the index of the probe from which one the data are coming
+     * @param pData the pointeur to the raw data
+     */
     void setProbeData(unsigned int probeIndex, double* pData);
+
+    /**
+     * Notify \a ExperimentationResults that a measurement is finished and
+     * so all following data will be set for the next measurement
+     * After calling that, it is advice to check the fullness of the array with \a isFull in order to see if an additionnal allocation is needed
+     */
     void measurementDone() { m_nbMeasurement++; }
 
+    /**
+     * Get the results
+     * @return
+     */
     const std::vector<RunData>& getResults()const { return m_results; }
 
 };

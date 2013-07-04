@@ -35,6 +35,7 @@ class ProbeLoader
       /**
        * Tries to load a probe (either v1 or v2)
        * @param probePath
+       * @param probes list of probes loaded
        */
       void tryLoadProbe(const std::string& probePath, ProbeList& probes);
 
@@ -56,7 +57,7 @@ class ProbeLoader
        * Load the probes specified by \a probesPath or the defaults probes when \a probesPath is empty
        * \param probesPath the probes to load
        * \param probes list of probes loaded
-       * \return false if at least one probe failed to be loaded
+       * \return false if it was not possible to load at least one probe
        */
       bool loadProbes(const std::vector<std::string>& probesPath, ProbeList& probes);
 };

@@ -130,6 +130,13 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
             throw std::runtime_error("pthread_create");
         }
 
+        if ( pthread_attr_destroy(&attr) != 0 )
+        {
+            std::cerr << "Failed to destroy the atrribute thread" << std::endl;
+            throw std::runtime_error("pthread_attr_destroy");
+        }
+
+
         // restore the old signal state
         pthread_sigmask(SIG_SETMASK, &oldsigs, NULL);
     }
@@ -225,13 +232,16 @@ void ProbeDataCollector::updateThread()
    {
       pthread_mutex_lock(&m_mutex);
 
-      if (!m_threadRunning) {
+      if (!m_threadRunning)
+      {
+          // Unlock the mutex because we just locked it (this unlock allows to destroy it)
          pthread_mutex_unlock(&m_mutex);
          break;
       }
 
       // do not update if the sleep is interrupted by a signal
-      if (nanosleep(&ts,NULL) != -1) {
+      if (nanosleep(&ts,NULL) != -1)
+      {
          elapsedTime += m_minPeriod;
 
          for (unsigned int i = 0 ; i < m_periodicProbes.size() ; i++)

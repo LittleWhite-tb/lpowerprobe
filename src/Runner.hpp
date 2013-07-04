@@ -50,11 +50,23 @@ protected:
 
 public:
 
+    /**
+     * Constructor creating the semaphores for process locking
+     * @param pProbesDataCollector the collector to use to get data from probes
+     * @param nbProcess number of process that will be created
+     * @param nbMetaRepet number of meta repeat that will be runned
+     */
     Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess, unsigned int nbMetaRepet);
+
+    /**
+     * Destroys the semaphores
+     */
     virtual ~Runner();
 
     /**
      * Start the benchmark
+     * \param pOverheadExpResult Arrays collecting the results of overhead run from the probes (using \a ProbeDataCollector)
+     * \param pExpResult Arrays collecting the results run from the probes (using \a ProbeDataCollector)
      * \param processNumber the process number
      */
     virtual void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)=0;

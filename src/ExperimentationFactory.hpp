@@ -24,11 +24,20 @@
 
 class Experimentation;
 
+/**
+ * Factory pattern to create an \a Experimentation
+ */
 class ExperimentationFactory
 {
 private:
 
 public:
+    /**
+     * Create a new \a Experimentation
+     * @param options the options to pass to the new \a Experimentation
+     * @return a pointer on the \a Experimentation
+     * @warning You have to free the pointer returned
+     */
     static Experimentation* createExperimentation(const Options& options);
 };
 

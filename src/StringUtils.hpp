@@ -23,6 +23,10 @@
 
 #include <sstream>
 
+/**
+ * Utility class for string
+ * The class offers functions to convert values to string \a to_string() and string to value \a from_string()
+ */
 class StringUtils
 {
    public:

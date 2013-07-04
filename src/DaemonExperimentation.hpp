@@ -24,12 +24,22 @@
 
 #include "Options.hpp"
 
+/**
+ * Specific \a Experimentation implementation to run as a daemon
+ * Being a daemon means to run in background and get probes data periodically
+ */
 class DaemonExperimentation : public Experimentation
 {
 private:
   
 public:
+    /**
+     * @param options the options to use for the \a Experimentation
+     */
    DaemonExperimentation(const Options& options);
+
+   /**
+    */
    ~DaemonExperimentation();
 
    void start();

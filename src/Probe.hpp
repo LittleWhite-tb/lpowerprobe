@@ -28,14 +28,23 @@
 
 #include "ProbeLoadingException.hpp"
 
+/**
+ * Wrapper for probes
+ * This class is virtual since we handles two different version of probes
+ */
 class Probe
 {
 private:
 
 protected:
-    void* pLibHandle;
-    void* pProbeHandle;
+    void* pLibHandle;  /*!< Pointer to the probe library */
+    void* pProbeHandle; /*!< Pointer to the probe library data */
 
+    /**
+     * Generic function to load a symbol from the probe library
+     * @param symbol the name of the symbol
+     * @return the pointer to the symbol
+     */
     template <typename T>
     T loadSymbol(const char* symbol)
     {
@@ -54,30 +63,67 @@ protected:
     typedef double* (*libFini)(void *data);
     typedef  void* (*libInit)(void);
 
-    libInit evaluationInit;
-    libFini evaluationFini;
+    libInit evaluationInit; /*!< probe initialisation function pointer */
+    libFini evaluationFini; /*!< probe closure function pointer */
 
 public:
+    /**
+     * Loads a probe library
+     * @param path path to the probe library
+     * @exception ProbeLoadingException thrown when the file could not be loaded
+     */
     Probe(const std::string& path);
+
+    /**
+     * Calls the closure function \a evaluationFini if possible and close the probe library
+     */
     virtual ~Probe();
 
+    /**
+     * Updates the probe
+     */
     virtual void update();
 
     /**
+     * Starts a new measurement with the probe
      */
     virtual void startMeasure()=0;
 
     /**
+     * Stops the measurement of the probe
      * \return the actual value of the probe (end value)
      */
     virtual double* stopMeasure()=0;
 
+    /**
+     * Gets the probe version
+     * @return
+     */
     virtual unsigned int getVersion()const { return 1; }
 
+    /**
+     * Gets the number of devices handled by the probe
+     * @return
+     */
     virtual unsigned int getNbDevices()const { return 1; }
+
+    /**
+     * Gets the numbers of channels handled by the probe
+     * @return
+     */
     virtual unsigned int getNbChannels()const { return 1; }
 
+    /**
+     * Get the refresh period (step to call update) for this probe
+     * @return
+     */
     virtual unsigned int getPeriod()const { return 0; }
+
+    /**
+     * Get the label of the probe
+     * The label is a string that will be used to describe the data returned in a human readable form
+     * @return
+     */
     virtual const char* getLabel()const { return ""; }
 };
 typedef std::vector<Probe*> ProbeList;

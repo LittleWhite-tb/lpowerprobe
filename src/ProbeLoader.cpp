@@ -82,7 +82,7 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
           catch (ProbeInitialisationException& pie)
           {
               // we don't bother about old 'not found' errors, since we found it, but not able to init it
-              errors.clear();
+             errors.clear();
              errors.push_back(pie.what());
              loopStopper = true;
           }

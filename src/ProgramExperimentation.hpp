@@ -24,16 +24,31 @@
 
 #include "Options.hpp"
 
+/**
+ * Exerimentation implementation for executable benchmarking
+ */
 class ProgramExperimentation : public Experimentation
 {
 private:
 
 public:
+
+    /**
+     * @param options the options to use for the \a Experimentation
+     */
     ProgramExperimentation(const Options& options);
+
+    /**
+     */
     ~ProgramExperimentation() {}
 
     void start();
 
+    /**
+     * @brief runnerThread the thread running the program
+     * @param pArgs a pointer to \a ProgramExperimentation
+     * @return NULL
+     */
     friend void* runnerThread(void* pArgs);
 };
 

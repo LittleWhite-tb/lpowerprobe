@@ -49,6 +49,11 @@ public:
     ~ProbeDataCollector();
 
     void start();
+    /**
+     * @brief stop
+     * @param pResults
+     * @todo see if factorisation is possible with \a cancel()
+     */
     void stop(ExperimentationResults* pResults);
     void cancel();
 

@@ -42,6 +42,7 @@ private:
    /**
     * Starter for the overhead benchmark
     * Calls evaluation with a specific test 'empty'
+    * \param pOverheadExpResult pointer on \a ExperimentationResults where to keep the probes results
     * \param metaRepet actual repetition number
     * \param processNumber actual process id running this function
     */
@@ -49,7 +50,7 @@ private:
 
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
-    * \param resultArray the memory array to keep the results
+    * \param pResults pointer on \a ExperimentationResults where to keep the probes results
     * \param test the program to evaluate
     * \param args the args to pass to the program to evaluate
     * \param metaRepet the actual repetition number
@@ -69,7 +70,7 @@ public:
    /**
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
-    * \param pProbes list of probes to use
+    * \param pProbesDataCollector pointer to the \a ProbeDataCollector to use to collect the probes data
     * \param test the program to bench
     * \param args the args to pass to the program to bench
     * \param nbProcess the number of process that will be started
