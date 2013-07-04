@@ -24,6 +24,8 @@
 
 #include "Options.hpp"
 
+struct ExperimentationThreadArgs;
+
 /**
  * Implementation for kernel experimentation
  * The kernel is a small program that should be compiled with \a KernelCompiler in order to get run
@@ -34,6 +36,8 @@ private:
     static const std::string DUMMY_KERNEL_FILE;  /*!< Name of the dummy kernel for overload calculation */
 
     std::string m_dummyKernelFile;   /*!< Dummy kernel for overload calculation */
+
+    void runStarter(ExperimentationThreadArgs *pArgs);
 
 public:
     /**

@@ -36,25 +36,24 @@
 #include "KernelRunner.hpp"
 #include "Kernel.hpp"
 #include "CPUUtils.hpp"
+#include "ExperimentationThreadArgs.hpp"
 
 const std::string KernelExperimentation::DUMMY_KERNEL_FILE = INSTALL_DIR "/share/lPowerProbe/empty.s";
 
-// @Rafoctorisable
-struct ThreadArgs
-{
-    KernelExperimentation* pExp;
-    KernelRunner* pRunner;
-    unsigned int threadNumber;
-
-    ThreadArgs(KernelExperimentation* pExp, KernelRunner* pRunner, unsigned int threadNumber)
-        :pExp(pExp),pRunner(pRunner),threadNumber(threadNumber) {}
-};
-
 void* kernelRunnerThread(void* pArgs)
 {
-    ThreadArgs* pTArgs = reinterpret_cast<ThreadArgs*>(pArgs);
+    ExperimentationThreadArgs* pTArgs = reinterpret_cast<ExperimentationThreadArgs*>(pArgs);
 
-    std::vector<unsigned int> pinning(pTArgs->pExp->m_options.getPinning());
+    KernelExperimentation* pKExp = dynamic_cast<KernelExperimentation*>(pTArgs->pExp);
+    assert(pKExp);
+    pKExp->runStarter(pTArgs);
+
+    return NULL;
+}
+
+void KernelExperimentation::runStarter(ExperimentationThreadArgs* pTArgs)
+{
+    std::vector<unsigned int> pinning(m_options.getPinning());
     if ( pinning.size() != 0 )
     {
        // Pin it
@@ -62,11 +61,9 @@ void* kernelRunnerThread(void* pArgs)
     }
     CPUUtils::setFifoMaxPriority(-1);
 
-    pTArgs->pRunner->start(pTArgs->pExp->m_pOverheadResults,
-                           pTArgs->pExp->m_pResults,
+    pTArgs->pRunner->start(m_pOverheadResults,
+                           m_pResults,
                            pTArgs->threadNumber);
-
-    return NULL;
 }
 
 KernelExperimentation::KernelExperimentation(const Options &options)
@@ -110,7 +107,7 @@ void KernelExperimentation::start()
     std::vector<unsigned int> pinning(m_options.getPinning());
 
     KernelRunner run(m_pProbeDataCollector, pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbMetaRepetition());
-    std::vector<std::pair<pthread_t,ThreadArgs*> > threads;
+    std::vector<std::pair<pthread_t,ExperimentationThreadArgs*> > threads;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
     {
@@ -118,7 +115,7 @@ void KernelExperimentation::start()
        {
            pthread_t threadId;
            pthread_attr_t attr;
-           ThreadArgs* pArgs = new ThreadArgs(this, &run,process);
+           ExperimentationThreadArgs* pArgs = new ExperimentationThreadArgs(this, &run,process);
 
            if (pthread_attr_init(&attr) != 0 )
            {
@@ -131,7 +128,7 @@ void KernelExperimentation::start()
                throw std::runtime_error("pthread_create");
            }
 
-           threads.push_back(std::pair<pthread_t,ThreadArgs*>(threadId,pArgs));
+           threads.push_back(std::pair<pthread_t,ExperimentationThreadArgs*>(threadId,pArgs));
        }
 
        // Wait for all the child to finish

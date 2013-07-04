@@ -60,8 +60,8 @@ protected:
     }
 
 protected:
-    typedef double* (*libFini)(void *data);
-    typedef  void* (*libInit)(void);
+    typedef double* (*libFini)(void *data); /*!< pointer to the function to close a probe library type */
+    typedef  void* (*libInit)(void); /*!< pointer to the function to initialise a probe library type */
 
     libInit evaluationInit; /*!< probe initialisation function pointer */
     libFini evaluationFini; /*!< probe closure function pointer */

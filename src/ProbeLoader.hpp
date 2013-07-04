@@ -25,6 +25,13 @@
 
 #include "Probe.hpp"
 
+/**
+ * Class to handle the probes libraries loading
+ * The point of this class is to manage the loading of the probes without
+ * showing the differenties betweend \a ProbeV1 and \a ProbeV2. Moreover, the
+ * loading of a probe checks several paths before sending a failure. With an intelligent
+ * error output, the user can see the paths test during failure in order to quickly check the error
+ */
 class ProbeLoader
 {
    private:

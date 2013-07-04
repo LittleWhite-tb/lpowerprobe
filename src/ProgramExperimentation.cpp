@@ -36,22 +36,22 @@
 #include "Kernel.hpp"
 #include "ProgramRunner.hpp"
 #include "CPUUtils.hpp"
+#include "ExperimentationThreadArgs.hpp"
 
-struct ThreadArgs
+void* programRunnerThread(void* pArgs)
 {
-    ProgramExperimentation* pExp;
-    ProgramRunner* pRunner;
-    unsigned int threadNumber;
+    ExperimentationThreadArgs* pTArgs = reinterpret_cast<ExperimentationThreadArgs*>(pArgs);
 
-    ThreadArgs(ProgramExperimentation* pExp, ProgramRunner* pRunner, unsigned int threadNumber)
-        :pExp(pExp),pRunner(pRunner),threadNumber(threadNumber) {}
-};
+    ProgramExperimentation* pPExp = dynamic_cast<ProgramExperimentation*>(pTArgs->pExp);
+    assert(pPExp);
+    pPExp->runStarter(pTArgs);
 
-void* runnerThread(void* pArgs)
+    return NULL;
+}
+
+void ProgramExperimentation::runStarter(ExperimentationThreadArgs* pTArgs)
 {
-    ThreadArgs* pTArgs = reinterpret_cast<ThreadArgs*>(pArgs);
-
-    std::vector<unsigned int> pinning(pTArgs->pExp->m_options.getPinning());
+    std::vector<unsigned int> pinning(m_options.getPinning());
     if ( pinning.size() != 0 )
     {
        // Pin it
@@ -59,11 +59,9 @@ void* runnerThread(void* pArgs)
     }
     CPUUtils::setFifoMaxPriority(-1);
 
-    pTArgs->pRunner->start(pTArgs->pExp->m_pOverheadResults,
-                           pTArgs->pExp->m_pResults,
+    pTArgs->pRunner->start(m_pOverheadResults,
+                           m_pResults,
                            pTArgs->threadNumber);
-
-    return NULL;
 }
 
 ProgramExperimentation::ProgramExperimentation(const Options &options)
@@ -82,7 +80,7 @@ void ProgramExperimentation::start()
 
 
     ProgramRunner run(m_pProbeDataCollector, m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
-    std::vector<std::pair<pthread_t,ThreadArgs*> > threads;
+    std::vector<std::pair<pthread_t,ExperimentationThreadArgs*> > threads;
 
     for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
     {
@@ -90,20 +88,20 @@ void ProgramExperimentation::start()
        {
            pthread_t threadId;
            pthread_attr_t attr;
-           ThreadArgs* pArgs = new ThreadArgs(this, &run,process);
+           ExperimentationThreadArgs* pArgs = new ExperimentationThreadArgs(this, &run,process);
 
            if (pthread_attr_init(&attr) != 0 )
            {
                std::cerr << "Failed to init attributes for thread" << std::endl;
                throw std::runtime_error("pthread_attr_init");
            }
-           if ( pthread_create(&threadId,&attr,runnerThread,pArgs) != 0 )
+           if ( pthread_create(&threadId,&attr,programRunnerThread,pArgs) != 0 )
            {
                std::cerr << "Failed to create runner thread" << std::endl;
                throw std::runtime_error("pthread_create");
            }
 
-           threads.push_back(std::pair<pthread_t,ThreadArgs*>(threadId,pArgs));
+           threads.push_back(std::pair<pthread_t,ExperimentationThreadArgs*>(threadId,pArgs));
        }
 
        // Wait for all the child to finish

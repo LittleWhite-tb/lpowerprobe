@@ -61,10 +61,9 @@ private:
     * Starter for the overhead benchmark
     * Calls evaluation with a specific test 'empty'
     * \param pOverheadExpResult pointer on \a ExperimentationResults where to keep the probes results
-    * \param metaRepet actual repetition number
     * \param processNumber actual process id running this function
     */
-   void calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int metaRepet, unsigned int processNumber);
+   void calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int processNumber);
    
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
@@ -73,10 +72,9 @@ private:
     * \param memory the space where to apply the bench
     * \param nbKernelIteration the number of inner kernel loop iteration
     * \param size the size used by one kernel iteration
-    * \param metaRepet the actual repetition number
     * \param processNumber the actual process number
     */
-   void evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber);
+   void evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int processNumber);
    
    /**
     * Infinite loop called to sync the bench processes

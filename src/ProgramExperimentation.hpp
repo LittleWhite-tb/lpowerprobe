@@ -24,12 +24,20 @@
 
 #include "Options.hpp"
 
+struct ExperimentationThreadArgs;
+
 /**
  * Exerimentation implementation for executable benchmarking
  */
 class ProgramExperimentation : public Experimentation
 {
 private:
+
+    /**
+     * Start the run
+     * @param pTArgs
+     */
+    void runStarter(ExperimentationThreadArgs* pTArgs);
 
 public:
 
@@ -49,7 +57,7 @@ public:
      * @param pArgs a pointer to \a ProgramExperimentation
      * @return NULL
      */
-    friend void* runnerThread(void* pArgs);
+    friend void* programRunnerThread(void* pArgs);
 };
 
 #endif

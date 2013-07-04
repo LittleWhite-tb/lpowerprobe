@@ -29,42 +29,80 @@
 
 class RunData;
 
+/**
+ * Class to connect the data from the probes
+ */
 class ProbeDataCollector
 {
 private:
     static const unsigned int MAX_BUFFER_SIZE = 500;
 
-    pthread_t m_collectorThread;
-    pthread_mutex_t m_mutex;
-    bool m_needThread;
-    bool m_threadRunning;
+    pthread_t m_collectorThread;    /*!< thread updating periodically the probes (if needed) */
+    pthread_mutex_t m_mutex;        /*!< mutex to synchronize the update thread with the main thread */
+    bool m_needThread;              /*!< flag to know if a thread is updated */
+    bool m_threadRunning;           /*!< flag to know if the thread is running (when false, the thread should quit) */
 
     ProbeList* m_pProbes; /*!< All probes to use */
-    ProbeList m_periodicProbes;
+    ProbeList m_periodicProbes; /*!< probes needing a periodic update */
 
     unsigned int m_minPeriod; /** in µs */
 
 public:
+    /**
+     * @param pProbes Pointer on the list of probes to collect
+     */
     ProbeDataCollector(ProbeList* pProbes);
+
+    /**
+     */
     ~ProbeDataCollector();
 
-    void start();
     /**
-     * @brief stop
-     * @param pResults
+     * Start the probes to monitor
+     */
+    void start();
+
+    /**
+     * Stop the probes to monitor
+     * @param pResults the \a ExperimentationResults to fill
      * @todo see if factorisation is possible with \a cancel()
      */
     void stop(ExperimentationResults* pResults);
+
+    /**
+     * Stops the updating thread
+     */
     void cancel();
 
+    /**
+     * Function run by the updating thread, going through the \a m_periodicProbes to update these
+     */
     void updateThread();
 
+    /**
+     * Return the probes monitored
+     * @return
+     */
     const ProbeList& getProbes()const { return *m_pProbes; }
 
+    /**
+     * Get the number of probes monitored
+     * @return
+     */
     size_t getNumberProbes()const { return m_pProbes->size(); }
 
+    /**
+     * Get the label for a specific probe
+     * @param index the index of the probe
+     * @return the label as a human readable string
+     */
     const char* getLabel(unsigned int index)const;
 
+    /**
+     * The function used to start the thread
+     * It will call \a updateThread()
+     * @return NULL
+     */
     friend void* probeThread(void*);
 };
 

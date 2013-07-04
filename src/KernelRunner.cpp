@@ -88,12 +88,12 @@ void KernelRunner::flushCaches(unsigned int nbProcess)
    m_memory[nbProcess][0] = c/size;
 }
 
-void KernelRunner::calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int metaRepet, unsigned int processNumber)
+void KernelRunner::calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int processNumber)
 {
-   evaluation(pOverheadExpResult,m_pDummyKernelFct,m_overheadMemory,OVERHEAD_KERNELITER,m_iterationMemorySize,metaRepet,processNumber);
+   evaluation(pOverheadExpResult,m_pDummyKernelFct,m_overheadMemory,OVERHEAD_KERNELITER,m_iterationMemorySize,processNumber);
 }
 
-void KernelRunner::evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber)
+void KernelRunner::evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int processNumber)
 {
     if ( sem_post(m_fatherLock) != 0 )
     {
@@ -194,7 +194,7 @@ void KernelRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
          for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
          {
             flushCaches(processNumber);
-            calculateOverhead(pOverheadExpResult,metaRepet,processNumber);
+            calculateOverhead(pOverheadExpResult,processNumber);
          }
 
          for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
@@ -205,7 +205,7 @@ void KernelRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
             }
             
             flushCaches(processNumber);
-            evaluation(pExpResult,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,metaRepet,processNumber);
+            evaluation(pExpResult,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,processNumber);
          }
       }
    }

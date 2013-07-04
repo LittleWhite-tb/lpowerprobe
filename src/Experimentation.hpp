@@ -26,6 +26,7 @@
 #include "ExperimentationResults.hpp"
 #include "Probe.hpp"
 
+class Runner;
 class ProbeDataCollector;
 class Options;
 
@@ -34,7 +35,7 @@ class Options;
  * The experimentation is following the following path :
  * - Looping for all experimentation
  * - - Looping for all process
- * - - - Creating fork
+ * - - - Creating a thread
  * - - - Looping for all metarepetition (Runner)
  * - - - Start test program (Runner)
  * 

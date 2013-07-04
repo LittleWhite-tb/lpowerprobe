@@ -33,7 +33,7 @@
  * are outputted in a file. The results gets the overhead removed before getting
  * outputted.
  */
-class ProgramRunner : Runner
+class ProgramRunner : public Runner
 {
 private:
     const std::string& m_test;

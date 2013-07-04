@@ -24,6 +24,9 @@
 
 #include <string>
 
+/**
+ * Wrapper around dynamic evaluation library version 2
+ */
 class ProbeV2 : public Probe
 {
     typedef unsigned int (*libGetNbDevices)();
