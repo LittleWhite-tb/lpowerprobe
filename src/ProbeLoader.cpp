@@ -67,7 +67,6 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
       errors.clear();
       bool loaded = false;
       bool loopStopper = false;
-      std::cout << "Trying to load : " << *itProbePath << " ... ";
       for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false && loopStopper == false ; ++itDir )
       {
          try

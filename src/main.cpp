@@ -34,21 +34,21 @@
 
 #include "version.hpp"
 
-const int ID_ARG_REPETITION = 1;
-const int ID_ARG_METAREPETITION = 2;
-const int ID_ARG_PROCESS = 3;
-const int ID_ARG_PINNING = 4;
-const int ID_ARG_OUTPUT = 5;
-const int ID_ARG_MEMSIZE = 6;
-const int ID_ARG_KERNELITER = 7;
-const int ID_ARG_PROBES = 8;
+enum e_idarg {
+   ID_ARG_REPETITION,
+   ID_ARG_PROCESS,
+   ID_ARG_PINNING,
+   ID_ARG_OUTPUT,
+   ID_ARG_MEMSIZE,
+   ID_ARG_KERNELITER,
+   ID_ARG_PROBES
+};
 
 static struct option long_options[] =
 {
    {"help", no_argument,   0, 'h' },
    {"version", no_argument,   0, 'v' },
    {"repetition", required_argument,   0, ID_ARG_REPETITION},
-   // {"meta-repetition", required_argument,   0, ID_ARG_METAREPETITION},
    {"duplicate", required_argument,   0, ID_ARG_PROCESS},
    {"pinning", required_argument,   0, ID_ARG_PINNING},
    {"output", required_argument,   0, ID_ARG_OUTPUT},
@@ -135,25 +135,11 @@ int main(int argc, char** argv)
                if ( StringUtils::from_string<unsigned int>(optarg,repet) )
                {
                   // Hack to replace the repetition command to meta repetition
-                  options.setNbMetaRepetition(repet);
+                  options.setNbRepetition(repet);
                }
                else
                {
                   std::cerr << "Invalid argument for --repetition option" << std::endl;
-                  usage();
-               }
-            }
-            break;
-         case ID_ARG_METAREPETITION:
-            {
-               unsigned int mrepet = 0;
-               if ( StringUtils::from_string<unsigned int>(optarg,mrepet) )
-               {
-                  options.setNbMetaRepetition(mrepet);
-               }
-               else
-               {
-                  std::cerr << "Invalid argument for --meta-repetition option" << std::endl;
                   usage();
                }
             }

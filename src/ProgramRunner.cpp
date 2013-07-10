@@ -90,11 +90,6 @@ void ProgramRunner::evaluation(ExperimentationResults* pResults, const std::stri
 
     startTest(test, pArgv, processNumber);
 
-    if ( processNumber == 0 )
-    {
-        m_pProbesDataCollector->stop(pResults);
-    }
-
     // ensure all the tasks finished before going to the next iteration
     if (processNumber == 0)
     {
@@ -127,6 +122,11 @@ void ProgramRunner::evaluation(ExperimentationResults* pResults, const std::stri
         }
     }
 
+    if ( processNumber == 0 )
+    {
+        m_pProbesDataCollector->stop(pResults);
+    }
+
     for (int i = 0 ; i < nbArgs+1 ; i++ )
     {
         free(pArgv[i]);
@@ -138,73 +138,73 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
 {
    pid_t pid = -1;
    switch (pid = fork ())
-    {
-        case -1:
-        {
+   {
+      case -1:
+         {
             exit (EXIT_FAILURE);
-        }
-        case 0:
-        {
-         CPUUtils::setFifoMaxPriority(-2);
-         if ( sem_post(m_fatherLock) != 0 )
-         {
-            perror("sem_post");
          }
-
-         if ( sem_wait(m_processLock) != 0 )
+      case 0:
          {
-            perror("sem_wait");
-         }
+            CPUUtils::setFifoMaxPriority(-2);
+            if ( sem_post(m_fatherLock) != 0 )
+            {
+               perror("sem_post");
+            }
 
-         execvp (programName.c_str(), pArgv);
-         exit(EXIT_SUCCESS);
-      }
+            if ( sem_wait(m_processLock) != 0 )
+            {
+               perror("sem_wait");
+            }
+
+            execvp (programName.c_str(), pArgv);
+            exit(EXIT_SUCCESS);
+         }
       default:
-        {
+         {
             // Father
             int status;
 
-         // synchronized start
-         if ( processNumber == 0 )
-         {
-            for ( unsigned int i = 0 ; i < m_nbProcess ; i++ )
+            // synchronized start
+            if ( processNumber == 0 )
             {
-               if ( sem_wait(m_fatherLock) != 0 )
+               for ( unsigned int i = 0 ; i < m_nbProcess ; i++ )
                {
-                  perror("sem_wait father");
+                  if ( sem_wait(m_fatherLock) != 0 )
+                  {
+                     perror("sem_wait father");
+                  }
                }
-            }
 
-            for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
-            {
-               if ( sem_post(m_processLock) != 0 )
+               for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
                {
-                  perror("sem_post process");
+                  if ( sem_post(m_processLock) != 0 )
+                  {
+                     perror("sem_post process");
+                  }
                }
             }
-         }
 
             waitpid (pid, &status, 0);
 
             int res = WEXITSTATUS (status);
-         if(res != EXIT_SUCCESS)
-         {
-            std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
-         }
+            if(res != EXIT_SUCCESS)
+            {
+               std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
+            }
             /* Child must end normally */
             if (WIFEXITED (status) == 0)
             {
-                if (WIFSIGNALED (status))
-                {
-                     psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
-                     exit (EXIT_FAILURE);
-                }
-                std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
-                exit (EXIT_FAILURE);
+               if (WIFSIGNALED (status))
+               {
+                  psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
+                  exit (EXIT_FAILURE);
+               }
+               std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
+               exit (EXIT_FAILURE);
             }
 
             break;
-        }
+         }
    }
 }
 

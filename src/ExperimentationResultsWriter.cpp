@@ -43,60 +43,63 @@ void ExperimentationResultsWriter::writeHeader(std::ostream& output, const Probe
 
 void ExperimentationResultsWriter::write(const ExperimentationResults& overheaderResults, const ExperimentationResults& results, const ProbeList& probes)
 {
-    std::ostream* output = &m_outputFile;
-    if ( !m_outputFile.is_open())
-    {
-        output = &std::cout;
-        std::cerr << "The results will be outputted on console since we can't write in the file" << std::endl;
-    }
+   std::ostream* output = &m_outputFile;
+   if ( !m_outputFile.is_open())
+   {
+      output = &std::cout;
+      std::cerr << "The results will be outputted on console since we can't write in the file" << std::endl;
+   }
 
-    // We save only the results for the first process
-    std::vector<ProbeData*> libsOverheadAvg(probes.size(),NULL);
-    for ( std::vector<RunData>::const_iterator itMRepet = overheaderResults.getResults().begin() ;
-          itMRepet != overheaderResults.getResults().end() ; ++itMRepet )
-    {
-       for ( unsigned int i = 0 ; i < itMRepet->getData().size () ; i++ )
-       {
-           const ProbeData& pd = itMRepet->getProbeData(i);
-           if ( libsOverheadAvg[i] == NULL )
-           {
-               libsOverheadAvg[i] = new ProbeData(pd.getNbDevices(),pd.getNbChannels());
-           }
+   // We save only the results for the first process
 
-           // We only manage the first (single shot) libraries
-           (*libsOverheadAvg[i]) += pd;
-       }
-    }
+   // compute the average overhead
+   std::vector<ProbeData*> libsOverheadAvg(probes.size(),NULL);
+   unsigned int r = 0;
+   for ( std::vector<RunData>::const_iterator itMRepet = overheaderResults.getResults().begin() ;
+         r < overheaderResults.getNbResults() && itMRepet != overheaderResults.getResults().end() ; ++itMRepet, ++r )
+   {
+      for ( unsigned int i = 0 ; i < itMRepet->getData().size () ; i++ )
+      {
+         const ProbeData& pd = itMRepet->getProbeData(i);
+         if ( libsOverheadAvg[i] == NULL )
+         {
+            libsOverheadAvg[i] = new ProbeData(pd.getNbDevices(),pd.getNbChannels());
+         }
 
-    for ( std::vector<ProbeData*>::iterator itData = libsOverheadAvg.begin() ; itData != libsOverheadAvg.end() ; ++itData )
-    {
-       (*(*itData)) /= overheaderResults.getResults().size();
-    }
+         // We only manage the first (single shot) libraries
+         (*libsOverheadAvg[i]) += pd;
+      }
+   }
 
-    writeHeader(*output,probes);
+   for ( std::vector<ProbeData*>::iterator itData = libsOverheadAvg.begin() ; itData != libsOverheadAvg.end() ; ++itData )
+   {
+      (*(*itData)) /= overheaderResults.getNbResults();
+   }
 
-    for ( unsigned int mRepet = 0 ; mRepet < results.getResults().size() ; mRepet++ )
-    {
-       for ( unsigned int i = 0 ; i < results.getResults()[mRepet].getNbProbeData() ; i++ )
-       {
-           const ProbeData& rawProbeData = results.getResults()[mRepet].getProbeData(i);
+   writeHeader(*output,probes);
 
-           ProbeData* pPD = rawProbeData -(*libsOverheadAvg[i]);
+   for ( unsigned int mRepet = 0 ; mRepet < results.getNbResults() ; mRepet++ )
+   {
+      for ( unsigned int i = 0 ; i < results.getResults()[mRepet].getNbProbeData() ; i++ )
+      {
+         const ProbeData& rawProbeData = results.getResults()[mRepet].getProbeData(i);
+
+         ProbeData* pPD = rawProbeData -(*libsOverheadAvg[i]);
 
          (*output) << *pPD;
          if ( i ==  results.getResults()[mRepet].getNbProbeData() -1)
          {
-           (*output) << std::endl;
+            (*output) << std::endl;
          }
 
          delete pPD;
-       }
-    }
+      }
+   }
 
-    for ( std::vector<ProbeData*>::iterator itData = libsOverheadAvg.begin() ; itData != libsOverheadAvg.end() ; ++itData )
-    {
-        delete *itData;
-    }
+   for ( std::vector<ProbeData*>::iterator itData = libsOverheadAvg.begin() ; itData != libsOverheadAvg.end() ; ++itData )
+   {
+      delete *itData;
+   }
 
-    output->flush();
+   output->flush();
 }

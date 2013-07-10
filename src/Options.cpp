@@ -34,7 +34,7 @@ void Options::checkOverride(unsigned int oldValue, unsigned int newValue, const 
 }
 
 Options::Options()
-   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_iterationMemorySize(0),m_nbKernelIteration(0)
+   :m_nbProcess(0),m_nbRepet(0),m_iterationMemorySize(0),m_nbKernelIteration(0)
 {
 }
 
@@ -122,18 +122,6 @@ void Options::setNbRepetition(unsigned int numberRepetition)
    checkOverride(m_nbRepet,numberRepetition,"repetitions number");
    
    m_nbRepet = numberRepetition;
-}
-   
-unsigned int Options::getNbMetaRepetition()const
-{
-   return m_nbMetaRepet;
-}
-
-void Options::setNbMetaRepetition(unsigned int numberMetaRepetition)
-{
-   checkOverride(m_nbMetaRepet,numberMetaRepetition,"repetitions number");
-   
-   m_nbMetaRepet = numberMetaRepetition;
 }
 
 size_t Options::getIterationMemorySize()const
@@ -239,12 +227,6 @@ void Options::setDefaultValues()
       std::cout << "Number of repetition set to default value -> " << DEFAULT_NUMBER_REPET << std::endl;
       m_nbRepet = DEFAULT_NUMBER_REPET;
    }
-   
-   if ( m_nbMetaRepet == 0 )
-   {
-      std::cout << "Number of meta repetition set to default value -> " << DEFAULT_NUMBER_METAREPET << std::endl;
-      m_nbMetaRepet = DEFAULT_NUMBER_METAREPET;
-   }
 
    if ( isExecKernel() && m_iterationMemorySize == 0 )
    {
@@ -279,9 +261,8 @@ bool Options::hasMissingOptions()
          m_nbProcess = 1;
       }
 
-      if ((m_nbMetaRepet != 0 && m_nbMetaRepet != 1) || (m_nbRepet != 0 && m_nbRepet != 1)) {
+      if (m_nbRepet > 1) {
          std::cout << "Nothing to repeat in daemon mode, ignoring the argument." << std::endl;
-         m_nbMetaRepet = 0;
          m_nbRepet = 1;
       }
 

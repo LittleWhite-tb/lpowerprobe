@@ -77,6 +77,13 @@ public:
      */
     const std::vector<RunData>& getResults()const { return m_results; }
 
+    /**
+     * Get the size of the results (some extra data at the end of the vector must be ignored).
+     *
+     * @return The number of valid results in the results.
+     */
+    unsigned int getNbResults() const { return m_nbMeasurement; }
+
 };
 
 #endif

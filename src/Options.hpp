@@ -41,7 +41,6 @@ private:
    std::vector<std::string> m_probesPath;
    
    unsigned int m_nbRepet;
-   unsigned int m_nbMetaRepet;
    
    size_t m_iterationMemorySize; /*!< memory size for kernel usage */
    unsigned long int m_nbKernelIteration;
@@ -55,8 +54,7 @@ private:
     * Default values
     */
    static const unsigned int DEFAULT_NUMBER_PROCESS = 1;
-   static const unsigned int DEFAULT_NUMBER_REPET = 1;
-   static const unsigned int DEFAULT_NUMBER_METAREPET = 5;
+   static const unsigned int DEFAULT_NUMBER_REPET = 5;
    static const unsigned long int DEFAULT_NUMBER_KERNELITER = 1000;
    static const std::string DEFAULT_OUTPUT_FILE;
    
@@ -120,16 +118,6 @@ public:
     * \param numberRepetition the number of repetition to run
     */
    void setNbRepetition(unsigned int numberRepetition);
-   
-   /**
-    * \return the number of meta repetition to do
-    */
-   unsigned int getNbMetaRepetition()const;
-   
-   /**
-    * \param numberMetaRepetition the number of meta repetition to run
-    */
-   void setNbMetaRepetition(unsigned int numberMetaRepetition);
    
    /**
     * \return the memory size used by one kernel iteration that the user wants for his kernel
