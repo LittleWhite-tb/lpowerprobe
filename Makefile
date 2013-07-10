@@ -41,7 +41,7 @@ all: export-globals $(EXEC) test extra
 
 install: all
 	cp $(EXEC) $(INSTALL_DIR)/bin
-	setcap CAP_SYS_RAWIO+eip $(INSTALL_DIR)/bin/$(EXEC)
+	-setcap CAP_SYS_RAWIO+eip $(INSTALL_DIR)/bin/$(EXEC)
 	mkdir -p $(INSTALL_DIR)/lib/lPowerProbe/
 	cp probes/*/*.so $(INSTALL_DIR)/lib/lPowerProbe/
 	mkdir -p $(INSTALL_DIR)/share/lPowerProbe/
