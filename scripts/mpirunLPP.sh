@@ -1,5 +1,6 @@
 #!/bin/bash
 
+NREPET=5
 LPP_DIR="${HOME}/nfs/lPowerProbe"
 LPP="${LPP_DIR}/lPowerProbe"
 LPPLOADER="${LPP_DIR}/scripts/MPI_preload/preloader.sh"
@@ -85,7 +86,9 @@ done
 # run lpp as a deamon on all nodes
 mpirun -npernode 1 ${largs} ${LPP} ${LPPOPTS} &
 
-mpirun ${pargs}
+for r in $(seq ${NREPET}); do
+   mpirun ${pargs}
+done
 
 # now kill the LPP daemon
 mpirun -npernode 1 ${largs} ${LPPKILLER}
