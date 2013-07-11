@@ -2,7 +2,7 @@
 
 LPPPID=$(cat /tmp/lppDaemonPID)
 LPPOUTPUT="/tmp/output.csv"
-RESDIR=${HOME}
+RES_DIR=${HOME}/nfs
 
 if [ -n "${LPPPID}" ]; then
    kill -SIGTERM ${LPPPID}
@@ -13,5 +13,5 @@ if [ -n "${LPPPID}" ]; then
    done
 
    # copy the local output to a shared location
-   cp ${LPPOUTPUT} ${HOME}/lppout_$(hostname -s).csv
+   cp ${LPPOUTPUT} ${RES_DIR}/lppout_$(hostname -s)_$(date +"%d%m%y%H%M%S").csv
 fi
