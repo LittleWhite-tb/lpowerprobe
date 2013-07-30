@@ -19,6 +19,7 @@
 
 #include <cstdio>
 #include <csignal>
+#include <iostream>
 #include <fstream>
 #include <unistd.h>
 
@@ -85,6 +86,8 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
 {
    (void) processNumber;
 
+    std::cout << "=== Daemon mode started ===" << std::endl;
+
    // compute overhead based on one iteration
    m_pProbesDataCollector->start();
    m_pProbesDataCollector->stop(pOverheadExpResult);
@@ -112,4 +115,6 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
    }
 
    DaemonRunner::end = false;
+
+    std::cout << "=== Daemon mode completed ===" << std::endl;
 }
