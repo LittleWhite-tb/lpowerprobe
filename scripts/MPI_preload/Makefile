@@ -8,7 +8,11 @@ all:liblppMPInotifier.so
 .PHONY: all clean
 
 liblppMPInotifier.so: liblppMPInotifier.c
-		$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
+ifeq ($(which mpicc >/dev/null),0)
+		mpicc $(CFLAGS) $< -o $@ $(LDFLAGS)
+else
+		@echo "INFO - liblppMPInotifier.so - You don't have mpicc, leaving"
+endif
 
 clean:
 	rm -f liblppMPInotifier.so
