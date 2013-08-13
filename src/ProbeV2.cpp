@@ -28,7 +28,18 @@
 ProbeV2::ProbeV2(const std::string& path)
     :Probe(path)
 {
-    unsigned int* pVersion = loadSymbol<unsigned int*>("version");
+    unsigned int* pVersion = NULL;
+    try
+    {
+      pVersion = loadSymbol<unsigned int*>("version");
+    }
+    catch (ProbeLoadingException& ple )
+    {
+       // Ok, we failed to find the symbol, it's maybe version 1
+       throw InvalidProbeVersionException("Incompatible probe version (version symbol not found)");
+    }
+    
+    // At least, pVersion is not NULL
     m_version = *pVersion;
     if ( m_version != 2 )
     {
