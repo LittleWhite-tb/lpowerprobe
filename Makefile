@@ -63,6 +63,9 @@ $(EXEC): $(OBJ)
 test:
 	make -C empty/
 
+mic-libs:
+	make -C probes/mic_energy
+
 libs:
 	make -C probes/energy_snb_msr
 	make -C probes/wallclock
@@ -75,7 +78,8 @@ clean:
 	make -C ./empty/ clean
 	make -C probes/energy_snb_msr clean
 	make -C probes/wallclock clean
-	make -C probes/yoko_energy mrproper 
+	make -C probes/yoko_energy mrproper
+	make -C probes/mic_energy clean
 	rm -rf $(EXEC) $(OBJ)
 
 export-globals:
