@@ -27,8 +27,18 @@
 #include <csignal>
 
 #include <ctime>
+#include <sys/types.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "RunData.hpp"
+#include "CPUUtils.hpp"
+
+pid_t gettid()
+{
+   return syscall(SYS_gettid);
+}
 
 static void threadSigalrmHandler(int sig) {
    (void) sig;
@@ -60,7 +70,7 @@ static int gcd(int val1, int val2)
 }
 
 ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
-    :m_needThread(false),m_threadRunning(true),m_pProbes(pProbes),m_minPeriod(INT_MAX)
+    :m_needThread(false),m_threadCollecting(false),m_threadRunning(true),m_pProbes(pProbes),m_minPeriod(INT_MAX)
 {
     assert(pProbes);
 
@@ -82,10 +92,12 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
             m_needThread = true;
         }
     }
+    std::cout << "Min period : " << m_minPeriod << std::endl;
 
     // Create the update thread
     if (m_needThread)
     {
+        // Create mutex
         pthread_mutexattr_t mattrs;
 
         if (pthread_mutexattr_init(&mattrs) != 0) {
@@ -93,18 +105,18 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
            throw std::runtime_error("pthread_mutexattr_init");
         }
 
-        if (pthread_mutexattr_settype(&mattrs, PTHREAD_MUTEX_ERRORCHECK) != 0) {
-           std::cerr << "Failed to set the correct mode for the collector thread mutex" << std::endl;
-           throw std::runtime_error("pthread_mutexattr_settype");
-        }
-
         if ( pthread_mutex_init(&m_mutex, &mattrs) != 0 )
         {
             std::cerr << "Failed to create mutex for collector thread" << std::endl;
             throw std::runtime_error("pthread_mutex_init");
         }
-        std::cout << "mutex created" << std::endl;
-        pthread_mutex_lock(&m_mutex);
+        
+        // Create condition
+        if ( pthread_cond_init(&m_cond, NULL) != 0 )
+        {
+           std::cerr << "Failed to create condition for collector thread" << std::endl;
+           throw std::runtime_error("pthread_mutex_init");
+        }
 
         pthread_mutexattr_destroy(&mattrs);
 
@@ -147,10 +159,16 @@ ProbeDataCollector::~ProbeDataCollector()
     if ( m_needThread )
     {
         m_threadRunning = false;
-        pthread_mutex_unlock(&m_mutex); // Get the thread to give up
+        pthread_cond_signal(&m_cond); // Make the thread unlock
         pthread_kill(m_collectorThread, SIGALRM); // in case it was running
         pthread_join(m_collectorThread, NULL);
 
+        if ( pthread_cond_destroy(&m_cond) != 0 )
+        {
+            std::cerr << "Failed to destroy cond" << std::endl;
+            throw std::runtime_error("pthread_cond_destroy");
+        }
+        
         if ( pthread_mutex_destroy(&m_mutex) != 0 )
         {
             std::cerr << "Failed to destroy mutex" << std::endl;
@@ -168,7 +186,8 @@ void ProbeDataCollector::start()
 
     if ( m_needThread )
     {
-        pthread_mutex_unlock(&m_mutex);
+        m_threadCollecting = true;
+        pthread_cond_signal(&m_cond); // Unlock thread
     }
 }
 
@@ -176,7 +195,7 @@ void ProbeDataCollector::stop(ExperimentationResults* pResults)
 {
     if ( pResults->isFull() )
     {
-        std::cout << "Warning : we are allocating more memory for the measurements. This is because the ExperimentationResults is undersized" << std::endl;
+        std::cerr << "Warning : we are allocating more memory for the measurements. This is because the ExperimentationResults is undersized" << std::endl;
         pResults->extend(*m_pProbes);
     }
 
@@ -189,8 +208,8 @@ void ProbeDataCollector::stop(ExperimentationResults* pResults)
     // Blocking the update thread
     if ( m_needThread )
     {
-        pthread_kill(m_collectorThread, SIGALRM);
-        pthread_mutex_lock(&m_mutex);
+        m_threadCollecting = false; // Make thread to wait for next start
+        pthread_kill(m_collectorThread, SIGUSR1); // Unlock on sleep
     }
 }
 
@@ -204,8 +223,8 @@ void ProbeDataCollector::cancel()
     // Blocking the update thread
     if ( m_needThread )
     {
+        m_threadCollecting = false; // Make thread to wait for next start
         pthread_kill(m_collectorThread, SIGALRM);
-        pthread_mutex_lock(&m_mutex);
     }
 }
 
@@ -230,7 +249,10 @@ void ProbeDataCollector::updateThread()
    // main loop
    while ( m_threadRunning )
    {
-      pthread_mutex_lock(&m_mutex);
+      if ( !m_threadRunning )
+      {
+         pthread_cond_wait(&m_cond,&m_mutex);
+      }
 
       if (!m_threadRunning)
       {
@@ -255,8 +277,6 @@ void ProbeDataCollector::updateThread()
             }
          }   
       }
-
-      pthread_mutex_unlock(&m_mutex);
    }
 }
 

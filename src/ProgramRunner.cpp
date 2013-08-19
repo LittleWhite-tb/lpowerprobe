@@ -202,7 +202,7 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
                std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
                exit (EXIT_FAILURE);
             }
-
+            
             break;
          }
    }

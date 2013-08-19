@@ -38,9 +38,11 @@ private:
     static const unsigned int MAX_BUFFER_SIZE = 500;
 
     pthread_t m_collectorThread;    /*!< thread updating periodically the probes (if needed) */
-    pthread_mutex_t m_mutex;        /*!< mutex to synchronize the update thread with the main thread */
+    pthread_cond_t m_cond;        /*!< condition to lock collector thread */
+    pthread_mutex_t m_mutex;        /*!< mutex for the condition variable */
     bool m_needThread;              /*!< flag to know if a thread is updated */
-    bool m_threadRunning;           /*!< flag to know if the thread is running (when false, the thread should quit) */
+    volatile bool m_threadCollecting;           /*!< flag to know if the thread is collecting data (when false, the thread will pause) */
+    volatile bool m_threadRunning;           /*!< flag to know if the thread is running (when false, the thread should quit) */
 
     ProbeList* m_pProbes; /*!< All probes to use */
     ProbeList m_periodicProbes; /*!< probes needing a periodic update */
