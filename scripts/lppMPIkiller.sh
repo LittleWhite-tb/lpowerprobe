@@ -1,10 +1,22 @@
 #!/bin/bash
 
-LPPPID=$(cat /tmp/lppDaemonPID)
-LPPOUTPUT="/tmp/output.csv"
-RES_DIR=${HOME}/nfs
+# load configuration
+if [ $# -lt 1 ]; then
+   echo "No configuration file provided to LPP killer"
+   exit 1
+elif ! [ -f "$1" ]; then
+   echo "Invalid configuration file provided to LPP killer"
+   exit 1
+fi
 
+source $1
+shift
+
+LPPPID=$(cat ${LPPPIDFILE})
+
+# kill the LPP daemon
 if [ -n "${LPPPID}" ]; then
+   mkdir -p ${RES_DIR}
    kill -SIGTERM ${LPPPID}
 
    # can't wait for the pid here as it is not our son

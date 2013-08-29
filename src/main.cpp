@@ -17,13 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <cstdlib>
 
-#include <getopt.h>
-#include <cstdio>
-#include <cerrno>
 #include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <getopt.h>
+#include <iostream>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include "StringUtils.hpp"
@@ -262,7 +263,6 @@ int main(int argc, char** argv)
       std::cerr << "Some options are mandatory" << std::endl;
       usage();
    }
-   
 
    Experimentation* pExp = ExperimentationFactory::createExperimentation(options);
    pExp->start();

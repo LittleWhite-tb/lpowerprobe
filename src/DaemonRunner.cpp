@@ -19,6 +19,7 @@
 
 #include <cstdio>
 #include <csignal>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -80,6 +81,8 @@ void sighandler(int sig) {
    if (sig == SIGTERM || sig == SIGINT) {
       DaemonRunner::end = true;
    }
+
+   std::cout << "--- Received signal " << strsignal(sig) << std::endl;
 }
 
 void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)
@@ -103,6 +106,8 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
          break;
       }
 
+      std::cout << "--- starting measurement" << std::endl;
+
       m_pProbesDataCollector->start();
 
       pause();
@@ -110,6 +115,8 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
       if (DaemonRunner::end) {
          m_pProbesDataCollector->cancel();
       } else {
+
+         std::cout << "--- ending measurement" << std::endl;
          m_pProbesDataCollector->stop(pExpResult);
       }
    }

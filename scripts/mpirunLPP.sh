@@ -1,11 +1,17 @@
 #!/bin/bash
 
-NREPET=5
-LPP_DIR="${HOME}/nfs/lPowerProbe"
-LPP="${LPP_DIR}/lPowerProbe"
-LPPLOADER="${LPP_DIR}/scripts/MPI_preload/preloader.sh"
-LPPKILLER="${LPP_DIR}/scripts/lppMPIkiller.sh"
-LPPOPTS="-l ${LPP_DIR}/probes/libwallclock/libwallclock.so -o /tmp/output.csv"
+# check we have a config as a first argument
+if [ $# -lt 1 ]; then
+   echo "You must at least specify a configuration file"
+   exit 1
+elif ! [ -f $1 ]; then
+   echo "The first argument must be a valid configuration file"
+   exit 1
+fi
+
+LPPCONF=$1
+source ${LPPCONF}
+shift
 
 # build "light" arguments with only relevant MPI options for running lpp
 largs=""
@@ -78,17 +84,17 @@ for arg in "$@"; do
    fi
 
    # probably the executable name here
-   pargs="${pargs} ${LPPLOADER} ${arg}"
+   pargs="${pargs} ${LPPLOADER} ${LPPCONF} ${arg}"
    execFound=true
    appendArg=true
 done
 
 # run lpp as a deamon on all nodes
-mpirun -npernode 1 ${largs} ${LPP} ${LPPOPTS} &
+mpirun -npernode 1 ${largs} ${LPP} ${LPPOPTS}
 
 for r in $(seq ${NREPET}); do
    mpirun ${pargs}
 done
 
 # now kill the LPP daemon
-mpirun -npernode 1 ${largs} ${LPPKILLER}
+mpirun -npernode 1 ${largs} ${LPPKILLER} ${LPPCONF}

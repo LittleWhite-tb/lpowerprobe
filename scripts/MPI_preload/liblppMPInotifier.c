@@ -35,20 +35,28 @@ int MPI_Init(int *argc, char ***argv)
    int real_res;
    FILE *fd;
 
-   // where is lpp?
-   fd = fopen("/tmp/lppDaemonPID", "r");
-   if (fscanf(fd, "%u", &lpp_pid) < 1) {
-      fprintf(stderr, "Failed to read the lPowerProbe pid\n");
-      exit(EXIT_FAILURE);
+   // only the process with local rank 0 signals itself
+   char *lrank = getenv("OMPI_COMM_WORLD_LOCAL_RANK");
+   if (atol(lrank) == 0) {
+      // where is lpp?
+      fd = fopen("/tmp/lppDaemonPID", "r");
+      if (fscanf(fd, "%u", &lpp_pid) < 1) {
+         fprintf(stderr, "Failed to read the lPowerProbe pid\n");
+         exit(EXIT_FAILURE);
+      }
+      fclose(fd);
+   } else {
+      lpp_pid = 0;
    }
-   fclose(fd);
 
    // call the real init
    real_fun = dlsym(RTLD_NEXT, "MPI_Init");
    real_res = ((int (*)(int *argc, char ***argv)) real_fun)(argc, argv);
 
    // signal lpp we started
-   kill(lpp_pid, SIGUSR1);
+   if (lpp_pid) {
+      kill(lpp_pid, SIGUSR1);
+   }
 
    return real_res;
 }
@@ -59,7 +67,9 @@ int MPI_Finalize()
    MPI_Barrier(MPI_COMM_WORLD);
 
    // signal lpp we ended
-   kill(lpp_pid, SIGUSR1);
+   if (lpp_pid) {
+      kill(lpp_pid, SIGUSR1);
+   }
 
    // call the real finalize
    void *real_fun = dlsym(RTLD_NEXT, "MPI_Finalize");
