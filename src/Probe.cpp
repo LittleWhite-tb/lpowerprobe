@@ -49,8 +49,6 @@ Probe::~Probe()
    this->evaluationClose(this->pProbeHandle);
    
    dlclose(this->pLibHandle); // Should return zero
-   
-   std::cerr << "[sampler : INFO] ProbeLib successfully closed" << std::endl;
 }
    
 double Probe::startMeasure()
