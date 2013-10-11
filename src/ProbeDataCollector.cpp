@@ -79,7 +79,7 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
     {
         unsigned int period = (*itProbe)->getPeriod();
         if ( period != 0 )
-        {
+        { 
             m_periodicProbes.push_back(*itProbe);
             if ( m_minPeriod != INT_MAX )
             {
@@ -91,6 +91,9 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
             }
             m_needThread = true;
         }
+    }
+    if (m_minPeriod == INT_MAX) {
+       m_minPeriod = 0;
     }
     std::cout << "Min period : " << m_minPeriod << std::endl;
 

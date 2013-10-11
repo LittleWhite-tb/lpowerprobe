@@ -23,8 +23,8 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
-CXXFLAGS=-Wextra -Wall -g -O3 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CFLAGS=-Wextra -Wall -g -O0 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CXXFLAGS=-Wextra -Wall -g -O0 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
 LPP_VERSION=2
@@ -71,6 +71,7 @@ extra:
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters
 	make -C scripts/MPI_preload
 
 doc:

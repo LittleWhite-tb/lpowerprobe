@@ -91,10 +91,10 @@ double* ProbeV2::stopMeasure()
 
 unsigned int ProbeV2::getNbDevices()const
 {
-    return this->evaluationGetNbDevices();
+    return this->evaluationGetNbDevices(this->pProbeHandle);
 }
 
 unsigned int ProbeV2::getNbChannels()const
 {
-    return this->evaluationGetNbChannels();
+    return this->evaluationGetNbChannels(this->pProbeHandle);
 }

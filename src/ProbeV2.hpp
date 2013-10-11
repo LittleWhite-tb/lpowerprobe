@@ -29,8 +29,8 @@
  */
 class ProbeV2 : public Probe
 {
-    typedef unsigned int (*libGetNbDevices)();
-    typedef unsigned int (*libGetNbChannels)();
+    typedef unsigned int (*libGetNbDevices)(void *data);
+    typedef unsigned int (*libGetNbChannels)(void *data);
 
     typedef void (*libStart)(void *data);
     typedef double* (*libStop)(void *data);
