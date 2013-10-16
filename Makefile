@@ -21,10 +21,10 @@ INSTALL_DIR=/usr
 
 CC=gcc
 CXX=g++
-LD=g++
+LD=$(CXX)
 
-CFLAGS=-Wextra -Wall -g -O0 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
-CXXFLAGS=-Wextra -Wall -g -O0 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CFLAGS=-Wextra -Wall -g -O2 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CXXFLAGS=-Wextra -Wall -g -O2 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
 LDFLAGS=-ldl -lpthread -lrt
 
 LPP_VERSION=2
@@ -65,13 +65,14 @@ $(EXEC): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test:
-	make -C empty/
+	make -C empty/ CC="$(CC)"
 
 extra:
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr CC="$(CC)"
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock CC="$(CC)"
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko CC="$(CC)"
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters CC="$(CC)"
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libtimer CC="$(CC)"
 	make -C scripts/MPI_preload
 
 doc:

@@ -76,7 +76,9 @@ ProbeV2::ProbeV2(const std::string& path)
 
 void ProbeV2::update()
 {
-    this->evaluationUpdate(this->pProbeHandle);
+   if (this->evaluationUpdate != NULL) {
+      this->evaluationUpdate(this->pProbeHandle);
+   }
 }
 
 void ProbeV2::startMeasure()

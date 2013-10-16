@@ -91,7 +91,7 @@ static int iniHandler(void* user, const char* section, const char* name,
             ctx->nbCounters++;
          }
       }
-      fprintf (stderr, "allocating %u for counternames\n", ctx->nbCounters);
+      //fprintf (stderr, "allocating %u for counternames\n", (unsigned int)ctx->nbCounters);
       ctx->counterNames = malloc(ctx->nbCounters * sizeof(*ctx->counterNames));
       
       // get all the counter names
@@ -100,7 +100,7 @@ static int iniHandler(void* user, const char* section, const char* name,
            i++, tmp = NULL)
       {
          ctx->counterNames[i] = strdup(tok);
-         fprintf (stderr, "names [i] = %s\n", ctx->counterNames [i]);
+         //fprintf (stderr, "names [i] = %s\n", ctx->counterNames [i]);
       }
 
       free(buf);
@@ -110,7 +110,7 @@ static int iniHandler(void* user, const char* section, const char* name,
       unsigned int i;
       ctx->nbCores = strtoul(value, NULL, 10);
       ctx->cores = malloc (ctx->nbCores * sizeof (*ctx->cores));
-      fprintf (stderr, "Allocating %u cores\n", ctx->nbCores);
+      //fprintf (stderr, "Allocating %u cores\n", (unsigned int)ctx->nbCores);
       
       for (i = 0; i < ctx->nbCores; i++) {
          ctx->cores [i] = i;
@@ -236,7 +236,10 @@ extern void *init (void)
          // request scaling in case of shared counters
          arg.attr->read_format = PERF_FORMAT_TOTAL_TIME_ENABLED
                                  | PERF_FORMAT_TOTAL_TIME_RUNNING;
-                             
+         
+         // Xeon Phi hack
+         arg.attr->exclude_guest = 0;
+
          // open the file descriptor
          unsigned int idx = coreId * ctx->nbCounters + cntId;
          ctx->pfmFds[idx] = perf_event_open (&attr, -1, ctx->cores [coreId], -1, 0);
@@ -268,8 +271,7 @@ extern void *init (void)
 extern void fini (void *data)
 { 
    SContext *ctx = (SContext*) data;
-  
-   fprintf (stderr, "call to fini\n");
+   
    // Delete the context
    Context_destroy (ctx);
 
