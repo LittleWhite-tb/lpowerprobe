@@ -17,68 +17,57 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Probe.hpp"
 #include "ProbeV2.hpp"
 
 #include <iostream>
 #include <dlfcn.h>
 
-#include "InvalidProbeVersionException.hpp"
 #include "ProbeInitialisationException.hpp"
 
 ProbeV2::ProbeV2(const std::string& path)
-    :Probe(path)
+    :Probe(path, "init", "fini")
 {
     unsigned int* pVersion = NULL;
-    try
-    {
-      pVersion = loadSymbol<unsigned int*>("version");
-    }
-    catch (ProbeLoadingException& ple )
-    {
-       // Ok, we failed to find the symbol, it's maybe version 1
-       throw InvalidProbeVersionException("Incompatible probe version (version symbol not found)");
-    }
-    
+    pVersion = loadSymbol<unsigned int*>("version", MANDATORY);
+    std::cerr << "Found symbol version" << std::endl;
+   
     // At least, pVersion is not NULL
     m_version = *pVersion;
     if ( m_version != 2 )
     {
-        throw InvalidProbeVersionException("Incompatible probe version (required : 2)");
+        throw ProbeLoadingException("Incompatible probe version (required : 2)");
+    } 
+
+    this->m_pLabel = *loadSymbol<const char**>("label", FACULTATIVE);
+ 
+    // Load libraries
+    this->evaluationStart = loadSymbol<libStart>("start", MANDATORY);
+    this->evaluationStop = loadSymbol<libStop>("stop", MANDATORY);
+    this->evaluationUpdate = loadSymbol<libUpdate>("update", FACULTATIVE);
+    this->evaluationGetNbDevices = loadSymbol<libGetNbDevices>("nbDevices", FACULTATIVE);
+    this->evaluationGetNbChannels = loadSymbol<libGetNbChannels>("nbChannels", FACULTATIVE);
+    unsigned int* pPeriod = loadSymbol<unsigned int*>("period", FACULTATIVE);
+
+    // Check errors considering facultative symbols 
+    if (pPeriod == NULL) {
+       m_period = 0;
+    } else {
+       m_period = *pPeriod;
+    }
+    
+    if (this->evaluationUpdate == NULL && this->m_period != 0) {
+      throw  ProbeLoadingException (std::string ("Error: A period is defined but there is no update function.\n"));
     }
 
-    unsigned int* pPeriod = loadSymbol<unsigned int*>("period");
-    m_period = *pPeriod;
-
-    this->m_pLabel = *loadSymbol<const char**>("label");
-
-    this->evaluationInit =loadSymbol<libInit>("init");
-    this->evaluationFini = loadSymbol<libFini>("fini");
-
-    this->evaluationStart = loadSymbol<libStart>("start");
-    this->evaluationUpdate = loadSymbol<libUpdate>("update");
-    this->evaluationStop = loadSymbol<libStop>("stop");
-
-    this->evaluationGetNbDevices = loadSymbol<libGetNbDevices>("nbDevices");
-    this->evaluationGetNbChannels = loadSymbol<libGetNbChannels>("nbChannels");
-
-    std::cout << "'" << path << "' successfully loaded" << std::endl;
-
-    // Now, we just start the probe
-    if ( this->evaluationInit )
-    {
-        this->pProbeHandle = this->evaluationInit();
-        if ( this->pProbeHandle == NULL )
-        {
-            throw ProbeInitialisationException(path);
-        }
-    }
+    // Now, we just init the probe (callback to init)
+    this->init ();
 }
 
 void ProbeV2::update()
 {
-   if (this->evaluationUpdate != NULL) {
-      this->evaluationUpdate(this->pProbeHandle);
-   }
+   assert (this->evaluationUpdate != NULL);
+   this->evaluationUpdate(this->pProbeHandle);
 }
 
 void ProbeV2::startMeasure()
@@ -93,10 +82,18 @@ double* ProbeV2::stopMeasure()
 
 unsigned int ProbeV2::getNbDevices()const
 {
-    return this->evaluationGetNbDevices(this->pProbeHandle);
+   if (this->evaluationGetNbDevices != NULL) {
+      return this->evaluationGetNbDevices(this->pProbeHandle);
+   } else {
+      return 1;
+   }
 }
 
 unsigned int ProbeV2::getNbChannels()const
 {
-    return this->evaluationGetNbChannels(this->pProbeHandle);
+   if (this->evaluationGetNbChannels != NULL) {
+      return this->evaluationGetNbChannels(this->pProbeHandle);
+   } else {
+      return 1;
+   }
 }

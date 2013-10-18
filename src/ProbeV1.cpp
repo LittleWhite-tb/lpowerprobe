@@ -1,3 +1,4 @@
+#include "Probe.hpp"
 #include "ProbeV1.hpp"
 
 #include <iostream>
@@ -6,24 +7,13 @@
 #include "ProbeInitialisationException.hpp"
 
 ProbeV1::ProbeV1(const std::string& path)
-    :Probe(path)
+    :Probe(path, "evaluationInit", "evaluationClose")
 {
-    this->evaluationInit = loadSymbol<libInit>("evaluationInit");
-    this->evaluationFini = loadSymbol<libFini>("evaluationClose");
-    this->evaluationStart = loadSymbol<libGet>("evaluationStart");
-    this->evaluationStop = loadSymbol<libGet>("evaluationStop");
-
-    std::cout << "'" << path << "' successfully loaded" << std::endl;
+    this->evaluationStart = loadSymbol<libGet>("evaluationStart", MANDATORY);
+    this->evaluationStop = loadSymbol<libGet>("evaluationStop", MANDATORY);
    
-    // Now, we just start the probe
-    if ( this->evaluationInit )
-    {
-        this->pProbeHandle = this->evaluationInit();
-        if ( this->pProbeHandle == NULL )
-        {
-            throw ProbeInitialisationException(path);
-        }
-    }
+    // Now, we just init the probe
+    this->init ();
 }
 
 void ProbeV1::startMeasure()

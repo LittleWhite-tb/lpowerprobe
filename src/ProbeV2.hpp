@@ -73,7 +73,13 @@ public:
    unsigned int getNbChannels()const;
 
    unsigned int getPeriod()const { return m_period; }
-   const char* getLabel()const { return m_pLabel; }
+   const char* getLabel()const {
+      if (m_pLabel != NULL) {
+         return m_pLabel;
+      } else {
+         return "Result";
+      }
+   }
 };
 
 #endif

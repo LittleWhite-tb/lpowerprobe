@@ -21,7 +21,6 @@
 
 #include <sys/time.h>
 #include <stdlib.h>
-
 #include "libwallclock.h"
 
 extern unsigned int nbDevices() {
@@ -36,7 +35,7 @@ extern void *init (void) {
    return malloc(sizeof(double));
 }
 
-extern void fini (void *data) {
+extern void fini (void *data) {  
    free(data);
 }
 

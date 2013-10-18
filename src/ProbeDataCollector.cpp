@@ -95,7 +95,7 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
     if (m_minPeriod == INT_MAX) {
        m_minPeriod = 0;
     }
-    std::cout << "Min period : " << m_minPeriod << std::endl;
+    //std::cout << "Min period : " << m_minPeriod << std::endl;
 
     // Create the update thread
     if (m_needThread)

@@ -48,10 +48,8 @@ void ProbeLoader::tryLoadProbe(const std::string& probePath, ProbeList& probes)
        pProbe = new ProbeV2(probePath);
 
     }
-    catch (InvalidProbeVersionException& ple)
-    {
-       // Now, we try to load V1
-        pProbe = new ProbeV1(probePath);
+    catch (ProbeLoadingException& ple) {
+        pProbe = new ProbeV1 (probePath);
     }
     probes.push_back(pProbe);
 }

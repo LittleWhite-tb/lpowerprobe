@@ -83,7 +83,7 @@ static uint64_t subvalue(uint64_t val, unsigned int pos, unsigned int length)
    return (val >> pos) & ~(0xFFFFFFFFFFFFFFFFL << length);
 }
 
-extern unsigned int nbDevices() {
+extern unsigned int nbDevices(void *data) {
    const unsigned int nb_cores = sysconf(_SC_NPROCESSORS_ONLN);
    unsigned int i, nb_sockets = 1;
 
@@ -108,10 +108,12 @@ extern unsigned int nbDevices() {
       }
    }
 
+   (void) data;
    return nb_sockets;
 }
 
-extern unsigned int nbChannels() {
+extern unsigned int nbChannels(void *data) {
+   (void) data;
    return 1;
 }
 
@@ -120,7 +122,7 @@ extern void *init (void) {
 
    libdata_t *data = malloc(sizeof(*data));
 
-   data->nbCPUs = nbDevices();
+   data->nbCPUs = nbDevices(data);
    data->fds = malloc(data->nbCPUs * sizeof(*data->fds));
    for (i = 0; i < data->nbCPUs; i++) {
       data->fds[i] = -1;
@@ -184,13 +186,12 @@ extern void *init (void) {
    return data;
 }
 
-extern void fini (void *data) {
-   
+extern void fini (void *data) { 
    if ( data == NULL )
    {
       return;
    }
-      
+    
    libdata_t *ldata = (libdata_t*) data;
 
    freeLibData(ldata);

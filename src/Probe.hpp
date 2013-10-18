@@ -28,6 +28,11 @@
 
 #include "ProbeLoadingException.hpp"
 
+enum {
+   MANDATORY = 0,
+   FACULTATIVE
+};
+
 /**
  * Wrapper for probes
  * This class is virtual since we handles two different version of probes
@@ -39,6 +44,8 @@ private:
 protected:
     void* pLibHandle;  /*!< Pointer to the probe library */
     void* pProbeHandle; /*!< Pointer to the probe library data */
+    std::string m_name;
+    bool is_initialized;
 
     /**
      * Generic function to load a symbol from the probe library
@@ -46,14 +53,22 @@ protected:
      * @return the pointer to the symbol
      */
     template <typename T>
-    T loadSymbol(const char* symbol)
+    T loadSymbol(const char* symbol, unsigned int errorHandlingFlag)
     {
-        assert(symbol);
+        assert (symbol != NULL);
 
-       T pSymbol = (T)dlsym(this->pLibHandle,symbol);
+       T pSymbol = (T)dlsym(this->pLibHandle, symbol);
        if ( pSymbol == NULL )
        {
-           throw ProbeLoadingException(std::string("Error to load '") + symbol + "' (" + dlerror() + ")");
+          switch (errorHandlingFlag) {
+             case FACULTATIVE: break;
+             case MANDATORY:
+                throw ProbeLoadingException(std::string("Error to load '") + symbol + "' (" + dlerror() + ")");
+                break;
+             default:
+                throw ProbeLoadingException (std::string ("Error: Unknown error handling flag\n"));
+                break;
+          };
        }
 
        return pSymbol;
@@ -61,7 +76,7 @@ protected:
 
 protected:
     typedef double* (*libFini)(void *data); /*!< pointer to the function to close a probe library type */
-    typedef  void* (*libInit)(void); /*!< pointer to the function to initialise a probe library type */
+    typedef  void* (*libInit)(void); /*!< pointer to the function to initialize a probe library type */
 
     libInit evaluationInit; /*!< probe initialisation function pointer */
     libFini evaluationFini; /*!< probe closure function pointer */
@@ -72,12 +87,16 @@ public:
      * @param path path to the probe library
      * @exception ProbeLoadingException thrown when the file could not be loaded
      */
-    Probe(const std::string& path);
+    Probe(const std::string& path, const char *initName,
+          const char *finiName);
 
     /**
      * Calls the closure function \a evaluationFini if possible and close the probe library
      */
     virtual ~Probe();
+
+    void init ();
+    void fini ();
 
     /**
      * Updates the probe

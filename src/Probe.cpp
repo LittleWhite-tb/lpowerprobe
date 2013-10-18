@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
+#include <cstdlib>
 #include "Probe.hpp"
 
 #include <exception>
@@ -26,6 +28,8 @@
 #include <dlfcn.h>
 
 #include "ProbeLoadingException.hpp"
+#include "ProbeInitialisationException.hpp"
+
 /*
 template <typename T>
 T Probe::loadSymbol(const char* symbol)
@@ -41,8 +45,13 @@ T Probe::loadSymbol(const char* symbol)
     return pSymbol;
 }*/
 
-Probe::Probe(const std::string& path)
-    :evaluationInit(NULL),evaluationFini(NULL)
+Probe::Probe(const std::string& path, const char *initName,
+             const char *finiName) : 
+   pProbeHandle (NULL),
+   m_name (path),
+   is_initialized (false),
+   evaluationInit(NULL),
+   evaluationFini(NULL)
 {
     this->pLibHandle = dlopen(path.c_str(),RTLD_LAZY);
     if ( this->pLibHandle == NULL )
@@ -50,21 +59,46 @@ Probe::Probe(const std::string& path)
       throw ProbeLoadingException(std::string(dlerror()));
     }
 
-
+    this->evaluationInit = loadSymbol <libInit>(initName, MANDATORY);
+    this->evaluationFini = loadSymbol <libFini>(finiName, MANDATORY);
 }
 
 Probe::~Probe()
 {
-    if ( this->evaluationFini )
-    {
-        this->evaluationFini(this->pProbeHandle);
-        this->pProbeHandle = NULL;
-    }
+   // Fini library callback
+   this->fini ();
 
-    dlclose(this->pLibHandle); // Should return zero
+   // Library close
+   int ret = dlclose (this->pLibHandle);
+   this->pLibHandle = NULL;
+
+   // Library close error checking
+   if (ret != 0) {
+      std::cerr << "An error occured while closing the library: " << std::endl
+                   << dlerror () << std::endl;
+      exit (EXIT_FAILURE);
+   }
 }
 
 void Probe::update()
 {
     throw std::runtime_error("Probe::update() not available for probe version 1");
+}
+
+void Probe::init () {
+   assert (this->evaluationInit != NULL);
+   this->pProbeHandle = this->evaluationInit ();
+   this->is_initialized = true;
+   
+   // Give the user some feedback
+   std::cerr << m_name << " successfully loaded and initialized" << std::endl;
+}
+
+void Probe::fini () {
+   assert (this->evaluationFini != NULL);
+   if (this->is_initialized) {
+      this->evaluationFini (this->pProbeHandle);
+   }
+   this->is_initialized = false;
+   this->pProbeHandle = NULL;
 }
