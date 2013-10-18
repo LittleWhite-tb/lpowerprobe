@@ -61,7 +61,7 @@ static struct option long_options[] =
 
 void version()
 {
-   std::cout << "./lProwerProbe © Universite de Versailles 2013" << std::endl;
+   std::cout << "./lPowerProbe © Universite de Versailles 2013" << std::endl;
    std::cout << "\t\tversion : " + std::string(GIT_HASH) + " (" + std::string(GIT_COUNT) + ")" << std::endl;
    std::cout << std::endl;
 }
