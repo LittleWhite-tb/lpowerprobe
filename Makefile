@@ -70,6 +70,7 @@ libs:
 	make -C probes/energy_snb_msr
 	make -C probes/wallclock
 	make -C probes/yoko_energy
+	make -C probes/timer
 
 doc:
 	doxygen lPowerProbe.doxy
@@ -80,6 +81,7 @@ clean:
 	make -C probes/wallclock clean
 	make -C probes/yoko_energy mrproper
 	make -C probes/mic_energy clean
+	make -C probes/timer clean
 	rm -rf $(EXEC) $(OBJ)
 
 export-globals:
