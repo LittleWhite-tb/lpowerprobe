@@ -41,7 +41,7 @@ class KernelRunner : public Runner
 private:
    static const unsigned long int OVERHEAD_KERNELITER = 1;
 
-   typedef unsigned long (*KernelFctPtr)(size_t, void*, unsigned);
+   typedef unsigned long (*KernelFctPtr)(unsigned, void*, size_t);
 
    KernelFctPtr m_pKernelFct; /*!< Kernel to bench */
    KernelFctPtr m_pDummyKernelFct; /*!< Special kernel to calculate the overhead */
