@@ -30,7 +30,6 @@ ProbeV2::ProbeV2(const std::string& path)
 {
     unsigned int* pVersion = NULL;
     pVersion = loadSymbol<unsigned int*>("version", MANDATORY);
-    std::cerr << "Found symbol version" << std::endl;
    
     // At least, pVersion is not NULL
     m_version = *pVersion;

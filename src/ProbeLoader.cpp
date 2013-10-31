@@ -92,17 +92,18 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
          {
             std::cout << "==> " << *itError << std::endl;
          }
-         std::cout << "Failed" << std::endl;
          result = false;
       }
    }
    
+   std::cout << std::endl << std::endl;
    return result;
 }
       
 bool ProbeLoader::loadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
 {
    // No probes specified by user, try to load defaults one
+   std::cout << std::endl << std::endl;
    if ( probesPath.size() == 0 )
    {
       std::cout << "No probes specified, loading defaults" << std::endl;
