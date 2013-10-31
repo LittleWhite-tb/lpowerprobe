@@ -48,7 +48,8 @@ Probe::~Probe()
 {
    this->evaluationClose(this->pProbeHandle);
    
-   dlclose(this->pLibHandle); // Should return zero 
+   dlclose(this->pLibHandle); // Should return zero
+
 }
    
 double Probe::startMeasure()
