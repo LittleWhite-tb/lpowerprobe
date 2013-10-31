@@ -199,11 +199,12 @@ void KernelRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
 
          for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
          {
+            /*
             if ( processNumber == 0 )
             {
-               std::cout << "Repetition - " << metaRepet << "\r";
+               std::cout << "\rRepetition - " << metaRepet;
             }
-            
+            */
             flushCaches(processNumber);
             evaluation(pExpResult,m_pKernelFct,m_memory,m_nbKernelIteration,m_iterationMemorySize,processNumber);
          }
@@ -212,6 +213,7 @@ void KernelRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
    
    if ( processNumber == 0 )
    {
+      std::cout << "All " << m_nbMetaRepet << " runned" << std::endl;
       kill(pid,SIGTERM);
    }
 }
