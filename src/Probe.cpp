@@ -88,6 +88,12 @@ void Probe::update()
 void Probe::init () {
    assert (this->evaluationInit != NULL);
    this->pProbeHandle = this->evaluationInit ();
+   
+   if ( this->pProbeHandle == NULL )
+   {
+      throw ProbeInitialisationException(m_name);
+   }
+   
    this->is_initialized = true;
    
    // Give the user some feedback
