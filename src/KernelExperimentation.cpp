@@ -102,48 +102,43 @@ void KernelExperimentation::start()
     }
 
     // Gets the options to run the test
-    unsigned int nbRepet(m_options.getNbRepetition());
     unsigned int nbProcess(m_options.getNbProcess());
-    std::vector<unsigned int> pinning(m_options.getPinning());
 
     KernelRunner run(m_pProbeDataCollector, pKernelFct, pDummyKernelFct, m_options.getNbKernelIteration(), m_options.getIterationMemorySize(), nbProcess, m_options.getNbRepetition());
     std::vector<std::pair<pthread_t,ExperimentationThreadArgs*> > threads;
 
-    for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
+    for ( unsigned int process = 0 ; process < nbProcess ; process++ )
     {
-       for ( unsigned int process = 0 ; process < nbProcess ; process++ )
-       {
-           pthread_t threadId;
-           pthread_attr_t attr;
-           ExperimentationThreadArgs* pArgs = new ExperimentationThreadArgs(this, &run,process);
+        pthread_t threadId;
+        pthread_attr_t attr;
+        ExperimentationThreadArgs* pArgs = new ExperimentationThreadArgs(this, &run,process);
 
-           if (pthread_attr_init(&attr) != 0 )
-           {
-               std::cerr << "Failed to init attributes for thread" << std::endl;
-               throw std::runtime_error("pthread_attr_init");
-           }
-           if ( pthread_create(&threadId,&attr,kernelRunnerThread,pArgs) != 0 )
-           {
-               std::cerr << "Failed to create runner thread" << std::endl;
-               throw std::runtime_error("pthread_create");
-           }
+        if (pthread_attr_init(&attr) != 0 )
+        {
+            std::cerr << "Failed to init attributes for thread" << std::endl;
+            throw std::runtime_error("pthread_attr_init");
+        }
+        if ( pthread_create(&threadId,&attr,kernelRunnerThread,pArgs) != 0 )
+        {
+            std::cerr << "Failed to create runner thread" << std::endl;
+            throw std::runtime_error("pthread_create");
+        }
 
-           threads.push_back(std::pair<pthread_t,ExperimentationThreadArgs*>(threadId,pArgs));
-       }
+        threads.push_back(std::pair<pthread_t,ExperimentationThreadArgs*>(threadId,pArgs));
+    }
 
-       // Wait for all the child to finish
-       for (unsigned int i = 0 ; i < nbProcess ; i++)
-       {
-           void* pReturn;
-           int status = pthread_join(threads[i].first,&pReturn);
-           if ( status != 0 )
-           {
-               std::cerr << "Child exited with status " << status << ", an error occured.\n" << std::endl;
-               perror("pthread_join");
-           }
+    // Wait for all the child to finish
+    for (unsigned int i = 0 ; i < nbProcess ; i++)
+    {
+        void* pReturn;
+        int status = pthread_join(threads[i].first,&pReturn);
+        if ( status != 0 )
+        {
+            std::cerr << "Child exited with status " << status << ", an error occured.\n" << std::endl;
+            perror("pthread_join");
+        }
 
-           delete threads[i].second;
-       }
+        delete threads[i].second;
     }
 
     saveResults();
