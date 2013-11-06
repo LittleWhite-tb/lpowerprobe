@@ -19,8 +19,6 @@ typedef struct sEnergyInfo {
 #endif
 } EnergyInfo;
 
-static EnergyInfo info;
-
 void *gatherPowerInfo (void *info);
 
 static inline unsigned long readPower () {
@@ -42,9 +40,11 @@ static inline unsigned long readPower () {
    return powerPCIe;
 }
 
-void *evaluationInit () { 
-   info.averagePower = 0;
-   return NULL;
+void *evaluationInit () {
+   EnergyInfo *info = malloc (sizeof (*info));
+   assert (info != NULL);
+   info->averagePower = 0;
+   return info;
 }
 
 static inline void getTime (struct timespec *tp) {
@@ -55,13 +55,15 @@ static inline void getTime (struct timespec *tp) {
 }
 
 void *gatherPowerInfo (void *nfo) {
-   info.averagePower = readPower ();
+   EnergyInfo *info = (EnergyInfo*) nfo;
+   assert (info != NULL);
+   info->averagePower = readPower ();
    uint64_t nbIterations = 0;
 
 #ifdef TRACING
-   info.traceFd = fopen ("trace.txt", "a");
+   info->traceFd = fopen ("trace.txt", "a");
    struct timespec currentTime;
-   if (!info.traceFd) {
+   if (!info->traceFd) {
       perror ("Cannot open tracing file in append mode");
       exit (EXIT_FAILURE);
    }
@@ -77,21 +79,23 @@ void *gatherPowerInfo (void *nfo) {
 #ifdef TRACING
      getTime (&currentTime); 
      uint64_t ntime = currentTime.tv_sec * 1e9 + currentTime.tv_nsec;
-     fprintf (info.traceFd, "%llu %lu\n", ntime, currentPower);
+     fprintf (info->traceFd, "%llu %lu\n", ntime, currentPower);
 #endif
  
      // Add up the energy consumed 
-     info.averagePower = (currentPower + info.averagePower*nbIterations) / (nbIterations + 1);
+     info->averagePower = (currentPower + info->averagePower*nbIterations) / (nbIterations + 1);
      nbIterations++;
    }
    
-   (void) nfo;
    return NULL;
 }
 
 double evaluationStart (void *nfo) {
-   getTime (&info.start);
-   if (pthread_create (&info.thr, NULL, gatherPowerInfo, NULL) != 0) {
+   EnergyInfo *info = (EnergyInfo*) nfo;
+   assert (info != NULL);
+   //fprintf (stderr, "start\n");
+   getTime (&info->start);
+   if (pthread_create (&info->thr, NULL, gatherPowerInfo, info) != 0) {
       fprintf (stderr, "Pthread create error\n");
       exit (EXIT_FAILURE);
    }
@@ -100,31 +104,33 @@ double evaluationStart (void *nfo) {
 }
 
 double evaluationStop (void *nfo) {
-   pthread_cancel (info.thr);
-   pthread_join (info.thr, NULL);
+   EnergyInfo *info = (EnergyInfo*) nfo;
+   assert (info != NULL);
+   //fprintf (stderr, "stop\n");
+   pthread_cancel (info->thr);
+   pthread_join (info->thr, NULL);
 
 #ifdef TRACING
-   if (info.traceFd != NULL) {
+   if (info->traceFd != NULL) {
       struct timespec currentTime;
       getTime (&currentTime);
       uint64_t ntime = currentTime.tv_sec * 1e9 + currentTime.tv_nsec;   
-      fprintf (info.traceFd, "%llu 0\n", ntime);
-      fclose (info.traceFd), info.traceFd = NULL;
+      fprintf (info->traceFd, "%llu 0\n", ntime);
+      fclose (info->traceFd), info->traceFd = NULL;
    }
 #endif
-   getTime (&info.stop);
+   getTime (&info->stop);
    
-   uint64_t timeSpent = (info.stop.tv_sec*1000000000 + info.stop.tv_nsec)
-       - (info.start.tv_sec*1000000000 + info.start.tv_nsec);
-   double energy = (info.averagePower / 1000000) * ((double)timeSpent / 1000000000);
-   //fprintf (stderr, "ENDSTOP, returning energy = %f, ts = %lu, info->averagePower = %f\n", energy, timeSpent, info.averagePower);
+   uint64_t timeSpent = (info->stop.tv_sec*1000000000 + info->stop.tv_nsec)
+       - (info->start.tv_sec*1000000000 + info->start.tv_nsec);
+   double energy = (info->averagePower / 1000000) * ((double)timeSpent / 1000000000);
+   //fprintf (stderr, "ENDSTOP, returning energy = %f, ts = %lu, info->averagePower = %f\n", energy, timeSpent, info->averagePower);
 
-   (void) nfo;
    return energy;
 }
 
 int evaluationClose (void *nfo) {
-   (void) nfo;
+   free (nfo), nfo = NULL;
    return EXIT_SUCCESS;
 }
 

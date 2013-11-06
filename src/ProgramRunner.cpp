@@ -87,26 +87,27 @@ void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::strin
    do
    {
       broken = false;
-      for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
-      {
-         resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
+      if (processNumber == 0) {
+         for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
+         {
+            resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
+         }
       }
 
       startTest(test, pArgv, processNumber);
 
-      for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
-      {
-         resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
-
-         if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
+      if (processNumber == 0) {
+         for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
          {
-            broken = true;
-         }
-      }
+            resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
 
+            if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
+            {
+               broken = true;
+            }
+         }
       // ensure all the tasks finished before going to the next iteration
-      if (processNumber == 0)
-      {
+      
          for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
          {
             if ( sem_wait(m_fatherLock) != 0 )
