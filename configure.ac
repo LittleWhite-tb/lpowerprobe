@@ -20,6 +20,7 @@ AC_CHECK_LIB([m], [pow], [AC_SUBST(LIBM,-lm)])
 AC_CHECK_LIB([dl], [dlopen], [AC_SUBST(LIBDL,-ldl)])
 AC_CHECK_LIB([pthread], [pthreade_create], [AC_SUBST(LIBPTHREAD,-lpthread)])
 AC_CHECK_LIB([rt], [shm_open], [AC_SUBST(LIBRT,-lrt)])
+AC_CHECK_LIB([pfm], [pfm_initialize], [AC_SUBST(LIBPFM,-lpfm)])
 
 
 # Checks for header files.
