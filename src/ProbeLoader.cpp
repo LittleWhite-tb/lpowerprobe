@@ -31,7 +31,8 @@
 ProbeLoader::ProbeLoader()
 {
    // Don't forget to end path with '/'
-   m_dirs.push_back(INSTALL_DIR "/lib/lPowerProbe/");
+   m_dirs.push_back(LIB_DIR "/lPowerProbe/");
+   m_dirs.push_back(LIB_DIR "/");
    m_dirs.push_back("");
    m_dirs.push_back("./");
    m_dirs.push_back("./probes/");

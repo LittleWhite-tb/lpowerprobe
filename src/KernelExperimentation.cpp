@@ -38,7 +38,7 @@
 #include "CPUUtils.hpp"
 #include "ExperimentationThreadArgs.hpp"
 
-const std::string KernelExperimentation::DUMMY_KERNEL_FILE = INSTALL_DIR "/share/lPowerProbe/empty.s";
+const std::string KernelExperimentation::DUMMY_KERNEL_FILE = DATA_DIR "/empty.s";
 
 void* kernelRunnerThread(void* pArgs)
 {

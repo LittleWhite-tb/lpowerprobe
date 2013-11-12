@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "ini.h"
+#include "inih/ini.h"
 #include "perfmon/pfmlib.h"
 #include "perfmon/perf_event.h"
 #include "perfmon/pfmlib_perf_event.h"

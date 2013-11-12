@@ -51,7 +51,7 @@ ProgramRunner::~ProgramRunner()
 void ProgramRunner::calculateOverhead(ExperimentationResults* pOverheadResults, unsigned int processNumber)
 {
    std::vector<std::string> emptyArgs;
-   evaluation(pOverheadResults, INSTALL_DIR "/share/lPowerProbe/empty", emptyArgs,processNumber);
+   evaluation(pOverheadResults, DATA_DIR "/lPowerProbe/empty", emptyArgs,processNumber);
 }
 
 void ProgramRunner::evaluation(ExperimentationResults* pResults, const std::string& test, const std::vector<std::string>& args, unsigned int processNumber)
