@@ -65,5 +65,7 @@ AC_CONFIG_FILES([Makefile
                  probes/Makefile
                  probes/libenergymsr/Makefile
                  probes/libwallclock/Makefile
-                 probes/libenergyyoko/Makefile])
+                 probes/libenergyyoko/Makefile
+                 probes/libtimer/Makefile
+                 probes/pfmcounters/Makefile])
 AC_OUTPUT
