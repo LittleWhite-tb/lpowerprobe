@@ -18,7 +18,7 @@ AC_PROG_MAKE_SET
 # Checks for libraries.
 AC_CHECK_LIB([m], [pow], [AC_SUBST(LIBM,-lm)])
 AC_CHECK_LIB([dl], [dlopen], [AC_SUBST(LIBDL,-ldl)])
-AC_CHECK_LIB([pthread], [pthreade_create], [AC_SUBST(LIBPTHREAD,-lpthread)])
+AC_CHECK_LIB([pthread], [pthread_create], [AC_SUBST(LIBPTHREAD,-lpthread)])
 AC_CHECK_LIB([rt], [shm_open], [AC_SUBST(LIBRT,-lrt)])
 AC_CHECK_LIB([pfm], [pfm_initialize], [AC_SUBST(LIBPFM,-lpfm)])
 
@@ -38,7 +38,7 @@ AC_TYPE_UINT64_T
 AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_FUNC_MMAP
-AC_CHECK_FUNCS([ftruncate gettimeofday memset pow strdup strerror])
+AC_CHECK_FUNCS([ftruncate gettimeofday memset strdup strerror])
 
 # Check for MPI
 AC_CHECK_PROG(MPICC, mpicc, true, false)
