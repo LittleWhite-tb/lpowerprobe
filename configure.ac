@@ -20,8 +20,22 @@ AC_CHECK_LIB([m], [pow], [AC_SUBST(LIBM,-lm)])
 AC_CHECK_LIB([dl], [dlopen], [AC_SUBST(LIBDL,-ldl)])
 AC_CHECK_LIB([pthread], [pthread_create], [AC_SUBST(LIBPTHREAD,-lpthread)])
 AC_CHECK_LIB([rt], [shm_open], [AC_SUBST(LIBRT,-lrt)])
-AC_CHECK_LIB([pfm], [pfm_initialize], [AC_SUBST(LIBPFM,-lpfm)])
 
+
+# lmsensors configuration using command line to disable it
+AC_ARG_WITH([pfmcounters],
+            [AS_HELP_STRING([--without-pfmcounters],
+              [disable pfmcounters support])],
+            [],
+            [with_pfmcounters=yes])
+
+LIBPFM=
+          AS_IF([test "x$with_pfmcounters" != xno],
+            [AC_CHECK_LIB([pfm], [pfm_initialize],
+              [AC_SUBST([LIBPFM], ["-lpfm"])],
+              [AC_MSG_WARN(["pfmcounters not found, the probe can't be compiled"])])])
+
+AM_CONDITIONAL(USEPFM,[test $LIBPFM = -lpfm])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h termios.h unistd.h])
