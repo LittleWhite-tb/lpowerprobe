@@ -35,7 +35,31 @@ LIBPFM=
               [AC_SUBST([LIBPFM], ["-lpfm"])],
               [AC_MSG_WARN(["pfmcounters not found, the probe can't be compiled"])])])
 
+AC_ARG_WITH([yoko],
+            [AS_HELP_STRING([--without-yoko],
+              [disable YOKO support])],
+            [],
+            [with_yoko=yes])
+
+YOKOSUPPORT=
+          AS_IF([test "x$with_yoko" != xno],
+              [AC_SUBST([YOKOSUPPORT], ["yoko"])],
+              [])
+
+AC_ARG_WITH([msr],
+            [AS_HELP_STRING([--without-msr],
+              [disable MSR support])],
+            [],
+            [with_msr=yes])
+
+MSRSUPPORT=
+          AS_IF([test "x$with_msr" != xno],
+              [AC_SUBST([MSRSUPPORT], ["msr"])],
+              [])
+
 AM_CONDITIONAL(USEPFM,[test $LIBPFM = -lpfm])
+AM_CONDITIONAL(USEYOKO,[test $YOKOSUPPORT = yoko])
+AM_CONDITIONAL(USEMSR,[test $MSRSUPPORT = msr])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h termios.h unistd.h])
