@@ -1,8 +1,13 @@
 #!/bin/bash
 
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+
 LPOWERPROBE_PATH=..
 # All path should start from LPOWERPROBE_PATH (so, where lPowerProbe is)
-TESTS_DIR=./tests
+TESTS_DIR=${PWD}
 RESULTS_DIR=$TESTS_DIR/output
 
 NB_CORES=`grep -c ^processor /proc/cpuinfo`
@@ -16,6 +21,10 @@ sudo modprobe msr
 
 # Moving in lPowerProbe dir
 cd $LPOWERPROBE_PATH
+./configure --prefix=${PWD}/tests/lp_bin
+make clean all install
+cd ./tests/lp_bin/bin
+
 
 mkdir -p $RESULTS_DIR
 
@@ -32,7 +41,6 @@ do
         else
             ./lPowerProbe -r 5 -o $RESULTS_DIR/lpowerprobe_$testEntries.res $TESTS_DIR/$testEntries/test
             ./lPowerProbe -r 5 -d $NB_CORES -p "$PINNING"  -o $RESULTS_DIR/lpowerprobe_${testEntries}_${NB_CORES}.res $TESTS_DIR/$testEntries/test
-echo lol
         fi
     fi
 done 

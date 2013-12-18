@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+
 MICROLAUNCH_PATH=/home/users/lalexandre/Work/microlaunch/
 MICROLAUNCH=$MICROLAUNCH_PATH/microlaunch
 # All path should start from LPOWERPROBE_PATH (so, where lPowerProbe is)
