@@ -35,6 +35,8 @@ class Options
 {
 private:
 
+   std::string m_programPath; /*!< Path of the lPowerProbe program */
+
    unsigned int m_nbProcess;
    std::vector<unsigned int> m_pinning;
    
@@ -76,6 +78,17 @@ public:
    /**
     */
    ~Options();
+   
+   /**
+    * \return the path used to run lPowerProbe
+    */
+   const std::string& getProgramPath()const;
+   
+   /**
+    * Sets the path to run lPowerProbe
+    * \param numberProcess
+    */
+   void setProgramPath(const char* pPath);
    
    /**
     * \return the number of process to create

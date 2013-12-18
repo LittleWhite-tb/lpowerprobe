@@ -42,6 +42,28 @@ Options::~Options()
 {
 }
 
+const std::string& Options::getProgramPath()const
+{
+   return m_programPath;
+}
+   
+void Options::setProgramPath(const char* pPath)
+{
+   assert(pPath);
+   
+   if ( !m_outputFile.empty() )
+   {
+      std::cerr << "You are overriding program path" << std::endl;
+   }
+   
+   m_programPath = std::string(pPath);
+   
+   // Split
+   size_t found = m_programPath.find_last_of("/\\");
+   m_programPath = m_programPath.substr(0,found);
+   m_programPath = m_programPath + "/";   // Add '/' since it is remove by the substr.
+}
+
 unsigned int Options::getNbProcess()const
 {
    return m_nbProcess;

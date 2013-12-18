@@ -121,6 +121,8 @@ int main(int argc, char** argv)
    int option_index = 0;
    Options options;
    
+   options.setProgramPath(argv[0]);
+   
    while(1)
    {
       opt = getopt_long(argc, argv, "r:d:p:o:m:i:l:hv", long_options, &option_index);

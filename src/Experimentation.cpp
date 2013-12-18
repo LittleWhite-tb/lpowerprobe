@@ -30,6 +30,7 @@ Experimentation::Experimentation(const Options& options)
    :m_options(options),m_execFile(options.getExecName())
 {
    ProbeLoader pl;
+   pl.addDirectory(options.getProgramPath());
    pl.loadProbes(options.getProbesPath(),m_probes); // Can return error, but we can try to run
    if ( m_probes.size() == 0 )
    {

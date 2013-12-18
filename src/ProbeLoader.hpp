@@ -61,6 +61,12 @@ class ProbeLoader
       ProbeLoader();
       
       /**
+       * Adds a new directory in the set of directory the loader has to check
+       * \param dir the directory to add
+       */
+      void addDirectory(const std::string& dir) { m_dirs.push_back(dir); }
+      
+      /**
        * Load the probes specified by \a probesPath or the defaults probes when \a probesPath is empty
        * \param probesPath the probes to load
        * \param probes list of probes loaded
