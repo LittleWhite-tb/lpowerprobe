@@ -1,1 +1,1 @@
-SUBDIRS = src empty probes/ scripts/MPI_preload
+SUBDIRS = src empty probes/ scripts/MPI_preload doc

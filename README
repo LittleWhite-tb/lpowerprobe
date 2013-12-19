@@ -1,16 +1,34 @@
 lPowerProbe - A light benchmark tool oriented for energy probing heavely based on likwid
 
-Compilation :
+== Compilation ==
 
+To generate the configure script, you have to run autogen.sh:
+    ./autogen.sh
+Then, you can follow the usual sequence:
+    ./configure
     make
+    make install
 
-Usage :
+== Usage ==
 
-./lPowerProbe [OPTION] prog args
+./lPowerProbe [OPTION] [prog] [args]
+
+Performs standardized and accurate measurements.
+It can work in three different modes depending on the prog argument value:
+	- prog is not specified: the measurement is (re)started/ended when receiving SIGUSR1.
+	- prog ends by .s: it is compiled and run instrumented as a kernel.
+	- otherwise: prog is run instrumented as an executable file.
+
   -h, --help				Display this help
-      --repetition=NUMBER		Number of repetition for the test
-      --duplicate=NUMBER		Number of process to start
-      --pinning="pin1;pin2;..."		Where to pin the processes
+  -v, --version				Display the program version
+
+  -l, --libraries			Probes libraries to load to bench the execution
+  -r, --repetition=NUMBER		Number of repetition for the test
+  -d, --duplicate=NUMBER		Number of process to start
+  -p, --pinning="pin1;pin2;..."		Where to pin the processes
+  -o, --output="resultFile"		Where to write the results
+  -m, --iteration-mem-size=NUMBER	The memory size in bytes used in the kernel per iteration
+  -i, --iteration=NUMBER		The number of kernel iteration
 
 
 The result is output in a file called 'output.csv'.
@@ -22,7 +40,9 @@ Generate documentation :
     
 Licence :
 
-   GPLv3
-   See COPYRIGHT file
+    Copyright (C) 2013 Universite de Versailles
+        GPLv3
+   
+    See COPYRIGHT file
 
 
