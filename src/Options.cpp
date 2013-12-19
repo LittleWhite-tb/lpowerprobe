@@ -34,12 +34,34 @@ void Options::checkOverride(unsigned int oldValue, unsigned int newValue, const 
 }
 
 Options::Options()
-   :m_nbProcess(0),m_nbRepet(0),m_nbMetaRepet(0),m_iterationMemorySize(0),m_nbKernelIteration(0)
+   :m_nbProcess(0),m_nbRepet(0),m_iterationMemorySize(0),m_nbKernelIteration(0)
 {
 }
 
 Options::~Options()
 {
+}
+
+const std::string& Options::getProgramPath()const
+{
+   return m_programPath;
+}
+   
+void Options::setProgramPath(const char* pPath)
+{
+   assert(pPath);
+   
+   if ( !m_outputFile.empty() )
+   {
+      std::cerr << "You are overriding program path" << std::endl;
+   }
+   
+   m_programPath = std::string(pPath);
+   
+   // Split
+   size_t found = m_programPath.find_last_of("/\\");
+   m_programPath = m_programPath.substr(0,found);
+   m_programPath = m_programPath + "/";   // Add '/' since it is remove by the substr.
 }
 
 unsigned int Options::getNbProcess()const
@@ -123,18 +145,6 @@ void Options::setNbRepetition(unsigned int numberRepetition)
    
    m_nbRepet = numberRepetition;
 }
-   
-unsigned int Options::getNbMetaRepetition()const
-{
-   return m_nbMetaRepet;
-}
-
-void Options::setNbMetaRepetition(unsigned int numberMetaRepetition)
-{
-   checkOverride(m_nbMetaRepet,numberMetaRepetition,"repetitions number");
-   
-   m_nbMetaRepet = numberMetaRepetition;
-}
 
 size_t Options::getIterationMemorySize()const
 {
@@ -204,8 +214,18 @@ void Options::addArg(const char* pArgs)
    m_args.push_back(std::string(pArgs));
 }
 
+bool Options::isDaemon() const
+{
+   return m_execName.empty();
+}
+
 bool Options::isExecKernel()const
 {
+   if (isDaemon()) 
+   {
+      return false;
+   }
+
    // Actually the check is only based on having a .s extension
    if ( m_execName[m_execName.length()-2] == '.' &&
         m_execName[m_execName.length()-1] == 's' )
@@ -229,12 +249,6 @@ void Options::setDefaultValues()
       std::cout << "Number of repetition set to default value -> " << DEFAULT_NUMBER_REPET << std::endl;
       m_nbRepet = DEFAULT_NUMBER_REPET;
    }
-   
-   if ( m_nbMetaRepet == 0 )
-   {
-      std::cout << "Number of meta repetition set to default value -> " << DEFAULT_NUMBER_METAREPET << std::endl;
-      m_nbMetaRepet = DEFAULT_NUMBER_METAREPET;
-   }
 
    if ( isExecKernel() && m_iterationMemorySize == 0 )
    {
@@ -250,22 +264,42 @@ void Options::setDefaultValues()
 }
 
 bool Options::hasMissingOptions()
-{
-   if ( m_execName.empty() )
-   {
-      std::cout << "You did not give an program to run" << std::endl;
-      return true;
-   }
-   
+{  
    // Additional check to tell that some options are ignored
    // TO FIX/TODO : Maybe this test should not be here
-   if ( !isExecKernel() && m_iterationMemorySize )
-   {
-      std::cout << "The iteration memory size that you have specified is ignored since we are running a program" << std::endl;
-   }
-   if ( !isExecKernel() && m_nbKernelIteration )
-   {
-      std::cout << "The number of kernel iteration that you have specified is ignored since we are running a program" << std::endl;
+   if (isDaemon()) {
+      if (m_iterationMemorySize) {
+         std::cout << "Iteration memory size ignored in daemon mode" << std::endl;
+         m_iterationMemorySize = 0;
+      }
+
+      if (m_nbKernelIteration) {
+         std::cout << "Iteration count ignored in daemon mode" << std::endl;
+         m_nbKernelIteration = 0;
+      }
+
+      if (m_nbProcess != 1) {
+         std::cout << "Duplication argument ignored in daemon mode" << std::endl;
+         m_nbProcess = 1;
+      }
+
+      if (m_nbRepet > 1) {
+         std::cout << "Nothing to repeat in daemon mode, ignoring the argument." << std::endl;
+         m_nbRepet = 1;
+      }
+
+   } else if (!isExecKernel()) {
+      if ( m_iterationMemorySize )
+      {
+         std::cout << "The iteration memory size that you have specified is ignored since we are running a program" << std::endl;
+         m_iterationMemorySize = 0;
+      }
+
+      if ( m_nbKernelIteration )
+      {
+         std::cout << "The number of kernel iteration that you have specified is ignored since we are running a program" << std::endl;
+         m_nbKernelIteration = 0;
+      }
    }
    
    if ( m_nbProcess != 1 )
@@ -276,7 +310,7 @@ bool Options::hasMissingOptions()
          return true;
       }
    }
-   
+
    return false;
 }
 

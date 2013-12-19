@@ -17,13 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <cstdlib>
 
-#include <getopt.h>
-#include <cstdio>
-#include <cerrno>
 #include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <getopt.h>
+#include <iostream>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include "StringUtils.hpp"
@@ -32,23 +33,21 @@
 #include "Experimentation.hpp"
 #include "Options.hpp"
 
-#include "version.hpp"
-
-const int ID_ARG_REPETITION = 1;
-const int ID_ARG_METAREPETITION = 2;
-const int ID_ARG_PROCESS = 3;
-const int ID_ARG_PINNING = 4;
-const int ID_ARG_OUTPUT = 5;
-const int ID_ARG_MEMSIZE = 6;
-const int ID_ARG_KERNELITER = 7;
-const int ID_ARG_PROBES = 8;
+enum e_idarg {
+   ID_ARG_REPETITION,
+   ID_ARG_PROCESS,
+   ID_ARG_PINNING,
+   ID_ARG_OUTPUT,
+   ID_ARG_MEMSIZE,
+   ID_ARG_KERNELITER,
+   ID_ARG_PROBES
+};
 
 static struct option long_options[] =
 {
    {"help", no_argument,   0, 'h' },
    {"version", no_argument,   0, 'v' },
    {"repetition", required_argument,   0, ID_ARG_REPETITION},
-   // {"meta-repetition", required_argument,   0, ID_ARG_METAREPETITION},
    {"duplicate", required_argument,   0, ID_ARG_PROCESS},
    {"pinning", required_argument,   0, ID_ARG_PINNING},
    {"output", required_argument,   0, ID_ARG_OUTPUT},
@@ -60,14 +59,23 @@ static struct option long_options[] =
 
 void version()
 {
-   std::cout << "./lProwerProbe © Universite de Versailles 2013" << std::endl;
-   std::cout << "\t\tversion : " + std::string(GIT_HASH) + " (" + std::string(GIT_COUNT) + ")" << std::endl;
+   std::cout << "./lPowerProbe © Universite de Versailles 2013" << std::endl;
+   std::cout << "\t\tversion : " + std::string(VERSION) << std::endl;
    std::cout << std::endl;
 }
 
 void usage()
 {
-   std::cout << "./lPowerProbe [OPTION] prog args" << std::endl;
+   std::cout << "./lPowerProbe [OPTION] [prog] [args]" << std::endl;
+   std::cout << std::endl;
+   std::cout << "Performs standardized and accurate measurements." << std::endl;
+   std::cout << "It can work in three different modes depending on the prog argument value:" << std::endl;
+   std::cout << "\t- prog is not specified: the measurement is (re)started/ended when receiving SIGUSR1." << std::endl;
+   std::cout << "\t- prog ends by .s: it is compiled and run instrumented as a kernel." << std::endl;
+   std::cout << "\t- otherwise: prog is run instrumented as an executable file." << std::endl;
+
+   std::cout << std::endl;
+
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
    std::cout << "  -v, --version\t\t\t\tDisplay the program version" << std::endl;
    
@@ -113,6 +121,8 @@ int main(int argc, char** argv)
    int option_index = 0;
    Options options;
    
+   options.setProgramPath(argv[0]);
+   
    while(1)
    {
       opt = getopt_long(argc, argv, "r:d:p:o:m:i:l:hv", long_options, &option_index);
@@ -129,25 +139,11 @@ int main(int argc, char** argv)
                if ( StringUtils::from_string<unsigned int>(optarg,repet) )
                {
                   // Hack to replace the repetition command to meta repetition
-                  options.setNbMetaRepetition(repet);
+                  options.setNbRepetition(repet);
                }
                else
                {
                   std::cerr << "Invalid argument for --repetition option" << std::endl;
-                  usage();
-               }
-            }
-            break;
-         case ID_ARG_METAREPETITION:
-            {
-               unsigned int mrepet = 0;
-               if ( StringUtils::from_string<unsigned int>(optarg,mrepet) )
-               {
-                  options.setNbMetaRepetition(mrepet);
-               }
-               else
-               {
-                  std::cerr << "Invalid argument for --meta-repetition option" << std::endl;
                   usage();
                }
             }
@@ -267,7 +263,6 @@ int main(int argc, char** argv)
       std::cerr << "Some options are mandatory" << std::endl;
       usage();
    }
-   
 
    Experimentation* pExp = ExperimentationFactory::createExperimentation(options);
    pExp->start();

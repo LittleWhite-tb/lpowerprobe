@@ -23,8 +23,11 @@
 #include <vector>
 #include <string>
 
+#include "ExperimentationResults.hpp"
 #include "Probe.hpp"
 
+class Runner;
+class ProbeDataCollector;
 class Options;
 
 /**
@@ -32,7 +35,7 @@ class Options;
  * The experimentation is following the following path :
  * - Looping for all experimentation
  * - - Looping for all process
- * - - - Creating fork
+ * - - - Creating a thread
  * - - - Looping for all metarepetition (Runner)
  * - - - Start test program (Runner)
  * 
@@ -42,15 +45,27 @@ class Experimentation
 {
 protected:
    ProbeList m_probes;  /*!< Probe to use during a test */
+   ExperimentationResults* m_pOverheadResults; /*!< \a Probe data for the overhead calculation */
+   ExperimentationResults* m_pResults; /*!< \a Probe data for the benchmark */
+   ProbeDataCollector* m_pProbeDataCollector; /*!< Collector in order to get the \a ProbeData */
 
    const Options& m_options;  /*!< Set of option comming from program args */
    std::string m_execFile; /*!< File to run (either a compiled kernel of a compiled program) */
    
    std::vector<std::string> m_probePaths; /*!< List of probes to load */
 
+   /**
+    * Saves the results collected in a file
+    * The file is specified by the user through \a Options
+    */
+   void saveResults();
+
 public:
    /**
+    * Loads and prepares the probes to use for the experimentation
+    * Prepares the memory space for the results
     * \param options the options given by the user
+    * \exception ProbeLoadingException when no probes could be loaded
     */
    Experimentation(const Options& options);
    

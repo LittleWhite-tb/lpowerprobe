@@ -25,26 +25,22 @@
 
 #include <semaphore.h>
 
-#include "Probe.hpp"
+#include "ProbeDataCollector.hpp"
 
+class RunData;
+
+/**
+ * @brief The Runner class
+ * @warning This class should be thread-safe
+ */
 class Runner
 {
 protected:
 
-    std::ofstream m_resultFile;   /*!< */
-
-    ProbeList* m_pProbes; /*!< Probes to use to benchmark */
+    ProbeDataCollector* m_pProbesDataCollector; /*!< Data collector for probes */
 
     unsigned int m_nbMetaRepet;/*!< Number of repetition to do */
     unsigned int m_nbProcess;  /*!< Number of process started */
-
-    // Contains results for
-    // - All process
-    // - All meta repease
-    // - All probes
-    typedef std::vector < std::vector<std::vector<std::pair<double, double> > > > GlobalResultsArray;
-    GlobalResultsArray m_overheadResults;  /*!< Probe results for the overhead test */
-    GlobalResultsArray m_runResults; /*!< Probe results for the run test */
 
     pid_t m_pid;   /*!< PID of the process to use as unique ID for semaphores */
     std::string m_pidString; /*!< PID as a string */
@@ -52,21 +48,28 @@ protected:
     sem_t* m_processLock;      /*!< Process test synchronisation */
     sem_t* m_processEndLock;   /*!< Process end synchronisation */
 
-    /**
-     * Saves the result in a file after applying the overhead bias
-     */
-    void saveResults();
-
 public:
 
-    Runner(ProbeList* pProbes, const std::string& resultFileName, unsigned int nbProcess, unsigned int nbMetaRepet);
+    /**
+     * Constructor creating the semaphores for process locking
+     * @param pProbesDataCollector the collector to use to get data from probes
+     * @param nbProcess number of process that will be created
+     * @param nbMetaRepet number of meta repeat that will be runned
+     */
+    Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess, unsigned int nbMetaRepet);
+
+    /**
+     * Destroys the semaphores
+     */
     virtual ~Runner();
 
     /**
      * Start the benchmark
+     * \param pOverheadExpResult Arrays collecting the results of overhead run from the probes (using \a ProbeDataCollector)
+     * \param pExpResult Arrays collecting the results run from the probes (using \a ProbeDataCollector)
      * \param processNumber the process number
      */
-    virtual void start(unsigned int processNumber)=0;
+    virtual void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)=0;
 };
 
 #endif

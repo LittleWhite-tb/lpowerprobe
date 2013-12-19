@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include <cstdlib>
 #include <cstdio>
@@ -29,10 +30,39 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pthread.h>
+
 
 #include "Kernel.hpp"
 #include "ProgramRunner.hpp"
 #include "CPUUtils.hpp"
+#include "ExperimentationThreadArgs.hpp"
+
+void* programRunnerThread(void* pArgs)
+{
+    ExperimentationThreadArgs* pTArgs = reinterpret_cast<ExperimentationThreadArgs*>(pArgs);
+
+    ProgramExperimentation* pPExp = dynamic_cast<ProgramExperimentation*>(pTArgs->pExp);
+    assert(pPExp);
+    pPExp->runStarter(pTArgs);
+
+    return NULL;
+}
+
+void ProgramExperimentation::runStarter(ExperimentationThreadArgs* pTArgs)
+{
+    std::vector<unsigned int> pinning(m_options.getPinning());
+    if ( pinning.size() != 0 )
+    {
+       // Pin it
+       CPUUtils::pinCPU(pinning[pTArgs->threadNumber]);
+    }
+    CPUUtils::setFifoMaxPriority(-1);
+
+    pTArgs->pRunner->start(m_pOverheadResults,
+                           m_pResults,
+                           pTArgs->threadNumber);
+}
 
 ProgramExperimentation::ProgramExperimentation(const Options &options)
     :Experimentation(options)
@@ -42,65 +72,49 @@ ProgramExperimentation::ProgramExperimentation(const Options &options)
 
 void ProgramExperimentation::start()
 {
-    // Gets the options to run the test
-    const std::vector<std::string>& args = m_options.getArgs();
+   // Gets the options to run the test
+   const std::vector<std::string>& args = m_options.getArgs();
 
-    unsigned int nbRepet(m_options.getNbRepetition());
-    unsigned int nbProcess(m_options.getNbProcess());
-    std::vector<unsigned int> pinning(m_options.getPinning());
+   unsigned int nbProcess(m_options.getNbProcess());
 
-    ProgramRunner run(&m_probes, m_options.getOutputFile(), m_execFile, args, nbProcess, m_options.getNbMetaRepetition());
-    std::vector<pid_t> m_pids;
+   ProgramRunner run(m_pProbeDataCollector, m_execFile, args, nbProcess, m_options.getNbRepetition());
+   std::vector<std::pair<pthread_t,ExperimentationThreadArgs*> > threads;
 
-    for ( unsigned int repet = 0 ; repet < nbRepet ; repet++ )
-    {
-       for ( unsigned int process = 0 ; process < nbProcess ; process++ )
-       {
-          pid_t pid = fork();
-          if ( pid == 0 ) // Son
-          {
-             if ( pinning.size() != 0 )
-             {
-                // Pin it
-                CPUUtils::pinCPU(pinning[process]);
-             }
-             CPUUtils::setFifoMaxPriority(-1);
+   for ( unsigned int process = 0 ; process < nbProcess ; process++ )
+   {
+      pthread_t threadId;
+      pthread_attr_t attr;
+      ExperimentationThreadArgs* pArgs = new ExperimentationThreadArgs(this, &run,process);
 
-             run.start(process);
+      if (pthread_attr_init(&attr) != 0 )
+      {
+         std::cerr << "Failed to init attributes for thread" << std::endl;
+         throw std::runtime_error("pthread_attr_init");
+      }
+      if ( pthread_create(&threadId,&attr,programRunnerThread,pArgs) != 0 )
+      {
+         std::cerr << "Failed to create runner thread" << std::endl;
+         throw std::runtime_error("pthread_create");
+      }
 
-             // Need to finish the son here
-             _exit(EXIT_SUCCESS);
-          }
-          else if ( pid > 0 ) // Father
-          {
-             m_pids.push_back(pid);
-          }
-          else
-          {
-             std::cerr << "Fail to create subprocess" << std::endl;
-             perror("fork");
-             return;
-          }
-       }
+      pthread_attr_destroy(&attr);
 
-       // Wait for all the child to finish
-       for (unsigned int i = 0 ; i < nbProcess ; i++)
-       {
-          int status=0;
+      threads.push_back(std::pair<pthread_t,ExperimentationThreadArgs*>(threadId,pArgs));
+   }
 
-          waitpid (m_pids[i], &status, WUNTRACED | WCONTINUED);
-          int res = WEXITSTATUS(status);
-          if(res != EXIT_SUCCESS)
-          {
-             std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
-          }
-          if (WIFEXITED(status) == 0)
-          {
-             char buf[512];
+   // Wait for all the child to finish
+   for (unsigned int i = 0 ; i < nbProcess ; i++)
+   {
+      void* pReturn;
+      int status = pthread_join(threads[i].first,&pReturn);
+      if ( status != 0 )
+      {
+         std::cerr << "Child exited with status " << status << ", an error occured.\n" << std::endl;
+         perror("pthread_join");
+      }
 
-             snprintf (buf, 512, "Error: Child %d received a signal ", i);
-             psignal (WTERMSIG (status), buf);
-          }
-       }
-    }
+      delete threads[i].second;
+   }
+
+   saveResults();
 }

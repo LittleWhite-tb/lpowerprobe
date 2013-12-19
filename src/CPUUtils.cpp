@@ -25,12 +25,13 @@
 
 #include <sched.h>
 #include <sys/types.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 void CPUUtils::pinCPU(int cpuID)
 {
    cpu_set_t cpuset;
-   pid_t myself = getpid();
+   pid_t myself = syscall (SYS_gettid);
 
    CPU_ZERO(&cpuset);
    CPU_SET(cpuID,&cpuset);

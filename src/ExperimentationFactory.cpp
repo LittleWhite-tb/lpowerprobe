@@ -19,17 +19,19 @@
 
 #include "ExperimentationFactory.hpp"
 
+#include "DaemonExperimentation.hpp"
 #include "ProgramExperimentation.hpp"
 #include "KernelExperimentation.hpp"
 
 Experimentation* ExperimentationFactory::createExperimentation(const Options& options)
 {
-    if ( options.isExecKernel() )
-    {
-        return new KernelExperimentation(options);
-    }
-    else
-    {
-        return new ProgramExperimentation(options);
-    }
+   if (options.isDaemon()) {
+      return new DaemonExperimentation(options);
+   }
+   
+   if ( options.isExecKernel()) {
+      return new KernelExperimentation(options);
+   }
+
+   return new ProgramExperimentation(options);
 }

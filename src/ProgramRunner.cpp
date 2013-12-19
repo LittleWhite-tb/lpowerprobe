@@ -36,8 +36,8 @@
 
 #include "CPUUtils.hpp"
 
-ProgramRunner::ProgramRunner(ProbeList* pProbes, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
-    :Runner(pProbes,resultFileName,nbProcess,nbMetaRepet),
+ProgramRunner::ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
+    :Runner(pProbesDataCollector,nbProcess,nbMetaRepet),
       m_test(test),m_args(args)
 {
 
@@ -48,183 +48,171 @@ ProgramRunner::~ProgramRunner()
 
 }
 
-void ProgramRunner::calculateOverhead(unsigned int metaRepet, unsigned int processNumber)
+void ProgramRunner::calculateOverhead(ExperimentationResults* pOverheadResults, unsigned int processNumber)
 {
    std::vector<std::string> emptyArgs;
-   evaluation(m_overheadResults, INSTALL_DIR "/share/lPowerProbe/empty", emptyArgs,metaRepet,processNumber);
+   evaluation(pOverheadResults, DATA_DIR "/lPowerProbe/empty", emptyArgs,processNumber);
 }
 
-void ProgramRunner::evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber)
+void ProgramRunner::evaluation(ExperimentationResults* pResults, const std::string& test, const std::vector<std::string>& args, unsigned int processNumber)
 {
-   bool broken = false;
+    int nbArgs=0;
+    char** pArgv = NULL;
 
-   int nbArgs=0;
-   char** pArgv = NULL;
+    /* If argv == NULL, we have to create an argv table anyway... */
+    if (args.size() == 0)
+    {
+        nbArgs = 1;
+        pArgv = new char*[nbArgs+1];
+        pArgv[0] = strdup(test.c_str());
+        pArgv[1] = NULL;
+    }
+    /* Else, simply execute it with the argv table we got... */
+    else
+    {
+        nbArgs = args.size();
+        pArgv = new char*[nbArgs+2];
+        pArgv[0] = strdup(test.c_str());
 
-   /* If argv == NULL, we have to create an argv table anyway... */
-   if (args.size() == 0)
-   {
-      nbArgs = 1;
-      pArgv = new char*[nbArgs+1];
-      pArgv[0] = strdup(test.c_str());
-      pArgv[1] = NULL;
-   }
-   /* Else, simply execute it with the argv table we got... */
-   else
-   {
-      nbArgs = args.size();
-      pArgv = new char*[nbArgs+2];
-      pArgv[0] = strdup(test.c_str());
+        size_t i = 1;
+        for ( i = 1 ; i-1 < args.size()  ; i++ )
+        {
+            pArgv[i] = strdup(args[i-1].c_str());
+        }
+        pArgv[i] = NULL;
+    }
 
-      size_t i = 1;
-      for ( i = 1 ; i-1 < args.size()  ; i++ )
-      {
-         pArgv[i] = strdup(args[i-1].c_str());
-      }
-      pArgv[i] = NULL;
-   }
 
-   do
-   {
-      broken = false;
-      for (size_t i = 0; i < m_pProbes->size() ; i++) /* Eval Start */
-      {
-         resultArray[processNumber][metaRepet][i].first = (*m_pProbes)[i]->startMeasure();
-      }
+    if ( processNumber == 0 )
+    {
+        m_pProbesDataCollector->start();
+    }
 
-      startTest(test, pArgv, processNumber);
+    startTest(test, pArgv, processNumber);
 
-      for (int i = m_pProbes->size()-1 ; i >= 0; i--) /* Eval Stop */
-      {
-         resultArray[processNumber][metaRepet][i].second = (*m_pProbes)[i]->stopMeasure();
-
-         if ( resultArray[processNumber][metaRepet][i].second - resultArray[processNumber][metaRepet][i].first < 0 )
-         {
-            broken = true;
-         }
-      }
-
-      // ensure all the tasks finished before going to the next iteration
-      if (processNumber == 0)
-      {
-         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
-         {
+    // ensure all the tasks finished before going to the next iteration
+    if (processNumber == 0)
+    {
+        for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
+        {
             if ( sem_wait(m_fatherLock) != 0 )
             {
-               perror("sem_wait father");
+                perror("sem_wait father");
             }
-         }
+        }
 
-         for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
-         {
+        for ( unsigned int i = 0 ; i < m_nbProcess - 1; i++ )
+        {
             if ( sem_post(m_processEndLock) != 0 )
             {
-               perror("sem_post processEnd");
+                perror("sem_post processEnd");
             }
-         }
-      }
-      else
-      {
-         if ( sem_post(m_fatherLock) != 0 )
-         {
+        }
+    }
+    else
+    {
+        if ( sem_post(m_fatherLock) != 0 )
+        {
             perror("sem_post");
-         }
+        }
 
-         if ( sem_wait(m_processEndLock) != 0 )
-         {
+        if ( sem_wait(m_processEndLock) != 0 )
+        {
             perror("sem_wait");
-         }
-      }
+        }
+    }
 
+    if ( processNumber == 0 )
+    {
+        m_pProbesDataCollector->stop(pResults);
+    }
 
-   } while(broken);
-
-   for (int i = 0 ; i < nbArgs+1 ; i++ )
-   {
-      free(pArgv[i]);
-   }
-   delete [] pArgv;
+    for (int i = 0 ; i < nbArgs+1 ; i++ )
+    {
+        free(pArgv[i]);
+    }
+    delete [] pArgv;
 }
 
 void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsigned int processNumber)
 {
    pid_t pid = -1;
    switch (pid = fork ())
-    {
-        case -1:
-        {
+   {
+      case -1:
+         {
             exit (EXIT_FAILURE);
-        }
-        case 0:
-        {
-         CPUUtils::setFifoMaxPriority(-2);
-         if ( sem_post(m_fatherLock) != 0 )
-         {
-            perror("sem_post");
          }
-
-         if ( sem_wait(m_processLock) != 0 )
+      case 0:
          {
-            perror("sem_wait");
-         }
+            CPUUtils::setFifoMaxPriority(-2);
+            if ( sem_post(m_fatherLock) != 0 )
+            {
+               perror("sem_post");
+            }
 
-         execvp (programName.c_str(), pArgv);
-         exit(EXIT_SUCCESS);
-      }
+            if ( sem_wait(m_processLock) != 0 )
+            {
+               perror("sem_wait");
+            }
+
+            execvp (programName.c_str(), pArgv);
+            exit(EXIT_SUCCESS);
+         }
       default:
-        {
+         {
             // Father
             int status;
 
-         // synchronized start
-         if ( processNumber == 0 )
-         {
-            for ( unsigned int i = 0 ; i < m_nbProcess ; i++ )
+            // synchronized start
+            if ( processNumber == 0 )
             {
-               if ( sem_wait(m_fatherLock) != 0 )
+               for ( unsigned int i = 0 ; i < m_nbProcess ; i++ )
                {
-                  perror("sem_wait father");
+                  if ( sem_wait(m_fatherLock) != 0 )
+                  {
+                     perror("sem_wait father");
+                  }
                }
-            }
 
-            for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
-            {
-               if ( sem_post(m_processLock) != 0 )
+               for ( unsigned int i = 0 ; i < m_nbProcess  ; i++ )
                {
-                  perror("sem_post process");
+                  if ( sem_post(m_processLock) != 0 )
+                  {
+                     perror("sem_post process");
+                  }
                }
             }
-         }
 
             waitpid (pid, &status, 0);
 
             int res = WEXITSTATUS (status);
-         if(res != EXIT_SUCCESS)
-         {
-            std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
-         }
+            if(res != EXIT_SUCCESS)
+            {
+               std::cerr << "Child exited with status " << res << ", an error occured.\n" << std::endl;
+            }
             /* Child must end normally */
             if (WIFEXITED (status) == 0)
             {
-                if (WIFSIGNALED (status))
-                {
-                     psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
-                     exit (EXIT_FAILURE);
-                }
-                std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
-                exit (EXIT_FAILURE);
+               if (WIFSIGNALED (status))
+               {
+                  psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
+                  exit (EXIT_FAILURE);
+               }
+               std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;
+               exit (EXIT_FAILURE);
             }
-
+            
             break;
-        }
+         }
    }
 }
 
-void ProgramRunner::start(unsigned int processNumber)
+void ProgramRunner::start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber)
 {
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
    {
-      calculateOverhead(metaRepet,processNumber);
+      calculateOverhead(pOverheadExpResult,processNumber);
    }
 
    for (unsigned int metaRepet = 0; metaRepet < m_nbMetaRepet ; metaRepet++)
@@ -233,11 +221,6 @@ void ProgramRunner::start(unsigned int processNumber)
       {
          std::cout << "Repetition - " << metaRepet << std::endl;
       }
-      evaluation(m_runResults,m_test,m_args,metaRepet,processNumber);
-   }
-
-   if ( processNumber == 0 )
-   {
-      saveResults();
+      evaluation(pExpResult,m_test,m_args,processNumber);
    }
 }

@@ -33,7 +33,7 @@
  * are outputted in a file. The results gets the overhead removed before getting
  * outputted.
  */
-class ProgramRunner : Runner
+class ProgramRunner : public Runner
 {
 private:
     const std::string& m_test;
@@ -42,20 +42,21 @@ private:
    /**
     * Starter for the overhead benchmark
     * Calls evaluation with a specific test 'empty'
+    * \param pOverheadExpResult pointer on \a ExperimentationResults where to keep the probes results
     * \param metaRepet actual repetition number
     * \param processNumber actual process id running this function
     */
-   void calculateOverhead(unsigned int metaRepet, unsigned int processNumber);
+   void calculateOverhead(ExperimentationResults* pOverheadResults, unsigned int processNumber);
 
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
-    * \param resultArray the memory array to keep the results
+    * \param pResults pointer on \a ExperimentationResults where to keep the probes results
     * \param test the program to evaluate
     * \param args the args to pass to the program to evaluate
     * \param metaRepet the actual repetition number
     * \param processNumber the actual process number
     */
-   void evaluation(GlobalResultsArray& resultArray, const std::string& test, const std::vector<std::string>& args, unsigned int metaRepet, unsigned int processNumber);
+   void evaluation(ExperimentationResults* pResults, const std::string& test, const std::vector<std::string>& args, unsigned int processNumber);
 
    /**
     * Start the real test in a fork. Synchonises all active process starting the test
@@ -69,20 +70,19 @@ public:
    /**
     * Prepare a benchmark run
     * Loads the probes, allocates results table memory
-    * \param pProbes list of probes to use
-    * \param resultFileName file where to output the results
+    * \param pProbesDataCollector pointer to the \a ProbeDataCollector to use to collect the probes data
     * \param test the program to bench
     * \param args the args to pass to the program to bench
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   ProgramRunner(ProbeList* pProbes, const std::string& resultFileName, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
+   ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
 
    /**
     */
    ~ProgramRunner();
 
-   void start(unsigned int processNumber);
+   void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber);
 };
 
 #endif

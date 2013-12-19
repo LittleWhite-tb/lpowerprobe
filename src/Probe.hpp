@@ -22,79 +22,129 @@
 
 #include <string>
 #include <vector>
-#include <exception>
+#include <cassert>
 
-/**
- * @class ProbeLoadingException
- * @brief Thrown when a probe could not be loaded properly
- */
-class ProbeLoadingException: public std::exception
-{
-   public:
-   
-      /**
-       * \param message reason of the exception
-       */
-      ProbeLoadingException(const std::string& message)
-         :message(message)
-      {
-      }
-   
-      virtual ~ProbeLoadingException(void)throw() {}
+#include <dlfcn.h>
 
-      /**
-       * \return the littral reason of the exception
-       */
-      virtual const char* what() const throw()
-      {
-         return message.c_str();
-      }
-   
-   private:
-      std::string message;
+#include "ProbeLoadingException.hpp"
+
+enum {
+   MANDATORY = 0,
+   FACULTATIVE
 };
 
 /**
- * Wrapper around dynamic evaluation library
+ * Wrapper for probes
+ * This class is virtual since we handles two different version of probes
  */
 class Probe
 {
-   typedef double (*evalGet)(void *data);
-   typedef  void* (*evalInit)(void);
-   typedef int (*evalClose)(void *data);
-   
 private:
-   void* pLibHandle;
-   void* pProbeHandle;
 
-   evalGet evaluationStart;   
-	evalGet evaluationStop;    
-	evalInit evaluationInit;   
-	evalClose evaluationClose;  
+protected:
+    void* pLibHandle;  /*!< Pointer to the probe library */
+    void* pProbeHandle; /*!< Pointer to the probe library data */
+    std::string m_name;
+    bool is_initialized;
+
+    /**
+     * Generic function to load a symbol from the probe library
+     * @param symbol the name of the symbol
+     * @return the pointer to the symbol
+     */
+    template <typename T>
+    T loadSymbol(const char* symbol, unsigned int errorHandlingFlag)
+    {
+        assert (symbol != NULL);
+
+       T pSymbol = (T)dlsym(this->pLibHandle, symbol);
+       if ( pSymbol == NULL )
+       {
+          switch (errorHandlingFlag) {
+             case FACULTATIVE: break;
+             case MANDATORY:
+                throw ProbeLoadingException(std::string("Error to load '") + symbol + "' (" + dlerror() + ")");
+                break;
+             default:
+                throw ProbeLoadingException (std::string ("Error: Unknown error handling flag\n"));
+                break;
+          };
+       }
+
+       return pSymbol;
+    }
+
+protected:
+    typedef double* (*libFini)(void *data); /*!< pointer to the function to close a probe library type */
+    typedef  void* (*libInit)(void); /*!< pointer to the function to initialize a probe library type */
+
+    libInit evaluationInit; /*!< probe initialisation function pointer */
+    libFini evaluationFini; /*!< probe closure function pointer */
 
 public:
-   /**
-    * Loads a probe from \a path
-    * \param path the path to the file to load
-    * \exception ProbeLoadingException on failure
-    */
-   Probe(const std::string& path);
-   
-   /**
-    */
-   ~Probe();
+    /**
+     * Loads a probe library
+     * @param path path to the probe library
+     * @exception ProbeLoadingException thrown when the file could not be loaded
+     */
+    Probe(const std::string& path, const char *initName,
+          const char *finiName);
 
-   /**
-    * \return the actual value of the probe (start value)
-    */
-   double startMeasure();
-   
-   /**
-    * \return the actual value of the probe (end value)
-    */
-   double stopMeasure();
+    /**
+     * Calls the closure function \a evaluationFini if possible and close the probe library
+     */
+    virtual ~Probe();
+
+    void init ();
+    void fini ();
+
+    /**
+     * Updates the probe
+     */
+    virtual void update();
+
+    /**
+     * Starts a new measurement with the probe
+     */
+    virtual void startMeasure()=0;
+
+    /**
+     * Stops the measurement of the probe
+     * \return the actual value of the probe (end value)
+     */
+    virtual double* stopMeasure()=0;
+
+    /**
+     * Gets the probe version
+     * @return
+     */
+    virtual unsigned int getVersion()const { return 1; }
+
+    /**
+     * Gets the number of devices handled by the probe
+     * @return
+     */
+    virtual unsigned int getNbDevices()const { return 1; }
+
+    /**
+     * Gets the numbers of channels handled by the probe
+     * @return
+     */
+    virtual unsigned int getNbChannels()const { return 1; }
+
+    /**
+     * Get the refresh period (step to call update) for this probe
+     * @return
+     */
+    virtual unsigned int getPeriod()const { return 0; }
+
+    /**
+     * Get the label of the probe
+     * The label is a string that will be used to describe the data returned in a human readable form
+     * @return
+     */
+    virtual const char* getLabel()const { return ""; }
 };
-
-typedef std::vector<Probe*> ProbeList; 
+typedef std::vector<Probe*> ProbeList;
 
 #endif

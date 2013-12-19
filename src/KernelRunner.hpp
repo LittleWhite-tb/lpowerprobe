@@ -60,22 +60,21 @@ private:
    /**
     * Starter for the overhead benchmark
     * Calls evaluation with a specific test 'empty'
-    * \param metaRepet actual repetition number
+    * \param pOverheadExpResult pointer on \a ExperimentationResults where to keep the probes results
     * \param processNumber actual process id running this function
     */
-   void calculateOverhead(unsigned int metaRepet, unsigned int processNumber);
+   void calculateOverhead(ExperimentationResults* pOverheadExpResult, unsigned int processNumber);
    
    /**
     * Benchmark a test by start the measurements from the probes, running the test, and saving the probes results
-    * \param resultArray the memory array to keep the results
+    * \param pExpResult pointer on \a ExperimentationResults where to keep the probes results
     * \param pKernelFct the kernel to evaluate
     * \param memory the space where to apply the bench
     * \param nbKernelIteration the number of inner kernel loop iteration
     * \param size the size used by one kernel iteration
-    * \param metaRepet the actual repetition number
     * \param processNumber the actual process number
     */
-   void evaluation(GlobalResultsArray& resultArray, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int metaRepet, unsigned int processNumber);
+   void evaluation(ExperimentationResults* pExpResult, KernelFctPtr pKernelFct, const std::vector<char*>& memory, unsigned long int nbKernelIteration, size_t size, unsigned int processNumber);
    
    /**
     * Infinite loop called to sync the bench processes
@@ -91,9 +90,7 @@ private:
 public:
    /**
     * Prepare a benchmark run
-    * Loads the probes, allocates results table memory
-    * \param pProbes list of probes to use
-    * \param resultFileName file where to output the results
+    * \param pProbesDataCollector a pointer to the \a ProbeDataCollector to use
     * \param pKernelFct the kernel to bench
     * \param pDummyKernelFct the dummy kernel to calculate probes overload
     * \param nbKernelIteration the number of iteration spent in the kernel
@@ -101,17 +98,13 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   KernelRunner(ProbeList* pProbes, const std::string& resultFileName, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
+   KernelRunner(ProbeDataCollector* pProbesDataCollector, void* pKernelFct, void* pDummyKernelFct, unsigned long int nbKernelIteration, size_t iterationMemorySize, unsigned int nbProcess, unsigned int nbMetaRepet);
    
    /**
     */
    ~KernelRunner();
 
-   /**
-    * Start the benchmark
-    * \param processNumber the process number
-    */
-   void start(unsigned int processNumber);
+   void start(ExperimentationResults* pOverheadExpResult, ExperimentationResults* pExpResult, unsigned int processNumber);
 };
 
 #endif

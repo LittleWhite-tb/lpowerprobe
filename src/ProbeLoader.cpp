@@ -19,18 +19,40 @@
 
 #include "ProbeLoader.hpp"
 
+#include "ProbeLoadingException.hpp"
+#include "ProbeInitialisationException.hpp"
+#include "InvalidProbeVersionException.hpp"
+
+#include "ProbeV1.hpp"
+#include "ProbeV2.hpp"
+
 #include <iostream>
 
 ProbeLoader::ProbeLoader()
 {
    // Don't forget to end path with '/'
-   m_dirs.push_back(INSTALL_DIR "/lib/lPowerProbe/");
+   m_dirs.push_back(LIB_DIR "/lPowerProbe/");
+   m_dirs.push_back(LIB_DIR "/");
    m_dirs.push_back("");
    m_dirs.push_back("./");
    m_dirs.push_back("./probes/");
    
-   m_defaultsProbes.push_back("energy_msr_snb.so");
-   m_defaultsProbes.push_back("wallclock.so");
+   m_defaultsProbes.push_back("libenergymsr/libenergymsr.so");
+   m_defaultsProbes.push_back("libwallclock/libwallclock.so");
+}
+
+void ProbeLoader::tryLoadProbe(const std::string& probePath, ProbeList& probes)
+{
+    Probe* pProbe = NULL;
+    try
+    {
+       pProbe = new ProbeV2(probePath);
+
+    }
+    catch (ProbeLoadingException& ple) {
+        pProbe = new ProbeV1 (probePath);
+    }
+    probes.push_back(pProbe);
 }
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
@@ -43,38 +65,46 @@ bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, Prob
    {
       errors.clear();
       bool loaded = false;
-      std::cout << "Trying to load : " << *itProbePath << " ... ";
-      for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false ; ++itDir )
+      bool loopStopper = false;
+      for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false && loopStopper == false ; ++itDir )
       {
          try
          {
-            Probe* pProbe = new Probe(*itDir + *itProbePath);
-            probes.push_back(pProbe);
+            tryLoadProbe(*itDir + *itProbePath,probes);
             loaded = true; // stops the loop
          }
          catch (ProbeLoadingException& ple)
          {
             errors.push_back(ple.what());
          }
+          catch (ProbeInitialisationException& pie)
+          {
+              // we don't bother about old 'not found' errors, since we found it, but not able to init it
+             errors.clear();
+             errors.push_back(pie.what());
+             loopStopper = true;
+          }
       }
       
       if ( loaded == false )
       {
+         std::cout << "ERROR to load probe '" << *itProbePath << "'" << std::endl;
          for ( std::vector<std::string>::const_iterator itError = errors.begin() ; itError != errors.end() ; ++itError )
          {
             std::cout << "==> " << *itError << std::endl;
          }
-         std::cout << "Failed" << std::endl;
          result = false;
       }
    }
    
+   std::cout << std::endl << std::endl;
    return result;
 }
       
 bool ProbeLoader::loadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
 {
    // No probes specified by user, try to load defaults one
+   std::cout << std::endl << std::endl;
    if ( probesPath.size() == 0 )
    {
       std::cout << "No probes specified, loading defaults" << std::endl;
