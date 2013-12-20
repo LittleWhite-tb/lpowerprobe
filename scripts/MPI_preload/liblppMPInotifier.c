@@ -23,7 +23,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <signal.h>
-#include "mpi.h"
+
+#include <mpi.h>
 
 static pid_t lpp_pid;
 
