@@ -57,9 +57,22 @@ MSRSUPPORT=
               [AC_SUBST([MSRSUPPORT], ["msr"])],
               [])
 
+
+AC_ARG_WITH([mic],
+            [AS_HELP_STRING([--with-mic],
+              [enable mic support])],
+            [with_mic=yes],
+            [])
+
+MICSUPPORT=
+          AS_IF([test "x$with_mic" != xno],
+            [AC_SUBST([MICSUPPORT], ["mic"])],
+              [])
+
 AM_CONDITIONAL(USEPFM,[test $LIBPFM = -lpfm])
 AM_CONDITIONAL(USEYOKO,[test $YOKOSUPPORT = yoko])
 AM_CONDITIONAL(USEMSR,[test $MSRSUPPORT = msr])
+AM_CONDITIONAL(USEMIC,[test $MICSUPPORT = mic])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h termios.h unistd.h])
@@ -113,5 +126,6 @@ AC_CONFIG_FILES([Makefile
                  probes/libwallclock/Makefile
                  probes/libenergyyoko/Makefile
                  probes/libtimer/Makefile
+                 probes/mic_energy/Makefile
                  probes/pfmcounters/Makefile])
 AC_OUTPUT
