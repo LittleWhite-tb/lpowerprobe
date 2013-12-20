@@ -8,7 +8,7 @@ CLEANFILES = doxyfile.stamp
 
 all-local: doxyfile.stamp
 clean-local:
-	rm -rf $(top_srcdir)/doc
+	rm -rf $(top_srcdir)/doc/doc
 
 install:
 	cp -r --parents ./doc/html/ $(datadir)/lPowerProbe
