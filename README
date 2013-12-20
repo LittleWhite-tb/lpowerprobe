@@ -9,7 +9,13 @@ Then, you can follow the usual sequence:
     make
     make install
 
-== Usage ==
+== MIC support ==
+
+You have to specify Intel compilers to get MIC support during configuration. You can do the following :
+
+    CC=icc CXX=icpc LD=icc CPPFLAGS=-mmic LDFLAGS=-mmic ./configure --host=x86_64 --prefix=`pwd`/build/mic
+
+= Usage =
 
 ./lPowerProbe [OPTION] [prog] [args]
 
@@ -34,11 +40,11 @@ It can work in three different modes depending on the prog argument value:
 The result is output in a file called 'output.csv'.
 
 
-Generate documentation :
+= Generate documentation =
 
-    make doc
+    The documentation is generated during compilation process (make) is doxygen is installed
     
-Licence :
+= Licence =
 
     Copyright (C) 2013 Universite de Versailles
         GPLv3
