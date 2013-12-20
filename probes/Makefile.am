@@ -1,1 +1,1 @@
-SUBDIRS = libenergymsr libwallclock libenergyyoko libtimer mic_energy pfmcounters
+SUBDIRS = libenergymsr libwallclock libenergyyoko libtimer libenergymic pfmcounters

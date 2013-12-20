@@ -62,7 +62,7 @@ AC_ARG_WITH([mic],
             [AS_HELP_STRING([--with-mic],
               [enable mic support])],
             [with_mic=yes],
-            [])
+            [with_mic=no])
 
 MICSUPPORT=
           AS_IF([test "x$with_mic" != xno],
@@ -126,6 +126,6 @@ AC_CONFIG_FILES([Makefile
                  probes/libwallclock/Makefile
                  probes/libenergyyoko/Makefile
                  probes/libtimer/Makefile
-                 probes/mic_energy/Makefile
+                 probes/libenergymic/Makefile
                  probes/pfmcounters/Makefile])
 AC_OUTPUT
