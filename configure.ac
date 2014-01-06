@@ -3,10 +3,10 @@
 
 AC_PREREQ([2.63])
 AC_INIT([lPowerProbe], 2.0, [BUG-REPORT-ADDRESS])
+LT_INIT([dlopen])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([-Wall])
-LT_INIT([dlopen])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
@@ -14,6 +14,9 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+
+AC_DISABLE_STATIC
+AC_SUBST([LIBTOOL_DEPS])
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [pow], [AC_SUBST(LIBM,-lm)])
