@@ -90,7 +90,7 @@ for arg in "$@"; do
 done
 
 # run lpp as a deamon on all nodes
-mpirun -npernode 1 ${largs} ${LPP} ${LPPOPTS}
+mpirun -npernode 1 ${largs} ${LPP} ${LPPOPTS} &
 
 for r in $(seq ${NREPET}); do
    mpirun ${pargs}
