@@ -127,6 +127,7 @@ fi
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  empty/Makefile
+                 scripts/Makefile
                  scripts/MPI_preload/Makefile
                  probes/Makefile
                  probes/libenergymsr/Makefile

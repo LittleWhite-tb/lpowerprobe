@@ -3,4 +3,6 @@ if USE_MPICC
     CC=mpicc
     lib_LTLIBRARIES = liblppMPInotifier.la
     liblppMPInotifier_la_SOURCES = liblppMPInotifier.c
+    data_subdir = $(datadir)/lPowerProbe
+    data_sub_DATA = preloader.sh
 endif
