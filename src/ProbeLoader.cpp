@@ -30,13 +30,6 @@
 
 ProbeLoader::ProbeLoader()
 {
-   // Don't forget to end path with '/'
-   m_dirs.push_back(LIB_DIR "/lPowerProbe/");
-   m_dirs.push_back(LIB_DIR "/");
-   m_dirs.push_back("");
-   m_dirs.push_back("./");
-   m_dirs.push_back("./probes/");
-   
    m_defaultsProbes.push_back("libenergymsr/libenergymsr.so");
    m_defaultsProbes.push_back("libwallclock/libwallclock.so");
 }
@@ -57,50 +50,26 @@ void ProbeLoader::tryLoadProbe(const std::string& probePath, ProbeList& probes)
 
 bool ProbeLoader::tryLoadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
 {
-   std::vector<std::string> errors;
    bool result = true;
    
    // User specified libs to load
    for ( std::vector<std::string>::const_iterator itProbePath = probesPath.begin() ; itProbePath != probesPath.end() ; ++itProbePath )
    {
-      errors.clear();
-      bool loaded = false;
-      bool loopStopper = false;
-      for ( std::vector<std::string>::const_iterator itDir = m_dirs.begin() ; itDir != m_dirs.end() && loaded == false && loopStopper == false ; ++itDir )
-      {
-         try
-         {
-            tryLoadProbe(*itDir + *itProbePath,probes);
-            loaded = true; // stops the loop
-         }
-         catch (ProbeLoadingException& ple)
-         {
-            errors.push_back(ple.what());
-         }
-          catch (ProbeInitialisationException& pie)
-          {
-              // we don't bother about old 'not found' errors, since we found it, but not able to init it
-             errors.clear();
-             errors.push_back(pie.what());
-             loopStopper = true;
-          }
+      std::string error;
+      try {
+         tryLoadProbe(*itProbePath, probes);
       }
-      
-      if ( loaded == false )
-      {
-         std::cout << "ERROR to load probe '" << *itProbePath << "'" << std::endl;
-         for ( std::vector<std::string>::const_iterator itError = errors.begin() ; itError != errors.end() ; ++itError )
-         {
-            std::cout << "==> " << *itError << std::endl;
-         }
+      catch (std::exception &ple) {
+         error = ple.what();
+
+         std::cout << "ERROR while loading probe '" << *itProbePath << "': " << error << std::endl;
          result = false;
       }
    }
    
-   std::cout << std::endl << std::endl;
    return result;
 }
-      
+
 bool ProbeLoader::loadProbes(const std::vector<std::string>& probesPath, ProbeList& probes)
 {
    // No probes specified by user, try to load defaults one
