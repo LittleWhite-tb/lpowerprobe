@@ -17,17 +17,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-INSTALL_DIR=/usr
+PREFIX=/usr
+DATA_DIR=$(PREFIX)/share/
+VERSION=v2.0 ($(shell git rev-list HEAD --count) ; $(shell git rev-list HEAD | head -n 1))
 
 CC=gcc
 CXX=g++
 LD=$(CXX)
 
-CFLAGS=-Wextra -Wall -g -O2 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
-CXXFLAGS=-Wextra -Wall -g -O2 -DINSTALL_DIR="\"$(INSTALL_DIR)\""
+CFLAGS=-Wextra -Wall -g -O2 -DDATA_DIR="\"$(DATA_DIR)\"" -DINSTALL_DIR="\"$(PREFIX)\"" -DVERSION="\"$(VERSION)"\"
+CXXFLAGS=-Wextra -Wall -g -O2 -DDATA_DIR="\"$(DATA_DIR)\"" -DINSTALL_DIR="\"$(PREFIX)\"" -DVERSION="\"$(VERSION)"\"
 LDFLAGS=-ldl -lpthread -lrt
 
-LPP_VERSION=2
+LPP_VERSION=2.0
 
 SRC=$(wildcard src/*.cpp)
 OBJ=$(SRC:.cpp=.o)
@@ -37,7 +39,7 @@ EXEC=lPowerProbe
 
 .PHONY: clean test doc all install uninstall extra distclean
 
-all: export-globals $(EXEC) test extra
+all: $(EXEC) test extra
 
 install: all
 	cp $(EXEC) $(INSTALL_DIR)/bin
@@ -68,6 +70,7 @@ test:
 	make -C empty/ CC="$(CC)"
 
 extra:
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymic CC="$(CC)"
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr CC="$(CC)"
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock CC="$(CC)"
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko CC="$(CC)"
@@ -83,12 +86,11 @@ clean:
 
 distclean: clean
 	make -C ./empty/ clean
+	make -C probes/libenergymic clean
 	make -C probes/libwallclock clean
 	make -C probes/libenergymsr clean
 	make -C probes/libenergyyoko distclean
+	make -C probes/pfmcounters clean
+	make -C probes/libtimer clean
 	make -C scripts/MPI_preload clean
 	rm -f $(EXEC)
-
-export-globals:
-	@echo "#define GIT_COUNT" \"`git rev-list HEAD --count`\" > src/version.hpp
-	@echo "#define GIT_HASH" \"`git rev-list HEAD | head -n 1`\" >> src/version.hpp
