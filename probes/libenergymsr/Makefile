@@ -17,17 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-CC?=gcc
-CFLAGS=-O3 -Wall -Wextra -g -DLPP_API_VERSION=$(LPP_API_VERSION)
-LDFLAGS=-lm
+CFLAGS+=-O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
+LDFLAGS+=-lm
 
 .PHONY: clean all
 
 all: libenergymsr.so
 
 libenergymsr.so: libenergymsr.c libenergymsr.h
-	$(CC) $(CFLAGS) -fPIC -shared $< -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
 	rm -f libenergymsr.so

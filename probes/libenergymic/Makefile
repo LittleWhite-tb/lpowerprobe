@@ -19,15 +19,15 @@
 
 
 CC?=icc
-CFLAGS=-O3 -Wall -Wextra -g -DLPP_API_VERSION=$(LPP_API_VERSION)
-LDFLAGS=-lm -lpthread -lrt
+CFLAGS+=-O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
+LDFLAGS+=-lm -lpthread -lrt
 
 .PHONY: clean all
 
 all: libenergymic.so
 
 libenergymic.so: mic_energy.c
-	$(CC) $(CFLAGS) -fPIC -shared $< -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
 	rm -f libenergymic.so

@@ -18,16 +18,33 @@
 #
 
 PREFIX=/usr
-DATA_DIR=$(PREFIX)/share/
+BINDIR=$(PREFIX)/bin/
+LIBDIR=$(PREFIX)/lib/
+DATADIR=$(PREFIX)/share/
 VERSION=v2.0 ($(shell git rev-list HEAD --count) ; $(shell git rev-list HEAD | head -n 1))
 
 CC=gcc
 CXX=g++
 LD=$(CXX)
 
-CFLAGS=-Wextra -Wall -g -O2 -DDATA_DIR="\"$(DATA_DIR)\"" -DINSTALL_DIR="\"$(PREFIX)\"" -DVERSION="\"$(VERSION)"\"
-CXXFLAGS=-Wextra -Wall -g -O2 -DDATA_DIR="\"$(DATA_DIR)\"" -DINSTALL_DIR="\"$(PREFIX)\"" -DVERSION="\"$(VERSION)"\"
-LDFLAGS=-ldl -lpthread -lrt
+CFLAGS+=-Wextra -Wall -g
+CXXFLAGS+=-Wextra -Wall -g 
+
+# Allows having these in sub-makefiles
+export CC
+export CXX
+export LD
+export CFLAGS
+export CXXFLAGS
+export LDFLAGS
+export PREFIX
+export DATA_DIR
+export VERSION
+
+# local variable, if I change the variable, the changes will be forwarded in sub-makefiles
+LOCCFLAGS=${CFLAGS} -O2 -DDATA_DIR="\"$(DATADIR)\"" -DINSTALL_DIR="\"$(PREFIX)\"" -DVERSION="\"$(VERSION)"\"
+LOCCXXFLAGS=${CXXFLAGS} -O2 -DDATA_DIR="\"$(DATADIR)\"" -DINSTALL_DIR="\"$(PREFIX)\"" -DVERSION="\"$(VERSION)"\"
+LOCLDFLAGS=${LDFLAGS} -ldl -lpthread -lrt
 
 LPP_VERSION=2.0
 
@@ -42,44 +59,51 @@ EXEC=lPowerProbe
 all: $(EXEC) test extra
 
 install: all
-	cp $(EXEC) $(INSTALL_DIR)/bin
-	-setcap CAP_SYS_RAWIO+eip $(INSTALL_DIR)/bin/$(EXEC)
-	mkdir -p $(INSTALL_DIR)/lib/lPowerProbe/
-	cp probes/*/*.so $(INSTALL_DIR)/lib/lPowerProbe/
-	mkdir -p $(INSTALL_DIR)/share/lPowerProbe/
-	cp empty/empty empty/empty.s $(INSTALL_DIR)/share/lPowerProbe/
+	mkdir -p $(BINDIR)
+	mkdir -p $(LIBDIR)
+	mkdir -p $(DATADIR)
+	cp $(EXEC) $(BINDIR)
+	#setcap CAP_SYS_RAWIO+eip $(BINDIR)/$(EXEC)
+	mkdir -p $(LIBDIR)/lPowerProbe/
+	cp probes/*/*.so $(LIBDIR)/lPowerProbe/
+	mkdir -p $(DATADIR)/lPowerProbe/
+	cp empty/empty empty/empty.s $(DATADIR)/lPowerProbe/
 
 uninstall:
-	rm -f $(INSTALL_DIR)/bin/$(EXEC)
-	rm -rf $(INSTALL_DIR)/lib/lPowerProbe
-	rm -rf $(INSTALL_DIR)/share/lPowerProbe
+	rm -f $(BINDIR)/$(EXEC)
+	rm -rf $(LIBDIR)/lPowerProbe
+	rm -rf $(DATADIR)/lPowerProbe
 
 $(EXEC): $(OBJ)
-	$(LD) $(OBJ) -o $@ $(LDFLAGS) 
+	echo "LOLkmoOL"
+	$(LD) $(OBJ) -o $@ $(LOCLDFLAGS) 
 
 %.o: %.cpp *.hpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(LOCCXXFLAGS) -c $< -o $@
 
 %.o: %.cpp *.h
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(LOCCXXFLAGS) -c $< -o $@
 
 %.o: %.c *.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(LOCCFLAGS) -c $< -o $@
+
+%.o: %.cpp
+	$(CXX) $(LOCCXXFLAGS) -c $< -o $@
 
 test:
-	make -C empty/ CC="$(CC)"
+	make -C empty/
 
 extra:
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymic CC="$(CC)"
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr CC="$(CC)"
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock CC="$(CC)"
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko CC="$(CC)"
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters CC="$(CC)"
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libtimer CC="$(CC)"
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymic
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock 
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko 
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters 
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libtimer 
 	make -C scripts/MPI_preload
 
 doc:
-	doxygen lPowerProbe.doxy
+	doxygen doc/Doxyfile.in
 
 clean:
 	rm -f $(OBJ)

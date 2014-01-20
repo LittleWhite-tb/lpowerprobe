@@ -17,15 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-CC?=gcc
-CFLAGS=-O3 -Wall -Wextra -g -DLPP_API_VERSION=$(LPP_API_VERSION)
+CFLAGS+=-O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
 
 .PHONY: all clean
 
 all: libwallclock.so
 
 libwallclock.so: libwallclock.c libwallclock.h
-	$(CC) $(CFLAGS) $< -o $@ -fPIC -shared
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm -f libwallclock.so

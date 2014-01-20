@@ -27,10 +27,10 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include <perfmon/pfmlib.h>
+#include <perfmon/perf_event.h>
+#include <perfmon/pfmlib_perf_event.h>
 #include "inih/ini.h"
-#include "perfmon/pfmlib.h"
-#include "perfmon/perf_event.h"
-#include "perfmon/pfmlib_perf_event.h"
 
 #ifndef LPP_API_VERSION
 #error LPP_API_VERSION undefined, never call this makefile directly!
