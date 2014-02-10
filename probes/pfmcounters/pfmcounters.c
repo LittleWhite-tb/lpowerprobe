@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Universite de Versailles
+ * Copyright (C) 2013-2014 Universite de Versailles
  * Copyright (C) 2012 Exascale Research Center
 
  * This program is free software; you can redistribute it and/or

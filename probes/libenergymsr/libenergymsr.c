@@ -1,7 +1,7 @@
 /*
 lPowerProbe - A light benchmark tool oriented for energy probing
               heavely based on likwid
-Copyright (C) 2013 Universite de Versailles
+Copyright (C) 2013-2014 Universite de Versailles
 Copyright (C) 2011 Exascale Research Center
 
 This program is free software; you can redistribute it and/or
