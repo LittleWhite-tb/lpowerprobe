@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-CFLAGS+=-O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
-LDFLAGS+=-lm
+override CFLAGS:=$(CFLAGS) -O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
+override LDFLAGS:=$(LDFLAGS) -lm
 
 .PHONY: clean all
 

@@ -19,8 +19,8 @@
 
 
 CC?=icc
-CFLAGS+=-O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
-LDFLAGS+=-lm -lpthread -lrt
+override CFLAGS:=$(CFLAGS) -O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION)
+override LDFLAGS:=$(LDFLAGS) -lm -lpthread -lrt
 
 .PHONY: clean all
 

@@ -27,8 +27,9 @@ CC=gcc
 CXX=g++
 LD=$(CXX)
 
-CFLAGS+=-Wextra -Wall -g
-CXXFLAGS+=-Wextra -Wall -g 
+override CFLAGS:=$(CFLAGS) -Wextra -Wall -g
+override CXXFLAGS:=$(CXXFLAGS) -Wextra -Wall -g 
+override LDFLAGS:=$(LDFLAGS)
 
 # Allows having these in sub-makefiles
 export CC
@@ -75,7 +76,6 @@ uninstall:
 	rm -rf $(DATADIR)/lPowerProbe
 
 $(EXEC): $(OBJ)
-	echo "LOLkmoOL"
 	$(LD) $(OBJ) -o $@ $(LOCLDFLAGS) 
 
 %.o: %.cpp *.hpp
@@ -97,8 +97,10 @@ extra:
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymic
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock 
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko 
-	make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters 
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko
+	@if [ -n "$(/sbin/ldconfig -p | grep pfm)" ] ; then \
+		make LPP_API_VERSION=$(LPP_VERSION) -C probes/pfmcounters ;\
+	fi
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libtimer 
 	make -C scripts/MPI_preload
 
@@ -114,7 +116,9 @@ distclean: clean
 	make -C probes/libwallclock clean
 	make -C probes/libenergymsr clean
 	make -C probes/libenergyyoko distclean
-	make -C probes/pfmcounters clean
+	@if [ -n "$(/sbin/ldconfig -p | grep pfm)" ] ; then \
+		make -C probes/pfmcounters clean ;\
+	fi
 	make -C probes/libtimer clean
 	make -C scripts/MPI_preload clean
 	rm -f $(EXEC)

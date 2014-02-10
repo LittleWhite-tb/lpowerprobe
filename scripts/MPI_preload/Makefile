@@ -1,6 +1,6 @@
-CFLAGS+=-O3 -fPIC -Wall -Wextra
-LDFLAGS+=-shared -ldl
-CC=mpicc
+override CFLAGS:=$(CFLAGS) -O3 -fPIC -Wall -Wextra
+override LDFLAGS:=$(LDFLAGS) -shared -ldl
+MPICC=mpicc
 
 all:liblppMPInotifier.so
 	
@@ -8,13 +8,11 @@ all:liblppMPInotifier.so
 .PHONY: all clean
 
 liblppMPInotifier.so: liblppMPInotifier.c
-	@echo "${CC} ${CFLAGS} $< -o $@ ${LDFLAGS}"
-	@${CC} --version >/dev/null
-	@if [ $$? -eq 0 ] ; \
+	@if [ -x "`which $(MPICC)`" ] ; \
 	then \
-		${CC} ${CFLAGS} $< -o $@ ${LDFLAGS} ;\
+		${MPICC} ${CFLAGS} $< -o $@ ${LDFLAGS} ;\
 	else \
-		@echo "INFO - liblppMPInotifier.so - You don't have mpicc, leaving" ;\
+		echo "INFO - liblppMPInotifier.so - You don't have $(MPICC), leaving" ;\
 	fi
 
 clean:
