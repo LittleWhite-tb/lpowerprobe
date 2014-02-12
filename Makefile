@@ -21,7 +21,7 @@ PREFIX=/usr
 BINDIR=$(PREFIX)/bin/
 LIBDIR=$(PREFIX)/lib/
 DATADIR=$(PREFIX)/share/
-VERSION=v2.0 ($(shell git rev-list HEAD --count) ; $(shell git rev-list HEAD | head -n 1))
+VERSION=v2.0 ($(shell git rev-list HEAD | wc -l) ; $(shell git rev-list HEAD | head -n 1))
 
 CC=gcc
 CXX=g++
