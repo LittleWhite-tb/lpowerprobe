@@ -36,9 +36,9 @@
 
 #include "CPUUtils.hpp"
 
-ProgramRunner::ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet)
+ProgramRunner::ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, char** pEnv, unsigned int nbProcess, unsigned int nbMetaRepet)
     :Runner(pProbesDataCollector,nbProcess,nbMetaRepet),
-      m_test(test),m_args(args)
+      m_test(test),m_args(args),m_pEnv(pEnv)
 {
 
 }
@@ -156,7 +156,7 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
                perror("sem_wait");
             }
 
-            execvp (programName.c_str(), pArgv);
+            execvpe(programName.c_str(), pArgv, m_pEnv);
             exit(EXIT_SUCCESS);
          }
       default:

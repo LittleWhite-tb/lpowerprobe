@@ -115,13 +115,14 @@ bool isFileExecutable(const char* pPath)
    return false;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char** argv, char** envp)
 {
    int opt=0;
    int option_index = 0;
    Options options;
    
    options.setProgramPath(argv[0]);
+   options.setProgramEnv(envp);
    
    while(1)
    {

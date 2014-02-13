@@ -38,6 +38,7 @@ class ProgramRunner : public Runner
 private:
     const std::string& m_test;
     const std::vector<std::string>& m_args;
+    char** m_pEnv;
 
    /**
     * Starter for the overhead benchmark
@@ -76,7 +77,7 @@ public:
     * \param nbProcess the number of process that will be started
     * \param nbMetaRepet the number of meta repetition to run
     */
-   ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, unsigned int nbProcess, unsigned int nbMetaRepet);
+   ProgramRunner(ProbeDataCollector* pProbesDataCollector, const std::string& test, const std::vector<std::string>& args, char** m_pEnv, unsigned int nbProcess, unsigned int nbMetaRepet);
 
    /**
     */

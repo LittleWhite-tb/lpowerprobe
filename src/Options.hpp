@@ -36,6 +36,7 @@ class Options
 private:
 
    std::string m_programPath; /*!< Path of the lPowerProbe program */
+   char** m_programEnv; /*!< Environnement variables from program */
 
    unsigned int m_nbProcess;
    std::vector<unsigned int> m_pinning;
@@ -85,10 +86,21 @@ public:
    const std::string& getProgramPath()const;
    
    /**
+    * \return get the environnement variables
+    */
+   char** getProgramEnv()const;
+   
+   /**
     * Sets the path to run lPowerProbe
     * \param numberProcess
     */
    void setProgramPath(const char* pPath);
+   
+   /**
+    * Sets the environnement variables used to run lPowerProbe
+    * \param pEnv
+    */
+   void setProgramEnv(char** pEnv);
    
    /**
     * \return the number of process to create

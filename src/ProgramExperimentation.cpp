@@ -77,7 +77,7 @@ void ProgramExperimentation::start()
 
    unsigned int nbProcess(m_options.getNbProcess());
 
-   ProgramRunner run(m_pProbeDataCollector, m_execFile, args, nbProcess, m_options.getNbRepetition());
+   ProgramRunner run(m_pProbeDataCollector, m_execFile, args,m_options.getProgramEnv(), nbProcess, m_options.getNbRepetition());
    std::vector<std::pair<pthread_t,ExperimentationThreadArgs*> > threads;
 
    for ( unsigned int process = 0 ; process < nbProcess ; process++ )

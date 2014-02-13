@@ -64,6 +64,16 @@ void Options::setProgramPath(const char* pPath)
    m_programPath = m_programPath + "/";   // Add '/' since it is remove by the substr.
 }
 
+char** Options::getProgramEnv()const
+{
+   return m_programEnv;
+}
+
+void Options::setProgramEnv(char** pEnv)
+{
+    m_programEnv = pEnv;
+}
+
 unsigned int Options::getNbProcess()const
 {
    return m_nbProcess;
