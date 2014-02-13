@@ -21,7 +21,7 @@ PREFIX=/usr
 BINDIR=$(PREFIX)/bin/
 LIBDIR=$(PREFIX)/lib/
 DATADIR=$(PREFIX)/share/
-VERSION=v2.0 $(shell if [ -x $(which git) ] ; then echo -n "(" ;git rev-list HEAD | wc -l ; echo -n "; " ; git rev-list HEAD | head -n 1 ; echo -n ")" ; fi)
+VERSION=v2.0 $(shell if [ -x "`which git`" ] ; then echo -n "(" ;git rev-list HEAD | wc -l ; echo -n "; " ; git rev-list HEAD | head -n 1 ; echo -n ")" ; fi)
 
 CC=gcc
 CXX=g++
