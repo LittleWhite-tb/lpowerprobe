@@ -137,6 +137,7 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
         sigaddset(&blocked, SIGINT);
         sigaddset(&blocked, SIGUSR1);
         sigaddset(&blocked, SIGUSR2);
+        sigaddset(&blocked, SIGALRM);
         pthread_sigmask(SIG_BLOCK, &blocked, &oldsigs);   // inherited
 
         if ( pthread_create(&m_collectorThread,&attr,probeThread,this) != 0 )
@@ -150,7 +151,6 @@ ProbeDataCollector::ProbeDataCollector(ProbeList* pProbes)
             std::cerr << "Failed to destroy the atrribute thread" << std::endl;
             throw std::runtime_error("pthread_attr_destroy");
         }
-
 
         // restore the old signal state
         pthread_sigmask(SIG_SETMASK, &oldsigs, NULL);
@@ -246,8 +246,14 @@ void ProbeDataCollector::updateThread()
    sact.sa_handler = threadSigalrmHandler;
    sact.sa_mask = mask;
    sact.sa_flags = 0;
+  
+   sigset_t unblocked;
+   sigemptyset(&unblocked);
+   sigaddset(&unblocked, SIGALRM);
 
    sigaction(SIGALRM, &sact, NULL);
+ 
+   pthread_sigmask(SIG_UNBLOCK, &unblocked, NULL);   // inherited
 
    // main loop
    while ( m_threadRunning )

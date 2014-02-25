@@ -97,7 +97,7 @@ void Probe::init () {
    this->is_initialized = true;
    
    // Give the user some feedback
-   std::cerr << m_name << " successfully loaded and initialized" << std::endl;
+   std::cout << m_name << " successfully loaded and initialized" << std::endl;
 }
 
 void Probe::fini () {
