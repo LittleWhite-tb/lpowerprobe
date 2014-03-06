@@ -19,7 +19,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-
 #include <math.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -32,6 +31,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <fcntl.h>
 
 #include "libenergymsr.h"
+
+// values of global constants
+const unsigned int version = LPP_API_VERSION;
+const char *label = "CPU energy (J)";
+const unsigned int period = 20000000;
+
 
 typedef struct
 {

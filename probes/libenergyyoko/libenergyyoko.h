@@ -44,7 +44,7 @@ const unsigned int period = 0;
  *
  * @return The number of devices considered by this lib.
  */
-extern unsigned int nbDevices();
+extern unsigned int nbDevices(void *data);
 
 /**
  * Returns the number of channels per device to use.
@@ -52,7 +52,7 @@ extern unsigned int nbDevices();
  * @return The number of channels to associate to every device. It is the number
  * of different result values per device in the return value of stop.
  */
-extern unsigned int nbChannels();
+extern unsigned int nbChannels(void *data);
 
 /**
  * Called first at initialization.

@@ -61,11 +61,13 @@ static __inline__ unsigned long long getticks(void)
    return ret;
 }
 
-extern unsigned int nbDevices () {
+extern unsigned int nbDevices (void *data) {
+   (void) data;
    return 1;
 }
 
-extern unsigned int nbChannels () {
+extern unsigned int nbChannels (void *data) {
+   (void) data;
    return 1;
 }
 

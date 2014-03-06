@@ -96,6 +96,7 @@ test:
 extra:
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymic
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergymsr
+	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyserver
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libwallclock 
 	make LPP_API_VERSION=$(LPP_VERSION) -C probes/libenergyyoko
 	@if [ -n "$(/sbin/ldconfig -p | grep pfm)" ] ; then \
@@ -115,6 +116,7 @@ distclean: clean
 	make -C probes/libenergymic clean
 	make -C probes/libwallclock clean
 	make -C probes/libenergymsr clean
+	make -C probes/libenergyserver clean
 	make -C probes/libenergyyoko distclean
 	@if [ -n "$(/sbin/ldconfig -p | grep pfm)" ] ; then \
 		make -C probes/pfmcounters clean ;\

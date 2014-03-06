@@ -28,12 +28,14 @@ typedef struct {
   double e;
 } libdata_t;
 
-extern unsigned int nbDevices() {
-  return 1;
+extern unsigned int nbDevices(void *data) {
+   (void) data;
+   return 1;
 }
 
-extern unsigned int nbChannels() {
-  return 1;
+extern unsigned int nbChannels(void *data) {
+   (void) data;
+   return 1;
 }
 
 extern void *init (void) {
