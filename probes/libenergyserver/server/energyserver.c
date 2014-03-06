@@ -22,22 +22,20 @@ void start (void *data);
 double *stop (void *data);
 void update (void *data);
 
-static void *energy_ctx;
-static server_data *shared;
+static volatile sig_atomic_t wants_stop = 0;
 
 // signal handler for SIGTERM and SIGINT
 static void handler_fn(int snum) {
    (void) snum;
-   
-   stop(energy_ctx);
-   fini(energy_ctx);
-   shm_unlink(ESRV_SHM_NAME);
-   munmap(shared, sizeof(server_data));
+
+   wants_stop = 1;
 }
 
 // entry point
 int main(int argc, char **argv) {
    unsigned int i;
+   void *energy_ctx;
+   server_data *shared;
 
    (void) argc;
    (void) argv;
@@ -90,13 +88,14 @@ int main(int argc, char **argv) {
 
    sigemptyset(&sig_handler.sa_mask);
    sig_handler.sa_handler = handler_fn;
+   sig_handler.sa_flags = 0;
 
    sigaction(SIGTERM, &sig_handler, NULL);
    sigaction(SIGINT, &sig_handler, NULL);
 
    // initialize shared data
-   sem_init(&shared->measure, 1, 0);
-   sem_init(&shared->read, 1, 0);
+   sem_init(&(shared->measure), 1, 0);
+   sem_init(&(shared->read), 1, 0);
    shared->nb_devices = nbDevices();
    for (i = 0; i < shared->nb_devices; ++i) {
       shared->energy[i] = 0;
@@ -107,6 +106,16 @@ int main(int argc, char **argv) {
       double *last_results;   
       struct timespec ts;
 
+      // signal received
+      if (wants_stop) {
+         stop(energy_ctx);
+         fini(energy_ctx);
+         shm_unlink(ESRV_SHM_NAME);
+         munmap(shared, sizeof(server_data));
+         return EXIT_SUCCESS;
+      }
+
+      ts.tv_nsec = 0;
       clock_gettime(CLOCK_REALTIME_COARSE, &ts);
       ts.tv_sec += period / 1000000;   // seconds are enough
 
@@ -114,6 +123,8 @@ int main(int argc, char **argv) {
          if (errno == ETIMEDOUT) {
             update(energy_ctx);
             continue;
+         } else if (errno == EINTR) {
+            continue;   // signal received
          } else {
             perror("Error while waiting requests");
          }
