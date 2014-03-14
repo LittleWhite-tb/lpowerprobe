@@ -25,5 +25,5 @@ if [ -n "${LPPPID}" ]; then
    done
 
    # copy the local output to a shared location
-   cp ${LPPOUTPUT} ${RES_DIR}/lppout_$(hostname -s)_$(date +"%d%m%y%H%M%S").csv
+   mv ${LPPOUTPUT} ${RES_DIR}/lppout_$(hostname -s)_$(date +"%d%m%y%H%M%S").csv
 fi
