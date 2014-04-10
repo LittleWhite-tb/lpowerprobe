@@ -1,5 +1,5 @@
 override CFLAGS:=$(CFLAGS) -O3 -fPIC -DLPP_API_VERSION=$(LPP_API_VERSION) -DNDEBUG
-override LDFLAGS:=$(LDFLAGS) -shared -lm
+override LDFLAGS:=$(LDFLAGS) -O3 -fPIC -shared -lm
 
 all: libenergyyoko.so
 

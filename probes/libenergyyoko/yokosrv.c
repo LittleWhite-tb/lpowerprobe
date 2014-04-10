@@ -304,6 +304,7 @@ yokoctx_t *yoko_connect()
 
       if (fd >= 0)
       {
+         printf("Found Yoko at %s\n", path);
          break;
       }
 

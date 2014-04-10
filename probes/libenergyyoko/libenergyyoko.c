@@ -17,6 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "libenergyyoko.h"
@@ -54,13 +55,15 @@ extern void fini (void *data) {
 }
 
 extern void start (void *data) {
-  yoko_read_energy(data);
+  libdata_t *ldata = data;
+
+  yoko_read_energy(ldata->ctx);
 }
 
 extern double *stop (void *data) {
   libdata_t *ldata = data;
 
-  ldata->e = yoko_read_energy(data);
+  ldata->e = yoko_read_energy(ldata->ctx);
   return &ldata->e;
 }
 
