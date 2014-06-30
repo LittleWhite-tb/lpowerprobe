@@ -89,7 +89,7 @@ void DaemonRunner::start(ExperimentationResults* pOverheadExpResult, Experimenta
 {
    (void) processNumber;
 
-    std::cout << "=== Daemon mode started ===" << std::endl;
+    std::cout << "=== Daemon mode started (" << getpid() << ")  ===" << std::endl;
 
    // compute overhead based on one iteration
    m_pProbesDataCollector->start();

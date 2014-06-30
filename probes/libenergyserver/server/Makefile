@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-override CFLAGS:=-Og -g -Wall -Wextra -I ../../libenergymsr/ -DLPP_API_VERSION=$(LPP_API_VERSION)
+override CFLAGS:=-O3 -g -Wall -Wextra -I ../../libenergymsr/ -DLPP_API_VERSION=$(LPP_API_VERSION)
 override LDFLAGS:=-lpthread -lrt -lm
 
 .PHONY: clean all
