@@ -265,9 +265,16 @@ int main(int argc, char** argv, char** envp)
       usage();
    }
 
-   Experimentation* pExp = ExperimentationFactory::createExperimentation(options);
-   pExp->start();
-   delete pExp;
+   try
+   {
+      Experimentation* pExp = ExperimentationFactory::createExperimentation(options);
+      pExp->start();
+      delete pExp;
+   }
+   catch (ProbeLoadingException& ple)
+   {
+      std::cerr << ple.what() << std::endl;
+   }
 
    return 0;
 }
