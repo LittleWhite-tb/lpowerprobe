@@ -28,15 +28,45 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#ifdef ANDROID_PLATFORM   
+   // On Android < 4.2, these are not set
+   #define CPU_SETSIZE   32
+   #define __CPU_BITTYPE    unsigned long int  /* mandated by the kernel  */
+   #define __CPU_BITSHIFT   5                  /* should be log2(BITTYPE) */
+   #define __CPU_BITS       (1 << __CPU_BITSHIFT)
+   #define __CPU_ELT(x)     ((x) >> __CPU_BITSHIFT)
+   #define __CPU_MASK(x)    ((__CPU_BITTYPE)1 << ((x) & (__CPU_BITS-1)))
+   
+   typedef struct {
+      __CPU_BITTYPE  __bits[ CPU_SETSIZE / __CPU_BITS ];
+   } cpu_set_t;
+   
+   #  define CPU_ZERO(set_)   \
+    do{ \
+        (set_)->__bits[0] = 0; \
+    }while(0)
+   
+   #  define CPU_SET(cpu_,set_) \
+    do {\
+        size_t __cpu = (cpu_); \
+        if (__cpu < CPU_SETSIZE) \
+            (set_)->__bits[0] |= __CPU_MASK(__cpu); \
+    }while (0)
+#endif
+
 void CPUUtils::pinCPU(int cpuID)
 {
    cpu_set_t cpuset;
-   pid_t myself = syscall (SYS_gettid);
-
    CPU_ZERO(&cpuset);
    CPU_SET(cpuID,&cpuset);
-
+   
+   pid_t myself = syscall (__NR_gettid);
+   
+#ifdef ANDROID_PLATFORM
+   int ret = syscall(__NR_sched_setaffinity, myself, sizeof(cpuset), &cpuset);
+#else
    int ret = sched_setaffinity(myself,sizeof(cpu_set_t),&cpuset);
+#endif
    if(ret != 0)
    {
       perror("sched_setaffinity");

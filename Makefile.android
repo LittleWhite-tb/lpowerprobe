@@ -21,8 +21,8 @@ CXX?=${CROSS_COMPILE)g++
 MPICC?=
 LD=$(CXX)
 
-CFLAGS=
-CXXFLAGS=
+CFLAGS=-DANDROID_PLATFORM
+CXXFLAGS=-DANDROID_PLATFORM
 LDFLAGS=
 
 PROBES=libenergyserver libwallclock libenergyyoko libtimer

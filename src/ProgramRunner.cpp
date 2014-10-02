@@ -156,7 +156,12 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
                perror("sem_wait");
             }
 
-            execvpe(programName.c_str(), pArgv, m_pEnv);
+            // execvpe implementation since Android does not have it
+            char** savedEnv = environ;
+            environ = m_pEnv;
+            execvp(programName.c_str(), pArgv);
+            environ = savedEnv;
+            
             exit(EXIT_SUCCESS);
          }
       default:
@@ -196,7 +201,7 @@ void ProgramRunner::startTest(const std::string& programName, char** pArgv, unsi
             {
                if (WIFSIGNALED (status))
                {
-                  psignal (WTERMSIG (status), "Error: Input benchmark performed an error, exiting now...");
+                  std::cerr << "Error: Input benchmark performed an error, exiting now... '" << strsignal(WTERMSIG (status)) << "'";
                   exit (EXIT_FAILURE);
                }
                std::cerr << "Benchmark ended non-normally, exiting now..." << std::endl;

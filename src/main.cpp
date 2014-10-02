@@ -106,7 +106,7 @@ bool isFileExecutable(const char* pPath)
       return false;
    }
    
-   if ((fileInfo.st_mode & S_IEXEC) != 0 )
+   if (((fileInfo.st_mode & S_IXUSR) != 0) && ((fileInfo.st_mode & S_IFREG) != 0) )
    {
       return true;
    }
@@ -201,7 +201,7 @@ int main(int argc, char** argv, char** envp)
          case 'i':
             {
                size_t nbKernelIteration = 0;
-               if ( StringUtils::from_string<unsigned long int>(optarg,nbKernelIteration) )
+               if ( StringUtils::from_string<size_t>(optarg,nbKernelIteration) )
                {
                   options.setNbKernelIteration(nbKernelIteration);
                }

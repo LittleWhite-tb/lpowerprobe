@@ -34,12 +34,48 @@
 #include <sys/stat.h>        /* For mode constants */
 #include <fcntl.h> 
 
+
 #include "StringUtils.hpp" 
 
 #include "CPUUtils.hpp" 
 
 #include "RunData.hpp"
 #include "ProbeData.hpp"
+
+#ifdef ANDROID_PLATFORM
+   // Found :
+   // http://www.netmite.com/android/mydroid/system/core/libcutils/ashmem-dev.c
+   #include <linux/ashmem.h> 
+
+   int ashmem_create_region(const char* name, size_t size)
+   {
+      int fd, ret;
+
+      fd = open("/dev/ashmem", O_RDWR);
+      if (fd < 0)
+         return fd;
+
+      if (name) 
+      {
+         char buf[ASHMEM_NAME_LEN];
+
+         strlcpy(buf, name, sizeof(buf));
+         ret = ioctl(fd, ASHMEM_SET_NAME, buf);
+         if (ret < 0)
+            goto error;
+      }
+
+      ret = ioctl(fd, ASHMEM_SET_SIZE, size);
+      if (ret < 0)
+         goto error;
+
+      return fd;
+
+   error:
+      close(fd);
+      return ret;
+   }
+#endif
 
 Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess, unsigned int nbMetaRepet)
    :m_pProbesDataCollector(pProbesDataCollector),m_nbMetaRepet(nbMetaRepet),m_nbProcess(nbProcess)
@@ -57,16 +93,25 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess,
    
    // open fatherLock
    int shareSeg;
+#ifdef ANDROID_PLATFORM
+   shareSeg = ashmem_create_region(("shmFather" + m_pidString).c_str(),sizeof(sem_t));
+   if (shareSeg < 0 )
+   {
+      std::cerr << "Fail to create shared region for father" << std::endl;
+      exit(1);
+   }
+#else
    if ((shareSeg = shm_open(("/shmFather" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
       exit(1);
    }
-
-  if ( ftruncate(shareSeg, sizeof(sem_t)) < 0 ) {
-    perror("ftruncate");
-    exit(1);
-  }
+   
+   if ( ftruncate(shareSeg, sizeof(sem_t)) < 0 ) {
+      perror("ftruncate");
+      exit(1);
+   }
+#endif
 
   if ((m_fatherLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE,MAP_SHARED, shareSeg, 0)) == MAP_FAILED) 
   {
@@ -81,6 +126,15 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess,
    }
    
    // open processLock
+#ifdef ANDROID_PLATFORM
+   shareSeg = ashmem_create_region(("shmProcess" + m_pidString).c_str(),sizeof(sem_t));
+   if (shareSeg < 0 )
+   {
+      std::cerr << "Fail to create shared region for process" << std::endl;
+      exit(1);
+   }
+#else
+   // open processLock
    if ((shareSeg = shm_open(("/shmProcess" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
@@ -91,6 +145,7 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess,
     perror("ftruncate");
     exit(1);
   }
+#endif
 
   if ((m_processLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE,MAP_SHARED, shareSeg, 0)) == MAP_FAILED) {
     perror("mmap");
@@ -104,6 +159,15 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess,
    }
 
    // open processEndLock
+#ifdef ANDROID_PLATFORM
+   shareSeg = ashmem_create_region(("shmProcessEnd" + m_pidString).c_str(),sizeof(sem_t));
+   if (shareSeg < 0 )
+   {
+      std::cerr << "Fail to create shared region for process ending" << std::endl;
+      exit(1);
+   }
+#else
+   // open processEndLock
    if ((shareSeg = shm_open(("/shmProcessEnd" + m_pidString).c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0) 
    {
       perror("shm_open");
@@ -114,6 +178,7 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess,
     perror("ftruncate");
     exit(1);
   }
+#endif
 
   if ((m_processEndLock = (sem_t*)mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED, shareSeg, 0)) == MAP_FAILED) {
     perror("mmap");
@@ -130,11 +195,17 @@ Runner::Runner(ProbeDataCollector* pProbesDataCollector, unsigned int nbProcess,
 Runner::~Runner()
 {
     sem_destroy(m_processEndLock);
+#ifndef ANDROID_PLATFORM
     shm_unlink(("/shmProcessEnd" + m_pidString).c_str());
+#endif
 
     sem_destroy(m_processLock);
+#ifndef ANDROID_PLATFORM
     shm_unlink(("/shmProcess" + m_pidString).c_str());
+#endif
 
     sem_destroy(m_fatherLock);
+#ifndef ANDROID_PLATFORM
     shm_unlink(("/shmFather" + m_pidString).c_str());
+#endif
 }

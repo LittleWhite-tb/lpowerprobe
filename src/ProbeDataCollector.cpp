@@ -37,7 +37,7 @@
 
 pid_t gettid()
 {
-   return syscall(SYS_gettid);
+   return syscall(__NR_gettid);
 }
 
 static void threadSigalrmHandler(int sig) {

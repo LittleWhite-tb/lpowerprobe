@@ -57,7 +57,7 @@ public:
      * Checks if the file is open
      * @return true if the file is open
      */
-    bool isOpen()const { return m_outputFile.is_open(); }
+    bool isOpen() { return m_outputFile.is_open(); }
 
     /**
      * Writes the CSV file using \a overheadResults, \a results and the list of probes \a probes

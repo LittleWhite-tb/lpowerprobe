@@ -89,7 +89,7 @@ test:
 	make -C empty/
 
 probes:
-	for probe in ${PROBES} ; do \
+	@for probe in ${PROBES} ; do \
 		make LPP_API_VERSION=$(LPP_VERSION)  -C probes/$${probe} ; \
 	done
 	make -C scripts/MPI_preload
@@ -101,7 +101,7 @@ clean:
 	rm -f $(OBJ)
 
 clean_probes:
-	for probe in ${PROBES} ; do \
+	@for probe in ${PROBES} ; do \
 		make -C probes/$${probe} clean ; \
 	done
 
