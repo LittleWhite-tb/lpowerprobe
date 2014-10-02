@@ -16,11 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-CC?=gcc
-CXX?=g++
+
+CC?=icc
+CXX?=icpc
+MPICC?=mpiicc
 LD=$(CXX)
 
-LDFLAGS=-lpthread -lrt
+CFLAGS=-mmic
+CXXFLAGS=-mmic
+LDFLAGS=-mmic -lpthread -lrt
 
 PROBES=libenergymic libenergymsr libenergyserver libwallclock libenergyyoko pfmcounters libtimer
 

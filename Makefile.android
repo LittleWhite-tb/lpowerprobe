@@ -16,12 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-CC?=gcc
-CXX?=g++
+CC?=${CROSS_COMPILE)gcc
+CXX?=${CROSS_COMPILE)g++
+MPICC?=
 LD=$(CXX)
 
-LDFLAGS=-lpthread -lrt
+CFLAGS=
+CXXFLAGS=
+LDFLAGS=
 
-PROBES=libenergymic libenergymsr libenergyserver libwallclock libenergyyoko pfmcounters libtimer
+PROBES=libenergyserver libwallclock libenergyyoko libtimer
 
 include Makefile.rules
