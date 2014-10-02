@@ -83,7 +83,7 @@ static void set_update_rate(yokoctx_t *ctx, update_rate_t ur);
  */
 static inline void send_cmd(yokoctx_t *ctx, const char *cmd)
 {
-   unsigned int bufsize;
+   ssize_t bufsize;
    //char *err;
 
    // copy the command in an internal buffer
@@ -334,9 +334,16 @@ yokoctx_t *yoko_connect()
    }
 
    // port speed is 9600 bauds
-   if (cfsetspeed(&pset, DEFAULT_COM_SPEED) < 0)
+   if (cfsetispeed(&pset, DEFAULT_COM_SPEED) < 0)
    {
-      fprintf(stderr, "Failed to setup the port speed\n");
+      fprintf(stderr, "Failed to setup the input port speed\n");
+      close(ctx->fd);
+      free(ctx);
+      return NULL;
+   }
+   if (cfsetospeed(&pset, DEFAULT_COM_SPEED) < 0)
+   {
+      fprintf(stderr, "Failed to setup the output port speed\n");
       close(ctx->fd);
       free(ctx);
       return NULL;
@@ -426,7 +433,11 @@ yokoctx_t *yoko_connect()
    send_cmd(ctx, "COMM:WAIT 1\n");
 
    // flush before starting
+#ifdef ANDROID_PLATFORM
+   if(ioctl(ctx->fd,TCSBRK,1) < 0 )
+#else
    if (tcdrain(ctx->fd) < 0)
+#endif
    {
       fprintf(stderr, "Failed to drain serial port content.\n");
       close(ctx->fd);

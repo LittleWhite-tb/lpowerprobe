@@ -46,7 +46,7 @@
    // Found :
    // http://www.netmite.com/android/mydroid/system/core/libcutils/ashmem-dev.c
    #include <linux/ashmem.h> 
-
+   
    int ashmem_create_region(const char* name, size_t size)
    {
       int fd, ret;

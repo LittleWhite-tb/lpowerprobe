@@ -17,6 +17,41 @@ const unsigned int version = LPP_API_VERSION;
 const char *label = "CPU energy (J)";
 const unsigned int period = 0;
 
+#ifdef ANDROID_PLATFORM
+   // Found :
+   // http://www.netmite.com/android/mydroid/system/core/libcutils/ashmem-dev.c
+   #include <linux/ashmem.h> 
+   
+   int ashmem_create_region(const char* name, size_t size)
+   {
+      int fd, ret;
+
+      fd = open("/dev/ashmem", O_RDWR);
+      if (fd < 0)
+         return fd;
+
+      if (name) 
+      {
+         char buf[ASHMEM_NAME_LEN];
+
+         strlcpy(buf, name, sizeof(buf));
+         ret = ioctl(fd, ASHMEM_SET_NAME, buf);
+         if (ret < 0)
+            goto error;
+      }
+
+      ret = ioctl(fd, ASHMEM_SET_SIZE, size);
+      if (ret < 0)
+         goto error;
+
+      return fd;
+
+   error:
+      close(fd);
+      return ret;
+   }
+#endif
+
 typedef struct
 {
    server_data *shared;
@@ -36,7 +71,9 @@ static void freeLibData(libdata_t *ldata) {
       return;
    }
 
+#ifndef ANDROID_PLATFORM
    shm_unlink(ESRV_SHM_NAME);
+#endif
    munmap(ldata->shared, sizeof(server_data));
    free(ldata->res);
    free(ldata);
@@ -48,11 +85,20 @@ extern unsigned int nbChannels(void *data) {
 }
 
 extern void *init (void) {
-   unsigned int i;
+   unsigned int i=0;
+   int fd=0;
 
 
    // create the shared memory segment
-   int fd = shm_open(ESRV_SHM_NAME, O_RDWR, 0);
+#ifdef ANDROID_PLATFORM
+   fd = ashmem_create_region(ESRV_SHM_NAME,sizeof(server_data));
+   if (fd < 0 )
+   {
+      fprintf(stderr,"Failed to open shared memory " ESRV_SHM_NAME);
+      return NULL;
+   }
+#else
+   fd = shm_open(ESRV_SHM_NAME, O_RDWR, 0);
    if (fd < 0) {
       perror("Failed to open shared memory " ESRV_SHM_NAME);
       return NULL;
@@ -64,6 +110,7 @@ extern void *init (void) {
       shm_unlink(ESRV_SHM_NAME);
       return NULL;
    }
+#endif
 
    // map it onto memory
    libdata_t *data = malloc(sizeof(*data));
@@ -71,7 +118,9 @@ extern void *init (void) {
                             MAP_SHARED, fd, 0);
    if (data->shared == NULL) {
       perror("Failed to map shared memory");
+#ifndef ANDROID_PLATFORM
       shm_unlink(ESRV_SHM_NAME);
+#endif
       free(data);
       return NULL;
    }

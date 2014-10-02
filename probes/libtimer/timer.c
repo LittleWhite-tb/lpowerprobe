@@ -46,6 +46,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
       }
 #endif
 
+#ifdef ANDROID_PLATFORM
+   #define PERF_DEF_OPTS (1 | 16)
+
+   static __inline__ unsigned long long rdtsc(void)
+   {
+      uint32_t r = 0;
+      asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(r) );
+      return r;
+   }
+   
+   #define rdtscll(val) { val = rdtsc(); }
+#endif
+
 const unsigned int version = LPP_API_VERSION;
 const char *label = "Cycles";
 const unsigned int period = 0;
