@@ -25,6 +25,8 @@ CFLAGS=-DANDROID_PLATFORM
 CXXFLAGS=-DANDROID_PLATFORM
 LDFLAGS=
 
-PROBES=libenergyserver libwallclock libenergyyoko libtimer
+DATADIR=/data/lPowerProbe/share
+
+PROBES=libenergyserver libwallclock libenergyyoko libtimerarm
 
 include Makefile.rules
