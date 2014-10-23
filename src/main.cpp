@@ -78,9 +78,9 @@ void usage()
 
    std::cout << "  -h, --help\t\t\t\tDisplay this help" << std::endl;
    std::cout << "  -v, --version\t\t\t\tDisplay the program version" << std::endl;
-   
+
    std::cout << std::endl;
-   
+
    std::cout << "  -l, --libraries\t\t\tProbes libraries to load to bench the execution" << std::endl;
    std::cout << "  -r, --repetition=NUMBER\t\tNumber of repetition for the test" << std::endl;
    // std::cout << "      --meta-repetition=NUMBER\t\tNumber of meta repetition for the test" << std::endl;
@@ -95,9 +95,9 @@ void usage()
 bool isFileExecutable(const char* pPath)
 {
    assert(pPath);
-   
+
    struct stat fileInfo;
-   
+
    if (stat(pPath,&fileInfo) != 0 )
    {
       std::cout << "Warning : Fail to stat the file '" << pPath << "'" << std::endl;
@@ -105,12 +105,12 @@ bool isFileExecutable(const char* pPath)
       std::cout << "Info : since the executable you want to run can be in PATH, we will continue" << std::endl;
       return false;
    }
-   
+
    if (((fileInfo.st_mode & S_IXUSR) != 0) && ((fileInfo.st_mode & S_IFREG) != 0) )
    {
       return true;
    }
-   
+
    std::cout << "The executable specified '" << pPath << "' is not executable" << std::endl;
    return false;
 }
@@ -120,17 +120,17 @@ int main(int argc, char** argv, char** envp)
    int opt=0;
    int option_index = 0;
    Options options;
-   
+
    options.setProgramPath(argv[0]);
    options.setProgramEnv(envp);
-   
+
    while(1)
    {
       opt = getopt_long(argc, argv, "r:d:p:o:m:i:l:hv", long_options, &option_index);
       if (opt == -1 )
          break;
-      
-      
+
+
       switch (opt)
       {
          case ID_ARG_REPETITION:
@@ -159,7 +159,7 @@ int main(int argc, char** argv, char** envp)
                }
                else
                {
-                  std::cerr << "Invalid argument for --process option" << std::endl;
+                  std::cerr << "Invalid argument for --duplicate option" << std::endl;
                   usage();
                }
             }
@@ -180,7 +180,7 @@ int main(int argc, char** argv, char** envp)
                options.setOutputFile(optarg);
             }
             break;
-            
+
          case ID_ARG_MEMSIZE:
          case 'm':
             {
@@ -196,7 +196,7 @@ int main(int argc, char** argv, char** envp)
                }
             }
             break;
-         
+
          case ID_ARG_KERNELITER:
          case 'i':
             {
@@ -233,9 +233,9 @@ int main(int argc, char** argv, char** envp)
             break;
       }
    }
-   
+
    version();
-   
+
    if (optind < argc)
    {
       int i = 0;
@@ -243,8 +243,8 @@ int main(int argc, char** argv, char** envp)
       {
          if ( i == 0 )
          {
-            std::cout << "Test program : '" << argv[optind] << "'" << std::endl; 
-            
+            std::cout << "Test program : '" << argv[optind] << "'" << std::endl;
+
             isFileExecutable(argv[optind]);
 
             options.setExecName(argv[optind]);
@@ -257,7 +257,7 @@ int main(int argc, char** argv, char** envp)
          i++;
       }
    }
-   
+
    options.setDefaultValues();
    if ( options.hasMissingOptions() )
    {
