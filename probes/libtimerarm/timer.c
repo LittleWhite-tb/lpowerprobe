@@ -25,44 +25,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <sched.h>
 
 #include <assert.h>
 
 #include "timer.h"
 
-// On Android < 4.2, these are not set
-#define CPU_SETSIZE   32
-#define __CPU_BITTYPE    unsigned long int  /* mandated by the kernel  */
-#define __CPU_BITSHIFT   5                  /* should be log2(BITTYPE) */
-#define __CPU_BITS       (1 << __CPU_BITSHIFT)
-#define __CPU_ELT(x)     ((x) >> __CPU_BITSHIFT)
-#define __CPU_MASK(x)    ((__CPU_BITTYPE)1 << ((x) & (__CPU_BITS-1)))
-
-typedef struct {
-   __CPU_BITTYPE  __bits[ CPU_SETSIZE / __CPU_BITS ];
-} cpu_set_t;
-
-#  define CPU_ZERO(set_)   \
- do{ \
-     (set_)->__bits[0] = 0; \
- }while(0)
-
-#  define CPU_SET(cpu_,set_) \
- do {\
-     size_t __cpu = (cpu_); \
-     if (__cpu < CPU_SETSIZE) \
-         (set_)->__bits[0] |= __CPU_MASK(__cpu); \
- }while (0)
-
 void pinCPU(int cpuID)
 {
-   cpu_set_t cpuset;
-   CPU_ZERO(&cpuset);
-   CPU_SET(cpuID,&cpuset);
+   int mask = 0x00000001;
+   while (cpuID--)
+   {
+      mask = mask << 1;
+   }
 
    pid_t myself = syscall (__NR_gettid);
+   
+   fprintf(stderr,"[TIMERANDROID] Set thread %d pin on %X",myself,mask);
 
-   int ret = syscall(__NR_sched_setaffinity, myself, sizeof(cpuset), &cpuset);
+   int ret = syscall(__NR_sched_setaffinity, myself, sizeof(mask), &mask);
    if(ret != 0)
    {
       perror("sched_setaffinity");
@@ -176,6 +157,11 @@ void* measureThread(void* pThreadData)
         if ( pTData->pData->threadStopper == 1 )
         {
             break;
+        }
+        
+        {
+           pid_t myself = syscall (__NR_gettid);
+           fprintf(stderr,"[TIMERANDROID] Measure on thread %d\n",myself);
         }
 
         uint32_t value = 0;
@@ -353,7 +339,7 @@ extern void *init (void)
    return pData;
 }
 
-void startMeasure(SData* pData)
+void getMeasure(SData* pData)
 {
     assert(pData);
 
@@ -388,7 +374,7 @@ extern void start (void *data)
     if ( data != NULL )
     {
         SData *pData = (SData*) data;
-        startMeasure(pData);
+        getMeasure(pData);
 
         memcpy(pData->pCyclesDelta,pData->pCyclesMeasures,sizeof(*pData->pCyclesMeasures) * pData->nbCores);
     }
@@ -399,7 +385,7 @@ extern double *stop (void *data)
     if ( data != NULL )
     {
         SData *pData = (SData*) data;
-        startMeasure(pData);
+        getMeasure(pData);
 
         unsigned int i = 0;
         for ( i = 0 ; i < pData->nbCores ; i++ )
@@ -419,7 +405,7 @@ extern void update (void *data) {
     if ( data != NULL )
     {
         SData *pData = (SData*) data;
-        startMeasure(pData);
+        getMeasure(pData);
 
         unsigned int i = 0;
         for ( i = 0 ; i < pData->nbCores ; i++ )
