@@ -160,7 +160,6 @@ void wakeUpThreads(SData* pData)
    
    for ( i = 0 ; i < pData->nbCores ; i++ )
    {
-      fprintf(stderr,"[TIMERANDROID] Signal sent to %d\n",pData->pThreads[i]);
       pthread_kill(pData->pThreads[i],SIGUSR2);
    }
 }
@@ -176,7 +175,6 @@ void start (void *data)
    }
    pData->threadMeasureStopper = 0;
    
-   fprintf(stderr,"[TIMERANDROID] wait start\n");
    if ( barrier_wait(&pData->barrier) != 0 )
    {
       fprintf(stderr,"[TIMERANDROID] Failed to wait barrier in main thread '%s'\n",strerror(errno));
@@ -191,7 +189,6 @@ double* stop (void *data)
    pData->threadMeasureStopper = 1;
    wakeUpThreads(pData);
    
-   fprintf(stderr,"[TIMERANDROID] wait stop\n");
    if ( barrier_wait(&pData->barrier) != 0 )
    {
       fprintf(stderr,"[TIMERANDROID] Failed to wait barrier in main thread '%s'\n",strerror(errno));
@@ -199,7 +196,6 @@ double* stop (void *data)
    
    for ( i = 0 ; i < pData->nbCores ; i++ )
    {
-      fprintf(stderr,"[TIMERANDROID] Value found on thread %d : %lld\n",i,pData->pThreadsData[i].cycles);
       pData->pCycles[i] = pData->pThreadsData[i].cycles;
    }
    return (double*)pData->pCycles;

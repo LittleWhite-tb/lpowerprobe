@@ -81,16 +81,11 @@ void* measureThread(void* pThreadData)
    TData* pData = (TData*)pThreadData;
    int error = 0;
    
-   fprintf(stderr,"[TIMERANDROID-THREAD%d] Started\n",pData->coreID);
-   
    pinCPU(pData->coreID);
    signal(SIGUSR2, dummySignalHandle);
    
    while (*(pData->pThreadStopper) == 0 )
    {
-         
-      
-      fprintf(stderr,"[TIMERANDROID-THREAD%d] Wait for start\n",pData->coreID);
       error = barrier_wait(pData->pBarrier);
       if ( error != 0 )
       {
@@ -103,12 +98,10 @@ void* measureThread(void* pThreadData)
       while(*(pData->pThreadMeasureStopper) == 0)
       {
          const struct timespec sec = { 1 , 0 };
-         fprintf(stderr,"[TIMERANDROID-THREAD%d] Will sleep\n",pData->coreID);
          int result = nanosleep(&sec,NULL);
-         fprintf(stderr,"[TIMERANDROID-THREAD%d] Woke up\n",pData->coreID);
          if ( result == -1 )
          {
-            fprintf(stderr,"Stopped by signal on thread %d\n",pData->coreID);
+            // fprintf(stderr,"Stopped by signal on thread %d\n",pData->coreID);
          }
          
          if ( hasOverflow() == 1)
@@ -120,7 +113,6 @@ void* measureThread(void* pThreadData)
          resetCycleCounter();
       }
       
-      fprintf(stderr,"[TIMERANDROID-THREAD%d] Wait for stop (actual value : %llu)\n",pData->coreID,pData->cycles);
       if ( barrier_wait(pData->pBarrier) )
       {
          fprintf(stderr,"[TIMERANDROID] Failed to wait barrier in main thread '%s'\n",strerror(errno));

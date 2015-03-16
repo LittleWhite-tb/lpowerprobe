@@ -57,13 +57,11 @@ int barrier_wait(Barrier* b)
       b->count++;
       if (b->count == b->nbToWait) 
       { 
-         fprintf(stderr,"[TIMERANDROID] Barrier broadcast (value : %d)\n",b->count);
          pthread_cond_broadcast(&b->cond);
          b->count = 0;
       }
       else 
       {
-         fprintf(stderr,"[TIMERANDROID] Barrier cond wait (value : %d)\n",b->count);
          pthread_cond_wait(&b->cond, &b->mutex);
       }
    pthread_mutex_unlock(&b->mutex);
@@ -73,7 +71,6 @@ int barrier_wait(Barrier* b)
 
 int barrier_destroy(Barrier* b)
 {
-   fprintf(stderr,"[TIMERANDROID] Barrier destruction\n");
    pthread_cond_broadcast(&b->cond); 
    
    pthread_mutex_destroy(&b->mutex);
