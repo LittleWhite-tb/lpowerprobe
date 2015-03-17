@@ -19,6 +19,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef H_THREADFCT
 #define H_THREADFCT
 
+/**
+ * Measure thread function.
+ * This thread will run forever (depending of \a pThreadStopper).
+ * To stop a measure \a pThreadMeasureStopper should be set to 0.
+ * 
+ * \param pThreadData pointer to \a TData
+ * \return unused
+ */
 void* measureThread(void* pThreadData);
 
 #endif

@@ -27,8 +27,8 @@ typedef struct tData {
    int coreID;
    uint64_t cycles;
    
-   char* pThreadMeasureStopper;
-   char* pThreadStopper;
+   char* pThreadMeasureStopper;  /*!< Variable to stop the measure */
+   char* pThreadStopper; /*!< Variable to stop the thread */
 }TData;
 
 #endif

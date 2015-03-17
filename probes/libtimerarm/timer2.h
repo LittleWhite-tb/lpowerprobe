@@ -42,22 +42,59 @@ const unsigned int period = 0;
 /**
  * Returns the number of devices this library has detected.
  *
- * @return The number of devices considered by this lib.
+ * @return The number of devices considered by this lib (here 1).
  */
 extern unsigned int nbDevices(void *data);
 
 /**
  * Returns the number of channels per device to use.
+ * With libtimerarm, the number of channels is equivalent to the number of
+ * cores available on the machine.
  *
- * @return The number of channels to associate to every device. It is the number
- * of different result values per device in the return value of stop.
+ * @return equivalent to the number of core, since the counter is available on each core.
  */
 extern unsigned int nbChannels(void *data);
 
+/**
+ * Allocates all the memory needed for the library to work. It will start
+ * several measure threads (one per core).
+ *
+ * @return A pointer to an internal library state. May be NULL in case 
+ * of errors.
+ * @sa measureThread
+ */
 extern void *init (void);
+
+/**
+ * Cleanup everything
+ *
+ * @param data A pointer to the pointer returned by \a init()
+ */
 extern void fini (void *data);
+
+/**
+ * Start a measure by unlocking the measurement thread.
+ *
+ * @param data A pointer to the pointer returned by \a init()
+ */
 extern void start (void *data);
+
+/**
+ * Stops the measurement and gather the results.
+ *
+ * @param data A pointer to the pointer returned by \a init()
+ * @return The final result to be stored in the result file. The result is made
+ * of one value per channel for every device. The results must be sorted by 
+ * device and then by channel: 
+ * device0/core0, device0/core1, ..., device0/coreN
+ */
 extern double* stop (void *data);
+
+/**
+ * Unused in this probe
+ * 
+ * @param data A pointer to the pointer returned by \a init()
+ */
 extern void update (void *data);
  
 

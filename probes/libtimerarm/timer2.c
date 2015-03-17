@@ -30,13 +30,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 typedef struct sData {
    Barrier barrier;
-   pthread_t* pThreads;
+   pthread_t* pThreads; /*!< IDs of the thread (allow to send signal to these) */
    TData* pThreadsData;
-   double* pCycles;
+   double* pCycles;     /*!< Data to be send back to lPowerProbe */
    
    unsigned int nbCores;
-   char threadMeasureStopper;
-   char threadStopper;
+   char threadMeasureStopper; /*!< Stopper for the measure loop in thread */
+   char threadStopper;        /*!< Stopper for the measure thread */
 }SData;
 
 extern unsigned int nbDevices (void *data) {
@@ -123,6 +123,7 @@ void *init (void)
    unsigned int i = 0;
    for (i = 0 ; i < pData->nbCores ; i++ )
    {
+      // Copy data to be read by the threads
       pData->pThreadsData[i].pBarrier = &pData->barrier;
       
       pData->pThreadsData[i].pThreadMeasureStopper = &pData->threadMeasureStopper;

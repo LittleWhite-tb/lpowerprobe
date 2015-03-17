@@ -119,7 +119,5 @@ void* measureThread(void* pThreadData)
       }
    }
       
-   
-   fprintf(stderr,"[TIMERANDROID-THREAD%d] Finished\n",pData->coreID);
    return NULL;
 }
