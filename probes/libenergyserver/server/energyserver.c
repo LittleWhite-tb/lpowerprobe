@@ -12,6 +12,47 @@
 
 #include "energyserver.h"
 
+#ifdef ANDROID_PLATFORM
+   // Found :
+   // http://www.netmite.com/android/mydroid/system/core/libcutils/ashmem-dev.c
+   #include <linux/ashmem.h> 
+   
+   int ashmem_create_region(const char* name, size_t size)
+   {
+      int fd, ret;
+
+      fd = open("/dev/ashmem", O_RDWR);
+      if (fd < 0)
+         return fd;
+
+      if (name) 
+      {
+         char buf[ASHMEM_NAME_LEN];
+
+         strlcpy(buf, name, sizeof(buf));
+         ret = ioctl(fd, ASHMEM_SET_NAME, buf);
+         if (ret < 0)
+            goto error;
+      }
+
+      ret = ioctl(fd, ASHMEM_SET_SIZE, size);
+      if (ret < 0)
+         goto error;
+
+      return fd;
+
+   error:
+      close(fd);
+      return ret;
+   }
+   
+   int shm_unlink(const char* name)
+   {
+      (void)name;
+      return 0;
+   }
+#endif
+
 // redefine here the functions and variables taken from libenergymsr
 // do not include the header as everything is declared as extern
 const unsigned int period;
@@ -36,6 +77,7 @@ int main(int argc, char **argv) {
    unsigned int i;
    void *energy_ctx;
    server_data *shared;
+   int fd = 0;
 
    (void) argc;
    (void) argv;
@@ -50,7 +92,12 @@ int main(int argc, char **argv) {
    umask(0000);   // allow everything!
 
    // create the shared memory segment
-   int fd = shm_open(ESRV_SHM_NAME, O_RDWR | O_CREAT | O_TRUNC, 0666);
+#ifdef ANDROID_PLATFORM
+   fd = ashmem_create_region(ESRV_SHM_NAME, sizeof(server_data));
+#else
+   fd = shm_open(ESRV_SHM_NAME, O_RDWR | O_CREAT | O_TRUNC, 0666);
+#endif
+   
    if (fd < 0) {
       perror("Failed to create shared memory " ESRV_SHM_NAME);
       return EXIT_FAILURE;

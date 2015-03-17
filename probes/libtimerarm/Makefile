@@ -23,7 +23,7 @@ override CFLAGS:=$(CFLAGS) -O3 -fPIC -shared -DLPP_API_VERSION=$(LPP_API_VERSION
 
 all: libtimerarm.so
 
-libtimerarm.so: timer2.c threadFct.c barrier.c timer2.h
+libtimerarm.so: timer.c threadFct.c barrier.c timer.h
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean:

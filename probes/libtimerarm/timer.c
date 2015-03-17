@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2014 Exascale Research Center
+Copyright (C) 2015 Exascale Research Center
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -16,180 +16,28 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <pthread.h>
-
-#include <sys/types.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <sched.h>
-
-#include <assert.h>
-
 #include "timer.h"
 
-void pinCPU(int cpuID)
-{
-   int mask = 0x00000001;
-   while (cpuID--)
-   {
-      mask = mask << 1;
-   }
+#include <stdio.h>
+#include <pthread.h>
+#include <errno.h>
+#include <unistd.h>
 
-   pid_t myself = syscall (__NR_gettid);
-   
-   fprintf(stderr,"[TIMERANDROID] Set thread %d pin on %X",myself,mask);
+#include "threadData.h"
+#include "threadFct.h"
+#include "barrier.h"
 
-   int ret = syscall(__NR_sched_setaffinity, myself, sizeof(mask), &mask);
-   if(ret != 0)
-   {
-      perror("sched_setaffinity");
-      return;
-   }
-}
 
-#if defined(__arm__)
-   #define PERF_DEF_OPTS (1 | 16)
-
-   static __inline__ unsigned long long rdtsc(void)
-   {
-      uint32_t r = 0;
-      asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(r) );
-      return r;
-   }
-
-   #define rdtscll(val) { val = rdtsc(); }
-#else
-    #error "This library 'timerarm' is only for ARM target"
-#endif
-
-#ifndef _SC_NPROCESSORS_ONLN
-    #error "Number of CPU unavailable"
-#endif
-
-const unsigned int version = LPP_API_VERSION;
-const char *label = "Cycles";
-const unsigned int period = 0;
-
-struct sThreadData;
-
-/**
- * Global struct
- */
 typedef struct sData {
+   Barrier barrier;
+   pthread_t* pThreads; /*!< IDs of the thread (allow to send signal to these) */
+   TData* pThreadsData;
+   double* pCycles;     /*!< Data to be send back to lPowerProbe */
+   
    unsigned int nbCores;
-   double* pCyclesMeasures;
-   double* pCyclesDelta;
-
-   pthread_t* pThreadsId;
-   struct sThreadData* pThreadData;
-   char threadStopper;
-
-   pthread_mutex_t masterSyncMutex;
-   pthread_cond_t masterSyncCond;
-   pthread_mutex_t measureSyncMutex;
-   pthread_cond_t measureSyncCond;
-   pthread_mutex_t startSyncMutex;
-   pthread_cond_t startSyncCond;
-   unsigned int measureCounter;
-   unsigned int readyCounter;
-} SData;
-
-/**
- * Structure passed to the thread
- */
-typedef struct sThreadData {
-    int threadId;
-    SData* pData;
-}SThreadData;
-
-static __inline__ unsigned long long getticks(void)
-{
-   unsigned long long ret;
-   rdtscll(ret);
-   return ret;
-}
-
-void* measureThread(void* pThreadData)
-{
-    SThreadData* pTData = (SThreadData*)pThreadData;
-    assert(pTData);
-
-    pinCPU(pTData->threadId);
-
-    while(pTData->pData->threadStopper == 0)
-    {
-        // Tell the master thread that we finished
-        if ( pTData->pData->threadStopper == 0 )
-        {
-            pthread_mutex_lock(&pTData->pData->startSyncMutex);
-        }
-        else
-        {
-            break;
-        }
-
-        pTData->pData->readyCounter++;
-        if ( pTData->pData->readyCounter == pTData->pData->nbCores )
-        {
-            pthread_cond_signal(&pTData->pData->startSyncCond);
-        }
-
-        // Wait for a measure to be started
-        if (pTData->pData->threadStopper == 0)
-        {
-            pthread_mutex_lock(&pTData->pData->measureSyncMutex);
-        }
-
-        pthread_mutex_unlock(&pTData->pData->startSyncMutex);
-        if (pTData->pData->threadStopper == 1)
-        {
-            pthread_mutex_unlock(&pTData->pData->measureSyncMutex);
-            break;
-        }
-
-        pthread_cond_wait(&(pTData->pData->measureSyncCond),&(pTData->pData->measureSyncMutex));
-
-        pthread_mutex_unlock(&pTData->pData->measureSyncMutex);
-        if ( pTData->pData->threadStopper == 1 )
-        {
-            break;
-        }
-        
-        {
-           pid_t myself = syscall (__NR_gettid);
-           fprintf(stderr,"[TIMERANDROID] Measure on thread %d\n",myself);
-        }
-
-        uint32_t value = 0;
-        asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(value));
-        pTData->pData->pCyclesMeasures[pTData->threadId] = value;
-
-
-        // Tell the master thread that we finished
-        if ( pTData->pData->threadStopper == 0 )
-        {
-            pthread_mutex_lock(&pTData->pData->masterSyncMutex);
-        }
-        else
-        {
-            break;
-        }
-
-        pTData->pData->measureCounter++;
-        if ( pTData->pData->measureCounter >= pTData->pData->nbCores )
-        {
-            // Throw signal only if needed
-            pthread_cond_signal(&pTData->pData->masterSyncCond);
-        }
-        pthread_mutex_unlock(&pTData->pData->masterSyncMutex);
-    }
-
-    return NULL;
-}
+   char threadMeasureStopper; /*!< Stopper for the measure loop in thread */
+   char threadStopper;        /*!< Stopper for the measure thread */
+}SData;
 
 extern unsigned int nbDevices (void *data) {
    (void) data;
@@ -216,201 +64,145 @@ extern unsigned int nbChannels (void *data)
     return pData->nbCores;
 }
 
-void cleanup(SData* pData)
+int initData(SData* pData)
 {
-    if ( pData != NULL )
-    {
-        pData->threadStopper = 1;
-        if ( pData->pThreadData != NULL )
-        {
-            pthread_mutex_lock(&pData->measureSyncMutex);
-            pthread_cond_broadcast(&pData->measureSyncCond);
-            pthread_mutex_unlock(&pData->measureSyncMutex);
-
-            unsigned int thread = 0;
-            for (thread = 0 ; thread < pData->nbCores ;
-                 thread++)
-            {
-                pthread_join(pData->pThreadsId[thread],NULL);
-            }
-        }
-
-        pthread_cond_destroy(&pData->masterSyncCond);
-        pthread_mutex_destroy(&pData->masterSyncMutex);
-        pthread_cond_destroy(&pData->startSyncCond);
-        pthread_mutex_destroy(&pData->startSyncMutex);
-        pthread_cond_destroy(&pData->measureSyncCond);
-        pthread_mutex_destroy(&pData->measureSyncMutex);
-
-        free(pData->pThreadsId);
-        free(pData->pCyclesMeasures);
-        free(pData->pCyclesDelta);
-        free(pData->pThreadData);
-        free(pData);
-        pData=NULL;
-    }
+   pData->pThreads = NULL;
+   pData->pThreadsData = NULL;
+   pData->nbCores = 0;
+   pData->threadStopper = 0;
+   nbChannels(pData);
+   
+   pData->pThreads = calloc(pData->nbCores,sizeof(*pData->pThreads));
+   pData->pThreadsData = calloc(pData->nbCores,sizeof(*pData->pThreadsData));
+   pData->pCycles = calloc(pData->nbCores,sizeof(*pData->pCycles));
+   if ( pData->pThreads == NULL || pData->pThreadsData == NULL || pData->pCycles == NULL)
+   {
+      fprintf(stderr,"[TIMERANDROID] Fail to allocate memory for core data");
+      return -1;
+   }
+   
+   return 0;
 }
 
-extern void *init (void)
+void cleanup(SData* pData)
 {
-   SData *pData = malloc (sizeof (*pData));
+   if (pData)
+   {
+      free(pData->pCycles);
+      free(pData->pThreadsData);
+      free(pData->pThreads);
+   }
+   free(pData);
+}
+
+void *init (void)
+{
+   int error = 0;
+   SData* pData = calloc(1,sizeof(*pData));
    if ( pData == NULL )
    {
-       fprintf(stderr,"Failed to allocate memory (pData)\n");
-       return NULL;
+      fprintf(stderr,"[TIMERANDROID] Fail to allocate internal structure\n");
+      return NULL;
    }
-
-   // Init inner fields
-   pData->threadStopper = 0;
-   pData->readyCounter = 0;
-   pData->nbCores = 0;
-   nbChannels(pData);
-
-   pData->pThreadsId = malloc(sizeof(*pData->pThreadsId) * pData->nbCores);
-   pData->pCyclesMeasures = malloc(sizeof(*pData->pCyclesMeasures) * pData->nbCores);
-   pData->pCyclesDelta = malloc(sizeof(*pData->pCyclesDelta) * pData->nbCores);
-   pData->pThreadData = malloc(sizeof(*pData->pThreadData) * pData->nbCores);
-   if ( pData->pThreadsId == NULL || pData->pCyclesMeasures == NULL || pData->pCyclesDelta == NULL || pData->pThreadData  == NULL )
+   
+   error = initData(pData);
+   if ( error != 0 )
    {
-       fprintf(stderr,"Failed to allocate memory (%p | %p | %p | %p)\n",pData->pThreadsId,pData->pCyclesMeasures,pData->pCyclesDelta,pData->pThreadData);
-       cleanup(pData);
-       return NULL;
+      cleanup(pData);
+      return NULL;
    }
-
-   if ( pthread_mutex_init(&pData->masterSyncMutex, NULL) != 0 )
+      
+   error = barrier_create(&pData->barrier,pData->nbCores+1);
+   if ( error != 0 )
    {
-       fprintf(stderr,"Failed to init mutex\n");
-       cleanup(pData);
-       return NULL;
+      fprintf(stderr,"[TIMERANDROID] Fail to create the barrier '%s'\n",strerror(errno));
+      cleanup(pData);
+      return NULL;
    }
-   if ( pthread_cond_init(&pData->masterSyncCond, NULL) != 0 )
+   
+   unsigned int i = 0;
+   for (i = 0 ; i < pData->nbCores ; i++ )
    {
-       fprintf(stderr,"Failed to init condition\n");
-       cleanup(pData);
-       return NULL;
+      // Copy data to be read by the threads
+      pData->pThreadsData[i].pBarrier = &pData->barrier;
+      
+      pData->pThreadsData[i].pThreadMeasureStopper = &pData->threadMeasureStopper;
+      pData->pThreadsData[i].pThreadStopper = &pData->threadStopper;
+      
+      pData->pThreadsData[i].coreID = i;
+      if ( pthread_create(&pData->pThreads[i],NULL,measureThread,(void*)&pData->pThreadsData[i]) != 0 )
+      {
+          fprintf(stderr,"[TIMERANDROID] Failed to create runner thread '%s'\n",strerror(errno));
+          cleanup(pData);
+          return NULL;
+      }
    }
-   if ( pthread_mutex_init(&pData->startSyncMutex, NULL) != 0 )
-   {
-       fprintf(stderr,"Failed to init mutex\n");
-       cleanup(pData);
-       return NULL;
-   }
-   if ( pthread_cond_init(&pData->startSyncCond, NULL) != 0 )
-   {
-       fprintf(stderr,"Failed to init condition\n");
-       cleanup(pData);
-       return NULL;
-   }
-   if ( pthread_mutex_init(&pData->measureSyncMutex, NULL) != 0 )
-   {
-       fprintf(stderr,"Failed to init mutex\n");
-       cleanup(pData);
-       return NULL;
-   }
-   if ( pthread_cond_init(&pData->measureSyncCond, NULL) != 0 )
-   {
-       fprintf(stderr,"Failed to init condition\n");
-       cleanup(pData);
-       return NULL;
-   }
-
-   unsigned int thread = 0;
-   for (thread = 0 ; thread < pData->nbCores ;
-        thread++)
-   {
-       pthread_attr_t attr;
-       pData->pThreadData[thread].pData= pData;
-       pData->pThreadData[thread].threadId = thread;
-
-       if (pthread_attr_init(&attr) != 0 )
-       {
-           fprintf(stderr,"Failed to init attributes for thread\n");
-       }
-       if ( pthread_create(&pData->pThreadsId[thread],&attr,measureThread,(void*) &pData->pThreadData[thread]) != 0 )
-       {
-           fprintf(stderr,"Failed to create runner thread\n");
-       }
-
-       pthread_attr_destroy(&attr);
-   }
-
-
-
+   
    return pData;
 }
 
-void getMeasure(SData* pData)
+void fini (void *data)
 {
-    assert(pData);
-
-    pthread_mutex_lock(&pData->startSyncMutex);
-
-    while (pData->readyCounter < pData->nbCores)
-    {
-        pthread_cond_wait(&pData->startSyncCond,&pData->startSyncMutex);
-    }
-    pData->readyCounter = 0;
-
-    pthread_mutex_unlock(&pData->startSyncMutex);
-
-    // Now, we have to wait for the measure
-
-    pthread_mutex_lock(&pData->masterSyncMutex);
-    pData->measureCounter = 0;
-
-    pthread_mutex_lock(&pData->measureSyncMutex);
-    pthread_cond_broadcast(&pData->measureSyncCond);
-    pthread_mutex_unlock(&pData->measureSyncMutex);
-
-    while (pData->measureCounter < pData->nbCores)
-    {
-        pthread_cond_wait(&pData->masterSyncCond,&pData->masterSyncMutex);
-    }
-    pthread_mutex_unlock(&pData->masterSyncMutex);
+   SData* pData = (SData*)data;
+   pData->threadMeasureStopper = 1;
+   pData->threadStopper = 1;
+   
+   if ( barrier_destroy(&pData->barrier) )
+   {
+      fprintf(stderr,"[TIMERANDROID] Failed to destroy barrier in main thread '%s'\n",strerror(errno));
+   }
+   
+   cleanup(pData);
 }
 
-extern void start (void *data)
+void wakeUpThreads(SData* pData)
 {
-    if ( data != NULL )
-    {
-        SData *pData = (SData*) data;
-        getMeasure(pData);
-
-        memcpy(pData->pCyclesDelta,pData->pCyclesMeasures,sizeof(*pData->pCyclesMeasures) * pData->nbCores);
-    }
+   unsigned int i = 0;
+   
+   for ( i = 0 ; i < pData->nbCores ; i++ )
+   {
+      pthread_kill(pData->pThreads[i],SIGUSR2);
+   }
 }
 
-extern double *stop (void *data)
+void start (void *data)
 {
-    if ( data != NULL )
-    {
-        SData *pData = (SData*) data;
-        getMeasure(pData);
-
-        unsigned int i = 0;
-        for ( i = 0 ; i < pData->nbCores ; i++ )
-        {
-            pData->pCyclesDelta[i] = pData->pCyclesMeasures[i] - pData->pCyclesDelta[i];
-        }
-        return pData->pCyclesDelta;
-    }
-    return NULL;
+   SData* pData = (SData*)data;
+   unsigned int i = 0;
+   
+   for ( i = 0 ; i < pData->nbCores ; i++ )
+   {
+      pData->pThreadsData[i].cycles = 0;
+   }
+   pData->threadMeasureStopper = 0;
+   
+   if ( barrier_wait(&pData->barrier) != 0 )
+   {
+      fprintf(stderr,"[TIMERANDROID] Failed to wait barrier in main thread '%s'\n",strerror(errno));
+   }
 }
 
-extern void fini (void *data) {
-   cleanup((SData*)data);
+double* stop (void *data)
+{
+   SData* pData = (SData*)data;
+   unsigned int i = 0;
+   
+   pData->threadMeasureStopper = 1;
+   wakeUpThreads(pData);
+   
+   if ( barrier_wait(&pData->barrier) != 0 )
+   {
+      fprintf(stderr,"[TIMERANDROID] Failed to wait barrier in main thread '%s'\n",strerror(errno));
+   }
+   
+   for ( i = 0 ; i < pData->nbCores ; i++ )
+   {
+      pData->pCycles[i] = pData->pThreadsData[i].cycles;
+   }
+   return (double*)pData->pCycles;
 }
 
-extern void update (void *data) {
-    if ( data != NULL )
-    {
-        SData *pData = (SData*) data;
-        getMeasure(pData);
-
-        unsigned int i = 0;
-        for ( i = 0 ; i < pData->nbCores ; i++ )
-        {
-            pData->pCyclesDelta[i] = pData->pCyclesMeasures[i] - pData->pCyclesDelta[i];
-        }
-    }
+void update (void *data)
+{
+   (void) data;
 }

@@ -17,15 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-override CFLAGS:=-O3 -g -Wall -Wextra -I ../../libenergymsr/ -DLPP_API_VERSION=$(LPP_API_VERSION)
-override LDFLAGS:=-lpthread -lrt -lm
+override CFLAGS:=$(CFLAGS) -O3 -g -Wall -Wextra -I ../../libenergymsr/ -DLPP_API_VERSION=$(LPP_API_VERSION)
+override LDFLAGS:=$(LDFLAGS) -lm
 
 .PHONY: clean all
 
 all: energy_server
 
 energy_server: energyserver.c ../../libenergymsr/libenergymsr.c energyserver.h
-	$(CC) $(CFLAGS) $< ../../libenergymsr/libenergymsr.c -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
 	rm -f energy_server
