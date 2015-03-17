@@ -1,0 +1,1 @@
+lPowerProbe is a light tool to benchmark your programs. The tool will give you the energy consumption and the time taken by the program.
