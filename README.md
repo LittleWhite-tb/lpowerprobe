@@ -30,10 +30,11 @@ Your toolchain must be properly configured for crosscompiling to ARM architectur
 
 Performs standardized and accurate measurements.
 It can work in three different modes depending on the prog argument value:
-	- prog is not specified: daemon mode: the measurement is (re)started/ended when receiving SIGUSR1.
-	- prog ends by .s: it is compiled and run instrumented as a kernel.
-	- otherwise: prog is run instrumented as an executable file.
+ * prog is not specified: daemon mode: the measurement is (re)started/ended when receiving SIGUSR1.
+ * prog ends by .s: it is compiled and run instrumented as a kernel.
+ * otherwise: prog is run instrumented as an executable file.
 
+```
   -h, --help				Display this help
   -v, --version				Display the program version
 
@@ -44,23 +45,23 @@ It can work in three different modes depending on the prog argument value:
   -o, --output="resultFile"		Where to write the results
   -m, --iteration-mem-size=NUMBER	The memory size in bytes used in the kernel per iteration
   -i, --iteration=NUMBER		The number of kernel iteration
-
+```
 
 The result is output in a file called 'output.csv' or in terminal if the file can't be write.
 
 
 ## Generate documentation
 
-    The documentation can be generated using doxygen and the following command:
+The documentation can be generated using doxygen and the following command:
 ```
    make doc
 ```
     
 ## Licence
 
-    Copyright (C) 2013-2015 Universite de Versailles
-        GPLv3
-   
-    See COPYRIGHT file
+Copyright (C) 2013-2015 Universite de Versailles
+GPLv3
+
+See [COPYRIGHT](https://github.com/LittleWhite-tb/lpowerprobe/blob/master/COPYRIGHT) file
 
 
